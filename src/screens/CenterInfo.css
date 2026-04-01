@@ -1,0 +1,215 @@
+/* ============================================
+   연구센터 소개
+   ============================================ */
+
+.center-info {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-deep);
+}
+
+.ci-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: var(--side-pad) !important;
+  padding-right: var(--side-pad) !important;
+}
+
+.ci-header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* 콘텐츠 */
+.ci-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: var(--content-max-narrow);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 히어로 */
+.ci-hero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, var(--bg-card), transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.ci-hero-icon {
+  font-size: 3rem;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+}
+
+.ci-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ci-hero-name {
+  font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.ci-hero-univ {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.ci-hero-id {
+  font-size: 0.8rem;
+  color: var(--accent);
+  background: var(--accent-glow);
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  padding: 3px 12px;
+  border-radius: 999px;
+  width: fit-content;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+
+/* 섹션 */
+.ci-section {
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ci-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+/* 소개 카드 */
+.ci-intro-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+
+.ci-intro-text {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+/* FAQ */
+.ci-faqs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ci-faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition-base);
+}
+
+.ci-faq-open {
+  border-color: var(--border-glow);
+}
+
+.ci-faq-q {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.ci-faq-q:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ci-faq-num {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--accent-glow);
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  padding: 3px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-family: monospace;
+}
+
+.ci-faq-question {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.ci-faq-chevron {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.ci-faq-a {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 180, 255, 0.03);
+  animation: fadeIn 0.2s ease;
+}
+
+.ci-faq-a-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--accent2);
+  background: var(--accent2-glow);
+  border: 1px solid rgba(0, 229, 160, 0.3);
+  padding: 3px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  height: fit-content;
+  font-family: monospace;
+}
+
+.ci-faq-answer {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  word-break: keep-all;
+}

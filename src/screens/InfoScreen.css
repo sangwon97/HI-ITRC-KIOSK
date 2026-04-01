@@ -1,0 +1,346 @@
+/* ============================================
+   행사 안내
+   ============================================ */
+
+.info-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-deep);
+}
+
+.is-header {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  text-align: center;
+  height: auto !important;
+  padding: 14px var(--side-pad);
+}
+
+/* 탭 */
+.is-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 var(--side-pad);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  flex-shrink: 0;
+}
+
+.is-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+
+.is-tab:hover {
+  color: var(--text-primary);
+}
+
+.is-tab-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* 콘텐츠 영역 */
+.is-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.is-tab-content {
+  padding: 24px var(--side-pad);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 히어로 배너 */
+.is-hero-banner {
+  padding: 32px;
+  background: linear-gradient(135deg, var(--bg-card), rgba(0, 100, 200, 0.1));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.is-hero-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 50%, rgba(0, 100, 200, 0.12), transparent 70%);
+  pointer-events: none;
+}
+
+.is-hero-badge {
+  display: inline-flex;
+  padding: 6px 18px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.is-hero-title {
+  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+
+.is-hero-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.is-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.is-meta-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+/* 통계 */
+.is-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.is-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.is-stat-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.is-stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* 소개 카드 */
+.is-overview-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+}
+
+.is-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.is-overview-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+/* 프로그램 */
+.is-programs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.is-program-card {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 24px 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+.is-program-card:hover {
+  border-color: var(--border-glow);
+  background: var(--bg-card-hover);
+}
+
+.is-prog-icon {
+  font-size: 2.5rem;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-deep);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.is-prog-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.is-prog-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.is-prog-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.is-prog-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* 전시 구역 */
+.is-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.is-zone-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: left;
+}
+
+.is-zone-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-glow);
+  transform: translateX(4px);
+}
+
+.is-zone-num {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text-muted);
+  min-width: 32px;
+  font-family: monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.is-zone-icon {
+  font-size: 1.75rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.is-zone-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.is-zone-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.is-zone-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.is-zone-sections {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.is-zone-section-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-glow);
+  border: 1px solid rgba(0, 180, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+
+.is-zone-arrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: all var(--transition-base);
+}
+
+.is-zone-card:hover .is-zone-arrow {
+  color: var(--accent);
+  transform: translateX(4px);
+}

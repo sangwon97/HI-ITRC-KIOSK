@@ -1,0 +1,301 @@
+/* ============================================
+   대기 화면
+   ============================================ */
+
+.idle-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(32px, 4vh, 56px) clamp(48px, 6vw, 100px);
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--bg-deep);
+}
+
+/* 배경 */
+.idle-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.idle-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  animation: orbFloat 8s ease-in-out infinite;
+}
+
+.idle-orb-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, #0055cc, transparent 70%);
+  top: -200px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.idle-orb-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #00e5a0, transparent 70%);
+  bottom: -150px;
+  right: -100px;
+  animation-delay: -3s;
+}
+
+.idle-orb-3 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #6c63ff, transparent 70%);
+  top: 50%;
+  right: 20%;
+  transform: translateY(-50%);
+  opacity: 0.2;
+  animation-delay: -6s;
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.05); }
+  66% { transform: translate(-20px, 15px) scale(0.95); }
+}
+
+.idle-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 180, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 180, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* 헤더 */
+.idle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  z-index: 1;
+}
+
+.idle-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.idle-logo-itrc {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #00b4ff, #0066cc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+.idle-logo-year {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.idle-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.idle-header-tag {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* 메인 */
+.idle-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 1;
+  flex: 1;
+  justify-content: center;
+  gap: 24px;
+}
+
+.idle-slide-enter {
+  animation: slideEnter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.idle-slide-exit {
+  animation: slideExit 0.5s ease forwards;
+}
+
+@keyframes slideEnter {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideExit {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
+.idle-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.idle-headline {
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.idle-sub {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* 행사 정보 */
+.idle-event-info {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 32px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  margin-top: 8px;
+}
+
+.idle-event-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.idle-event-icon {
+  font-size: 1.25rem;
+}
+
+.idle-event-text {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.idle-event-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+
+/* 통계 */
+.idle-stats {
+  display: flex;
+  gap: clamp(24px, 3vw, 48px);
+  z-index: 1;
+  padding: clamp(18px, 2.2vh, 28px) clamp(32px, 4vw, 64px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(10px);
+  max-width: var(--content-max-narrow);
+  width: 100%;
+}
+
+.idle-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: clamp(100px, 10vw, 140px);
+  flex: 1;
+}
+
+.idle-stat-value {
+  font-size: clamp(1.4rem, 2.2vh, 2rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.idle-stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* 터치 프롬프트 */
+.idle-touch-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 1;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.5s ease;
+}
+
+.idle-touch-prompt.idle-touch-pulse {
+  color: var(--accent);
+}
+
+.idle-touch-icon {
+  width: 64px;
+  height: 64px;
+  color: currentColor;
+  opacity: 0.7;
+  transition: all 0.5s ease;
+}
+
+.idle-touch-pulse .idle-touch-icon {
+  opacity: 1;
+  filter: drop-shadow(0 0 12px currentColor);
+}
+
+/* 인디케이터 */
+.idle-indicators {
+  display: flex;
+  gap: 8px;
+  z-index: 1;
+}
+
+.idle-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.idle-dot-active {
+  width: 24px;
+  border-radius: 4px;
+  background: var(--accent);
+}

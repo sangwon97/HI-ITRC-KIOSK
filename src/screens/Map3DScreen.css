@@ -1,0 +1,477 @@
+/* ============================================
+   3D 전시 지도  —  사이드바 + 맵 레이아웃
+   ============================================ */
+
+/* ── 루트 레이아웃 ─────────────────────────── */
+.map3d-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  background: #f4f8fd;
+}
+
+/* ════════════════════════════════════════════
+   좌측 사이드바
+   ════════════════════════════════════════════ */
+.map3d-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-right: 1px solid rgba(0, 100, 160, 0.10);
+  box-shadow: 2px 0 12px rgba(0, 60, 120, 0.06);
+  z-index: 10;
+  overflow: hidden;
+}
+
+/* 로고 */
+.map3d-sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 24px 20px;
+  flex-shrink: 0;
+}
+
+.map3d-logo-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #0097A7;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.map3d-logo-bars {
+  font-size: 1.3rem;
+  opacity: 0.75;
+  letter-spacing: -0.05em;
+}
+
+.map3d-logo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.map3d-logo-info strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0c1a2e;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.map3d-logo-info span {
+  font-size: 0.75rem;
+  color: #7a98b8;
+  font-weight: 500;
+}
+
+/* 설명 */
+.map3d-sidebar-desc {
+  padding: 0 24px 20px;
+  font-size: 0.72rem;
+  color: #7a98b8;
+  line-height: 1.6;
+  flex-shrink: 0;
+}
+
+/* 구분선 */
+.map3d-sidebar-divider {
+  height: 1px;
+  background: rgba(0, 80, 140, 0.08);
+  margin: 0 24px;
+  flex-shrink: 0;
+}
+
+/* ── 네비게이션 ─────────────────────────────── */
+.map3d-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.map3d-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.map3d-nav-item:hover {
+  background: rgba(0, 151, 167, 0.08);
+}
+
+.map3d-nav-active {
+  background: #0097A7 !important;
+}
+
+.map3d-nav-active .map3d-nav-icon {
+  filter: none;
+}
+
+.map3d-nav-active .map3d-nav-label {
+  color: #ffffff;
+}
+
+.map3d-nav-active .map3d-nav-sub {
+  color: rgba(255, 255, 255, 0.70);
+}
+
+.map3d-nav-icon {
+  font-size: 1.35rem;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 80, 140, 0.06);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.map3d-nav-active .map3d-nav-icon {
+  background: rgba(255, 255, 255, 0.20);
+}
+
+.map3d-nav-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.map3d-nav-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  line-height: 1.2;
+}
+
+.map3d-nav-sub {
+  font-size: 0.70rem;
+  color: #7a98b8;
+  font-weight: 400;
+}
+
+/* ── 카테고리 범례 ───────────────────────────── */
+.map3d-sidebar-legend {
+  margin-top: auto;
+  border-top: 1px solid rgba(0, 80, 140, 0.08);
+  padding: 16px 24px 20px;
+  flex-shrink: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.map3d-legend-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #7a98b8;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.map3d-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.map3d-legend-list::-webkit-scrollbar { display: none; }
+
+.map3d-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.70rem;
+  color: #3d5a80;
+  font-weight: 500;
+}
+
+.map3d-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════
+   우측 지도 영역
+   ════════════════════════════════════════════ */
+.map3d-map-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #eef5fc;
+}
+
+/* ── 상단 헤더 ───────────────────────────────── */
+.map3d-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(0, 100, 160, 0.10);
+  flex-shrink: 0;
+  backdrop-filter: blur(12px);
+}
+
+.map3d-header-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.map3d-header-title {
+  font-size: 1.0rem;
+  font-weight: 800;
+  color: #0c1a2e;
+  letter-spacing: -0.02em;
+}
+
+.map3d-header-sep {
+  font-size: 1.0rem;
+  color: #b0c4d8;
+  font-weight: 300;
+}
+
+.map3d-header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.map3d-header-main {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #3d5a80;
+  line-height: 1.2;
+}
+
+.map3d-header-sub {
+  font-size: 0.68rem;
+  color: #7a98b8;
+  font-weight: 400;
+}
+
+.map3d-reset-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: rgba(0, 151, 167, 0.08);
+  border: 1px solid rgba(0, 151, 167, 0.25);
+  border-radius: 999px;
+  color: #006F7F;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.map3d-reset-btn:hover {
+  background: rgba(0, 151, 167, 0.16);
+  border-color: rgba(0, 151, 167, 0.45);
+}
+
+/* ── 캔버스 래퍼 ─────────────────────────────── */
+.map3d-canvas-wrapper {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── 조작 안내 ──────────────────────────────── */
+.map3d-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 20px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(0, 80, 140, 0.10);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: rgba(30, 60, 100, 0.50);
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 40, 100, 0.06);
+}
+
+/* ── 경로 안내 배지 ────────────────────────────── */
+.map3d-route-badge {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: rgba(0, 100, 180, 0.88);
+  border: 1px solid rgba(0, 160, 220, 0.35);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  backdrop-filter: blur(12px);
+  z-index: 15;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: badgeFadeIn 0.3s ease;
+}
+
+@keyframes badgeFadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── 선택 부스 패널 ─────────────────────────── */
+.map3d-panel {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(280px, 22vw, 360px);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(0, 80, 140, 0.10);
+  border-radius: 20px;
+  padding: 26px 26px 22px;
+  backdrop-filter: blur(20px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: panelSlideIn 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  box-shadow: 0 16px 48px rgba(0, 40, 100, 0.14), 0 0 0 1px rgba(0, 80, 140, 0.06);
+}
+
+@keyframes panelSlideIn {
+  from { opacity: 0; transform: translateY(-50%) translateX(20px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+.map3d-panel-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 40, 100, 0.06);
+  border: 1px solid rgba(0, 60, 140, 0.10);
+  color: rgba(30, 60, 100, 0.45);
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.map3d-panel-close:hover {
+  background: rgba(210, 40, 60, 0.08);
+  color: #c0102a;
+}
+
+.map3d-panel-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: color-mix(in srgb, var(--cat-color, #00b4ff) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cat-color, #00b4ff) 35%, transparent);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cat-color, #00b4ff);
+  width: fit-content;
+}
+
+.map3d-panel-id {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0097A7;
+  background: rgba(0, 151, 167, 0.10);
+  border: 1px solid rgba(0, 151, 167, 0.22);
+  padding: 3px 12px;
+  border-radius: 999px;
+  width: fit-content;
+  font-family: monospace;
+  letter-spacing: 0.08em;
+}
+
+.map3d-panel-name {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #0c1a2e;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.map3d-panel-univ {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #3d5a80;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.map3d-panel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, #007B8A, #0097A7);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin-top: 4px;
+  box-shadow: 0 4px 16px rgba(0, 151, 167, 0.35);
+}
+
+.map3d-panel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 151, 167, 0.45);
+}
+
+.map3d-panel-btn:active {
+  transform: translateY(0);
+}

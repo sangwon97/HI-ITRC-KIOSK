@@ -1,0 +1,254 @@
+/* ============================================
+   부스 상세
+   ============================================ */
+
+.booth-detail {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-deep);
+}
+
+.bd-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: var(--side-pad) !important;
+  padding-right: var(--side-pad) !important;
+}
+
+.bd-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bd-header-id {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-glow);
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-family: monospace;
+  letter-spacing: 0.1em;
+}
+
+/* 콘텐츠 */
+.bd-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: var(--content-max-narrow);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 히어로 */
+.bd-hero {
+  padding: 32px 32px 28px;
+  background: linear-gradient(180deg, var(--bg-card) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.bd-hero::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--cat-color, var(--accent));
+  border-radius: 0 4px 4px 0;
+}
+
+.bd-hero-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: color-mix(in srgb, var(--cat-color, var(--accent)) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cat-color, var(--accent)) 40%, transparent);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--cat-color, var(--accent));
+  margin-bottom: 16px;
+  margin-left: 16px;
+}
+
+.bd-hero-name {
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  padding-left: 16px;
+  margin-bottom: 12px;
+}
+
+.bd-hero-univ {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 16px;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.bd-univ-icon {
+  font-size: 1.1rem;
+}
+
+/* 섹션 */
+.bd-section {
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bd-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.bd-section-count {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+/* 포스터 카드 */
+.bd-posters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bd-poster-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: left;
+}
+
+.bd-poster-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-glow);
+  transform: translateX(4px);
+}
+
+.bd-poster-num {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--text-muted);
+  min-width: 40px;
+  font-variant-numeric: tabular-nums;
+  font-family: monospace;
+}
+
+.bd-poster-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bd-poster-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.bd-poster-preview {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.bd-poster-arrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: all var(--transition-base);
+}
+
+.bd-poster-card:hover .bd-poster-arrow {
+  color: var(--accent);
+  transform: translateX(4px);
+}
+
+/* 센터 소개 */
+.bd-center-intro {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bd-center-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.bd-center-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.bd-center-btn:hover {
+  background: rgba(0, 180, 255, 0.2);
+}
+
+/* 빈 상태 */
+.bd-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--text-muted);
+  font-size: 1rem;
+  padding: 60px;
+}
+
+.bd-empty span {
+  font-size: 3rem;
+}

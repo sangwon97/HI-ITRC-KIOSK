@@ -1,0 +1,153 @@
+/* ============================================
+   포스터 상세
+   ============================================ */
+
+.poster-detail {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-deep);
+}
+
+.pd-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: var(--side-pad) !important;
+  padding-right: var(--side-pad) !important;
+}
+
+.pd-header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* 콘텐츠 */
+.pd-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  min-height: 0;
+  max-width: 1560px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 이미지 영역 */
+.pd-image-area {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+}
+
+.pd-image-wrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pd-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.pd-image-fallback {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.pd-image-fallback span:first-child {
+  font-size: 3rem;
+}
+
+/* 정보 영역 */
+.pd-info {
+  display: flex;
+  flex-direction: column;
+  padding: 36px clamp(32px, 4vw, 64px);
+  gap: 0;
+  background: var(--bg-dark);
+}
+
+.pd-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pd-source-id {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-glow);
+  border: 1px solid rgba(0, 180, 255, 0.3);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+
+.pd-source-sep {
+  color: var(--text-muted);
+}
+
+.pd-source-booth {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.pd-title {
+  font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.pd-univ {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.pd-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+.pd-description-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.pd-description {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  word-break: keep-all;
+}
