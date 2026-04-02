@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { booths, categories, getBoothsByCategory } from '../data/booths';
-import './MapView.css';
+import { booths, categories } from '../../../data/booths';
+import './styles.css';
 
 // 섹션별 색상
 const SECTION_COLORS = {

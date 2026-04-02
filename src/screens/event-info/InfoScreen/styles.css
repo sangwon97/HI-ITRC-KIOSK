@@ -11,6 +11,13 @@
   background: var(--bg-deep);
 }
 
+.info-screen-embedded {
+  position: relative;
+  inset: auto;
+  height: 100%;
+  background: #fff;
+}
+
 .is-header {
   display: grid !important;
   grid-template-columns: 1fr auto 1fr;
@@ -24,7 +31,7 @@
 .is-tabs {
   display: flex;
   gap: 0;
-  padding: 0 var(--side-pad);
+  margin: 0 var(--side-pad);
   border-bottom: 1px solid var(--border);
   background: var(--bg-card);
   flex-shrink: 0;

@@ -13,6 +13,7 @@
   cursor: pointer;
   overflow: hidden;
   background: var(--bg-deep);
+  gap: 20px;
 }
 
 /* 배경 */

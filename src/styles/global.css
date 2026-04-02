@@ -71,11 +71,12 @@
   --header-height: clamp(64px, 7.5vh, 88px);
   --nav-bar-height: 100px;
   --touch-target: clamp(56px, 6.5vh, 80px);
+  --section-bar-height: 60px;
 
   /* 16:9 와이드스크린 콘텐츠 폭 제한 */
   --content-max: 1360px;
   --content-max-narrow: 880px;
-  --side-pad: clamp(24px, 3.5vw, 64px);
+  --side-pad: 50px;
 }
 
 /* 리셋 & 기본 */

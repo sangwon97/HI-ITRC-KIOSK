@@ -1,31 +1,31 @@
 import { useState } from 'react';
-import { eventInfo } from '../data/eventInfo';
-import './InfoScreen.css';
+import { eventInfo } from '../../../data/eventInfo';
+import './styles.css';
 
 const TABS = [
-  { id: 'overview', label: '행사 개요', icon: '📋' },
-  { id: 'programs', label: '프로그램', icon: '🎤' },
-  { id: 'zones', label: '전시 구역', icon: '🏛️' },
+  { id: 'overview', label: '행사 개요' },
+  { id: 'programs', label: '프로그램' },
+  { id: 'zones', label: '전시 구역'},
 ];
 
-export default function InfoScreen({ goBack, goHome, navigate }) {
+export default function InfoScreen({ goBack, goHome, navigate, embedded = false }) {
   const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <div className="info-screen screen-enter">
-      {/* 헤더 */}
-      <header className="screen-header is-header">
-        <div style={{ width: 80 }} />
-        <div>
-          <div className="title">행사 안내</div>
-          <div className="subtitle">{eventInfo.title}</div>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button className="btn-back" onClick={goBack}>홈</button>
-        </div>
-      </header>
+    <div className={`info-screen ${embedded ? 'info-screen-embedded' : 'screen-enter'}`}>
+      {!embedded && (
+        <header className="screen-header is-header">
+          <div style={{ width: 80 }} />
+          <div>
+            <div className="title">행사 안내</div>
+            <div className="subtitle">{eventInfo.title}</div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button className="btn-back" onClick={goBack}>홈</button>
+          </div>
+        </header>
+      )}
 
-      {/* 탭 */}
       <div className="is-tabs">
         {TABS.map(tab => (
           <button

@@ -1,16 +1,12 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import './styles/global.css';
 
-import IdleScreen    from './screens/IdleScreen';
-const Map3DScreen   = lazy(() => import('./screens/Map3DScreen'));  // Three.js lazy load
-import BoothBrowser  from './screens/BoothBrowser';
-import BoothDetail   from './screens/BoothDetail';
-import PosterDetail  from './screens/PosterDetail';
-import CenterInfo    from './screens/CenterInfo';
-import InfoScreen    from './screens/InfoScreen';
-import SearchScreen  from './screens/SearchScreen';
+import IdleScreen from './screens/idle/IdleScreen';
 
-const IDLE_TIMEOUT = 120_000; // 120초(2분) 후 대기 화면으로
+const Map3DScreen = lazy(() => import('./screens/exhibition-map/Map3DScreen'));
+
+const IDLE_TIMEOUT = 12000_000; // 120초(2분) 후 대기 화면으로
+const MAP_PANEL_SCREENS = new Set(['home', 'booth-browser', 'booth-detail', 'poster', 'center', 'info', 'search']);
 
 export default function App() {
   // home = 3D 맵 화면
@@ -99,17 +95,15 @@ export default function App() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: 'var(--bg-deep)' }}>
       {screen === 'idle'         && <IdleScreen onStart={startKiosk} />}
-      {screen === 'home'         && (
+      {MAP_PANEL_SCREENS.has(screen) && (
         <Suspense fallback={<div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-muted)',fontSize:'1rem'}}>전시장 로딩 중...</div>}>
-          <Map3DScreen {...screenProps} />
+          <Map3DScreen
+            {...screenProps}
+            activePanel={screen === 'home' ? null : screen}
+            data={screenData}
+          />
         </Suspense>
       )}
-      {screen === 'booth-browser'&& <BoothBrowser {...screenProps} />}
-      {screen === 'booth-detail' && <BoothDetail {...screenProps} />}
-      {screen === 'poster'       && <PosterDetail {...screenProps} />}
-      {screen === 'center'       && <CenterInfo {...screenProps} />}
-      {screen === 'info'         && <InfoScreen {...screenProps} />}
-      {screen === 'search'       && <SearchScreen {...screenProps} />}
     </div>
   );
 }

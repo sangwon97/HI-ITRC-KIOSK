@@ -1,21 +1,45 @@
 import { useState } from 'react';
-import './CenterInfo.css';
+import { categories } from '../../../data/booths';
+import backIcon from '../../../assets/icons/back.svg';
+import './styles.css';
 
-export default function CenterInfo({ data, goBack, goHome }) {
+export default function CenterInfo({ data, goBack, goHome, embedded = false }) {
   if (!data) return null;
   const { center, booth } = data;
   const [openFaq, setOpenFaq] = useState(null);
+  const category = categories.find((item) => item.id === (data.categoryId ?? booth?.category));
 
   return (
-    <div className="center-info screen-enter">
-      {/* 헤더 */}
-      <header className="screen-header ci-header">
-        <button className="btn-back" onClick={goBack}>이전</button>
-        <div className="ci-header-title">연구센터 소개</div>
-        <button className="btn-back" onClick={goHome}>홈</button>
-      </header>
+    <div className={`center-info ${embedded ? 'center-info-embedded' : 'screen-enter'}`}>
+      {!embedded && (
+        <header className="screen-header ci-header">
+          <button className="btn-back" onClick={goBack}>이전</button>
+          <div className="ci-header-title">연구센터 소개</div>
+          <button className="btn-back" onClick={goHome}>홈</button>
+        </header>
+      )}
 
-      <div className="ci-content scrollable">
+      {embedded && (
+        <div className="ci-breadcrumb-shell">
+          <div className="ci-breadcrumb-bar">
+            <button className="ci-breadcrumb-back" onClick={goBack} aria-label="뒤로 가기">
+              <img src={backIcon} alt="" />
+            </button>
+            <div className="ci-breadcrumb-trail">
+              <span>부스 안내</span>
+              <span className="ci-breadcrumb-sep">›</span>
+              <span>카테고리 선택</span>
+              <span className="ci-breadcrumb-sep">›</span>
+              <span>{category?.label}</span>
+              <span className="ci-breadcrumb-sep">›</span>
+              <span className="ci-breadcrumb-current">{center.name}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="ci-viewport scrollable">
+        <div className="ci-content">
         {/* 히어로 */}
         <div className="ci-hero">
           <div className="ci-hero-icon">🏫</div>
@@ -25,9 +49,6 @@ export default function CenterInfo({ data, goBack, goHome }) {
               <span>🎓</span>
               <span>{center.univ}</span>
             </div>
-            {booth && (
-              <div className="ci-hero-id">부스 {booth.id}</div>
-            )}
           </div>
         </div>
 
@@ -74,6 +95,7 @@ export default function CenterInfo({ data, goBack, goHome }) {
             </div>
           </section>
         )}
+        </div>
       </div>
     </div>
   );
