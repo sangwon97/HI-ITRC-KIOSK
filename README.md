@@ -29,6 +29,7 @@ src
 │   │   └── InfoScreen
 │   ├── exhibition-map
 │   │   ├── Map3DScreen
+│   │   ├── MapSearchOverlay
 │   │   └── MapView
 │   ├── home
 │   │   └── HomeScreen

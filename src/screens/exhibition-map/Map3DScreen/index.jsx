@@ -8,6 +8,7 @@ import mapIcon from '../../../assets/icons/map.png';
 import searchIcon from '../../../assets/icons/search.png';
 import { categories } from '../../../data/booths';
 import MapScene from '../../../three/MapScene';
+import MapSearchOverlay from '../MapSearchOverlay';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
 import { computeBoothPath } from '../../../utils/mapPath';
 import BoothBrowser from '../../booth-guide/BoothBrowser';
@@ -99,9 +100,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const controlsRef  = useRef();
   const [selected, setSelected]   = useState(null);
   const [pathPoints, setPathPoints] = useState(null);
-  const [resetSignal, setResetSignal] = useState(0);
   const [currentDateTime, setCurrentDateTime] = useState(() => formatDateTimeParts(new Date()));
   const [showLegendHint, setShowLegendHint] = useState(true);
+
+  const [showMapSearch, setShowMapSearch] = useState(false);
 
   const handleSelect = useCallback(booth => {
     setSelected(booth);
@@ -124,10 +126,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
       });
     }
   }, [selected, navigate]);
-
-  const handleResetCamera = useCallback(() => {
-    setResetSignal(s => s + 1);
-  }, []);
 
   const handlePanelNavigate = useCallback((screen) => {
     if ((screen ?? 'home') === (activePanel ?? 'home')) {
@@ -154,6 +152,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     if (activePanel) {
       setSelected(null);
       setPathPoints(null);
+      setShowMapSearch(false);
     }
   }, [activePanel]);
 
@@ -196,7 +195,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 selectedBooth={selected}
                 pathPoints={pathPoints}
                 controlsRef={controlsRef}
-                resetSignal={resetSignal}
+                resetSignal={0}
               />
             </Suspense>
           </Canvas>
@@ -205,9 +204,17 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             드래그: 회전 &middot; 우클릭/두 손가락: 이동 &middot; 스크롤/핀치: 줌 &middot; 부스 클릭: 상세
           </div>
 
-          <button className="map3d-map-reset-btn" onClick={handleResetCamera}>
-            ↺ 초기화
+          <button className="map3d-map-search-btn" onClick={() => setShowMapSearch(true)}>
+            <img src={searchIcon} alt="" className="map3d-map-search-btn-icon" />
+            검색
           </button>
+
+          {showMapSearch && (
+            <MapSearchOverlay
+              onClose={() => setShowMapSearch(false)}
+              onSelect={(booth) => { handleSelect(booth); setShowMapSearch(false); }}
+            />
+          )}
 
           <div className="map3d-legend-help">
             <button

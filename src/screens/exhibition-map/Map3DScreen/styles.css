@@ -326,33 +326,6 @@
   border-color: rgba(0, 151, 167, 0.45);
 }
 
-.map3d-map-reset-btn {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(0, 151, 167, 0.24);
-  border-radius: 999px;
-  color: #006f7f;
-  font-size: 0.84rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-  z-index: 14;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 20px rgba(0, 40, 100, 0.08);
-}
-
-.map3d-map-reset-btn:hover {
-  background: rgba(255, 255, 255, 0.98);
-  border-color: rgba(0, 151, 167, 0.4);
-  transform: translateY(-1px);
-}
 
 .map3d-legend-help {
   position: absolute;
