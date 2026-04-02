@@ -10,6 +10,13 @@
   background: var(--bg-deep);
 }
 
+.search-screen-embedded {
+  position: relative;
+  inset: auto;
+  height: 100%;
+  background: #fff;
+}
+
 .ss-header {
   display: grid !important;
   grid-template-columns: 1fr auto 1fr;
@@ -30,14 +37,19 @@
   width: 100%;
 }
 
+.search-screen-embedded .ss-body {
+  max-width: none;
+  height: 100%;
+}
+
 /* 입력 영역 */
 .ss-input-area {
-  padding: 16px var(--side-pad);
+  margin: 0 var(--side-pad);
+  min-height: var(--section-bar-height);
   border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: center;
   flex-shrink: 0;
 }
 
@@ -45,36 +57,29 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 20px;
+  padding: 0 30px;
   background: var(--bg-card);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  min-height: 56px;
-  transition: border-color var(--transition-base);
+  transition: border-color var(--transition-base), color var(--transition-base);
 }
 
-.ss-input-wrap:has(.ss-input-text:not(:empty)) {
-  border-color: var(--border-glow);
-}
-
-.ss-input-icon {
-  font-size: 1.25rem;
-  flex-shrink: 0;
+.ss-input-icon img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
 }
 
 .ss-input-text {
   flex: 1;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: rgb(0, 0, 0);
   min-height: 1.5em;
   word-break: break-all;
 }
 
-.ss-input-text:empty::before,
-.ss-input-text[data-empty]::before {
-  content: attr(placeholder);
-  color: var(--text-muted);
+.ss-input-text-placeholder {
+  color: #9ab0c5;
 }
 
 .ss-input-clear {
@@ -135,6 +140,12 @@
   min-height: 0;
 }
 
+.search-screen-embedded .ss-main {
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100%;
+}
+
 /* 결과 영역 */
 .ss-results-area {
   display: flex;
@@ -142,6 +153,12 @@
   overflow: hidden;
   border-right: 1px solid var(--border);
   min-width: 0;
+  min-height: 0;
+}
+
+.search-screen-embedded .ss-results-area {
+  border-right: none;
+  border-bottom: 1px solid var(--border);
 }
 
 .ss-empty {
@@ -175,6 +192,7 @@
 
 .ss-result-list {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -230,20 +248,6 @@
   color: var(--text-muted);
 }
 
-.ss-result-id {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--accent);
-  background: var(--accent-glow);
-  border: 1px solid rgba(0, 180, 255, 0.2);
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-family: monospace;
-}
-
 /* 키보드 */
 .ss-keyboard {
   display: flex;
@@ -252,11 +256,18 @@
   padding: 20px 24px;
   background: rgba(255, 255, 255, 0.02);
   border-left: 1px solid var(--border);
-  overflow-y: auto;
-  scrollbar-width: none;
+  overflow: hidden;
 }
 
-.ss-keyboard::-webkit-scrollbar { display: none; }
+.search-screen-embedded .ss-keyboard {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  border-left: none;
+  padding: 14px 20px 18px;
+  background: #fff;
+  border-top: 1px solid var(--border);
+}
 
 .ss-keyboard-label {
   font-size: 0.75rem;
@@ -266,10 +277,17 @@
   text-transform: uppercase;
 }
 
+.ss-keyboard-top {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .ss-key-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .ss-key-section-label {
@@ -279,22 +297,24 @@
   letter-spacing: 0.05em;
 }
 
-.ss-keys {
+.ss-keyboard-layout {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
 }
 
 .ss-key {
-  min-width: clamp(40px, 4.5vw, 56px);
-  height: clamp(44px, 5vh, 56px);
+  min-width: 0;
+  flex: 1;
+  height: clamp(40px, 4.8vh, 52px);
   padding: 0 8px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   color: var(--text-primary);
   font-size: clamp(0.875rem, 1.1vw, 1rem);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-fast);
   display: flex;
@@ -312,35 +332,60 @@
   transform: scale(0.93);
 }
 
-.ss-key-uni {
-  min-width: fit-content;
-  padding: 0 12px;
-  font-size: 0.8rem;
+.ss-key-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
 }
 
-.ss-keys-control {
-  gap: 6px;
+.ss-key-row-alpha-middle {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.ss-key-row-alpha-bottom {
+  padding-left: 36px;
 }
 
 .ss-key-backspace {
-  background: rgba(255, 100, 100, 0.1);
-  border-color: rgba(255, 100, 100, 0.3);
-  color: var(--danger);
-  min-width: 50px;
+  flex: 1.35;
 }
 
-.ss-key-backspace:hover {
-  background: rgba(255, 100, 100, 0.2);
+.ss-key-backspace-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  background-color: currentColor;
+  -webkit-mask: url('../../../assets/icons/backspace.svg') center / contain no-repeat;
+  mask: url('../../../assets/icons/backspace.svg') center / contain no-repeat;
+}
+
+.ss-key-mode {
+  flex: 1.35;
+}
+
+.ss-key-mode-active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent-dark);
 }
 
 .ss-key-clear {
-  background: rgba(255, 100, 100, 0.1);
-  border-color: rgba(255, 100, 100, 0.3);
-  color: var(--danger);
-  min-width: 70px;
   font-size: 0.8rem;
+  flex: 1.2;
 }
 
-.ss-key-clear:hover {
-  background: rgba(255, 100, 100, 0.2);
+@media (max-width: 1100px) {
+  .ss-keyboard {
+    padding: 16px 18px;
+  }
+
+  .ss-key-row-alpha-middle {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .ss-key-row-alpha-bottom {
+    padding-left: 20px;
+  }
 }

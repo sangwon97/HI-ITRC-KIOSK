@@ -1,0 +1,361 @@
+/* ============================================
+   부스 브라우저
+   ============================================ */
+
+.booth-browser {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.booth-browser-embedded {
+  position: relative;
+  inset: auto;
+  height: 100%;
+}
+
+.bb-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 26px var(--side-pad) 16px;
+}
+
+.bb-brand {
+  display: flex;
+  align-items: flex-start;
+}
+
+.bb-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  min-height: 44px;
+  padding: 0 14px;
+  background: #fff;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.bb-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.bb-header-datetime {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.bb-header-page {
+  font-size: 1.18rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.bb-breadcrumb-shell {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 var(--side-pad);
+}
+
+.booth-browser-embedded .bb-breadcrumb-shell {
+  max-width: none;
+}
+
+.bb-breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  flex-wrap: nowrap;
+  min-height: var(--section-bar-height);
+  padding: 0;
+  width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid rgba(12, 26, 46, 0.08);
+}
+
+.bb-breadcrumb-trail {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  gap: 8px;
+  overflow: hidden;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.bb-breadcrumb-trail span {
+  flex-shrink: 0;
+  font-size: inherit;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.bb-breadcrumb-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.bb-breadcrumb-back-spacer {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.bb-breadcrumb-back img {
+  width: 20px;
+  height: 20px;
+}
+
+.bb-breadcrumb-back:hover {
+  background: rgba(12, 26, 46, 0.04);
+  transform: translateY(-1px);
+}
+
+.bb-breadcrumb-sep {
+  color: rgba(12, 26, 46, 0.28);
+}
+
+.bb-breadcrumb-current {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1 !important;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.bb-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0px var(--side-pad) 28px;
+  overflow: hidden;
+}
+
+.booth-browser-embedded .bb-main {
+  max-width: none;
+}
+
+.bb-main-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 24px;
+  text-align: center;
+}
+
+.bb-main-subtitle {
+  font-size: 0.98rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.bb-main-head-list {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.bb-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 220px));
+  justify-content: center;
+  gap: 30px;
+  padding: 4px 0 0;
+  width: 100%;
+  flex: 1 1 auto;
+  align-content: start;
+}
+
+.bb-cat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  gap: 18px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid rgba(12, 26, 46, 0.08);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: center;
+  box-shadow: 2px 0 12px rgba(0, 60, 120, 0.06);
+}
+
+.bb-cat-card:hover {
+  border-color: rgba(12, 26, 46, 0.14);
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+.bb-cat-card:active {
+  transform: translateY(-2px);
+}
+
+.bb-cat-card-icon {
+  font-size: 2.8rem;
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  border: 1px solid rgba(12, 26, 46, 0.06);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bb-cat-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.bb-cat-card-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.bb-cat-card-count {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.bb-booth-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0 24px;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.bb-booth-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid rgba(12, 26, 46, 0.08);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: left;
+}
+
+.bb-booth-list-item:hover {
+  border-color: rgba(12, 26, 46, 0.14);
+  transform: translateY(-1px);
+}
+
+.bb-booth-list-head {
+  min-width: 110px;
+  flex-shrink: 0;
+}
+
+.bb-booth-location {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.bb-booth-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  width: auto;
+  flex: 1;
+}
+
+.bb-booth-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.bb-booth-univ {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.bb-booth-list-arrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .bb-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bb-header-right {
+    align-items: flex-start;
+  }
+
+  .bb-breadcrumb-bar {
+    flex-wrap: wrap;
+  }
+}

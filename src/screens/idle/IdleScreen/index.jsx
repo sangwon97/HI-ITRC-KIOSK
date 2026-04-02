@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { eventInfo } from '../data/eventInfo';
-import './IdleScreen.css';
+import { eventInfo } from '../../../data/eventInfo';
+import './styles.css';
 
 const SLIDES = [
   {
@@ -116,7 +116,7 @@ export default function IdleScreen({ onStart }) {
         <span>화면을 터치하여 시작하세요</span>
       </div>
 
-      {/* 슬라이드 인디케이터 */}
+      {/* 슬라이드 인디케이터
       <div className="idle-indicators">
         {SLIDES.map((_, i) => (
           <div
@@ -124,7 +124,7 @@ export default function IdleScreen({ onStart }) {
             className={`idle-dot ${i === slide ? 'idle-dot-active' : ''}`}
           />
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -104,10 +104,63 @@ export function getBoothById(id) {
   return booths.find(b => b.id === id);
 }
 
+const HANGUL_BASE = 0xac00;
+const HANGUL_END = 0xd7a3;
+const CHOSEONG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+const CHOSEONG_QUERY_RE = /^[ㄱ-ㅎ]+$/;
+
+function normalizeSearchText(value) {
+  return value.normalize('NFC').toLowerCase();
+}
+
+function extractInitialConsonants(value) {
+  return [...value.normalize('NFC')]
+    .map((char) => {
+      const code = char.charCodeAt(0);
+
+      if (code >= HANGUL_BASE && code <= HANGUL_END) {
+        const syllableIndex = code - HANGUL_BASE;
+        const choseongIndex = Math.floor(syllableIndex / (21 * 28));
+        return CHOSEONG[choseongIndex];
+      }
+
+      if (/[ㄱ-ㅎ]/.test(char)) {
+        return char;
+      }
+
+      if (/[a-z0-9]/i.test(char)) {
+        return char.toLowerCase();
+      }
+
+      return '';
+    })
+    .join('');
+}
+
 export function searchBooths(query) {
-  const q = query.toLowerCase();
-  return booths.filter(b =>
-    b.name.toLowerCase().includes(q) ||
-    b.univ.toLowerCase().includes(q)
-  );
+  const q = normalizeSearchText(query.trim());
+
+  if (!q) {
+    return [];
+  }
+
+  const isChoseongQuery = CHOSEONG_QUERY_RE.test(q);
+
+  return booths.filter((b) => {
+    const normalizedName = normalizeSearchText(b.name);
+    const normalizedUniv = normalizeSearchText(b.univ);
+
+    if (normalizedName.includes(q) || normalizedUniv.includes(q)) {
+      return true;
+    }
+
+    if (!isChoseongQuery) {
+      return false;
+    }
+
+    const nameInitials = extractInitialConsonants(b.name);
+    const univInitials = extractInitialConsonants(b.univ);
+
+    return nameInitials.includes(q) || univInitials.includes(q);
+  });
 }

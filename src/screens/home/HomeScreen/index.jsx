@@ -1,12 +1,12 @@
-import { eventInfo } from '../data/eventInfo';
-import './HomeScreen.css';
+import { eventInfo } from '../../../data/eventInfo';
+import './styles.css';
 
 const MENU_ITEMS = [
   {
     id: 'booth-browser',
     icon: '🏛️',
-    title: '전시 부스',
-    desc: '80개 연구센터 부스 탐색',
+    title: '부스 안내',
+    desc: '분야별 부스를 카드로 탐색',
     accent: '#00b4ff',
     gradient: 'linear-gradient(135deg, #0044aa, #0077cc)',
   },

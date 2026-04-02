@@ -134,6 +134,7 @@ function BoothInstances({ onHover, onSelect }) {
   const panelHRef = useRef();
   const panelVRef = useRef();
   const dummy     = useMemo(() => new THREE.Object3D(), []);
+  const pressRef  = useRef(null);
 
   // 인스턴스 행렬 초기화
   useEffect(() => {
@@ -188,6 +189,41 @@ function BoothInstances({ onHover, onSelect }) {
     if (booth) onSelect(booth);
   }, [boothList, onSelect]);
 
+  const handlePointerDown = useCallback((e) => {
+    pressRef.current = {
+      instanceId: e.instanceId,
+      x: e.clientX ?? 0,
+      y: e.clientY ?? 0,
+    };
+  }, []);
+
+  const handlePointerUp = useCallback((e) => {
+    const press = pressRef.current;
+    pressRef.current = null;
+
+    if (!press || press.instanceId !== e.instanceId) {
+      return;
+    }
+
+    const dx = (e.clientX ?? 0) - press.x;
+    const dy = (e.clientY ?? 0) - press.y;
+    const moved = Math.hypot(dx, dy);
+
+    if (moved > 10) {
+      return;
+    }
+
+    e.stopPropagation();
+    const booth = boothList[e.instanceId];
+    if (booth) {
+      onSelect(booth);
+    }
+  }, [boothList, onSelect]);
+
+  const handlePointerCancel = useCallback(() => {
+    pressRef.current = null;
+  }, []);
+
   return (
     <group>
       {/* 호버 하이라이트 */}
@@ -199,6 +235,9 @@ function BoothInstances({ onHover, onSelect }) {
         args={[mainGeo, mainMat, boothList.length]}
         onPointerMove={handleMove}
         onPointerOut={handleOut}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
         onClick={handleClick}
       />
 
