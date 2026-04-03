@@ -104,6 +104,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const [showLegendHint, setShowLegendHint] = useState(true);
 
   const [showMapSearch, setShowMapSearch] = useState(false);
+  const [resetSignal, setResetSignal] = useState(0);
 
   const handleSelect = useCallback(booth => {
     setSelected(booth);
@@ -115,6 +116,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const handleClose = useCallback(() => {
     setSelected(null);
     setPathPoints(null);
+    setResetSignal(s => s + 1);
   }, []);
 
   const handleNavigate = useCallback(() => {
@@ -195,7 +197,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 selectedBooth={selected}
                 pathPoints={pathPoints}
                 controlsRef={controlsRef}
-                resetSignal={0}
+                resetSignal={resetSignal}
               />
             </Suspense>
           </Canvas>

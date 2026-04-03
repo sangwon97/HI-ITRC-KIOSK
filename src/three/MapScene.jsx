@@ -450,24 +450,34 @@ function SectionZones() {
 // ── 카메라 컨트롤러 ───────────────────────────────────────────
 export function CameraController({ targetBoothPos, resetSignal, controlsRef }) {
   const lerpTarget = useRef(new THREE.Vector3(-3.5, 0, 0));
+  const lerpCamera = useRef(null);
 
   useEffect(() => {
     if (targetBoothPos) {
       const data = BOOTH_DATA[targetBoothPos.id];
       if (data) lerpTarget.current.set(data.cx, 0, data.cz);
+      lerpCamera.current = null;
     }
   }, [targetBoothPos]);
 
   useEffect(() => {
     if (resetSignal > 0) {
       lerpTarget.current.set(-3.5, 0, 0);
+      lerpCamera.current = new THREE.Vector3(-3.5, 66, 50);
     }
   }, [resetSignal]);
 
-  useFrame(() => {
+  useFrame(({ camera }) => {
     const ctrl = controlsRef.current;
     if (!ctrl) return;
     ctrl.target.lerp(lerpTarget.current, 0.07);
+    if (lerpCamera.current) {
+      camera.position.lerp(lerpCamera.current, 0.07);
+      if (camera.position.distanceTo(lerpCamera.current) < 0.5) {
+        camera.position.copy(lerpCamera.current);
+        lerpCamera.current = null;
+      }
+    }
     ctrl.update();
   });
 
