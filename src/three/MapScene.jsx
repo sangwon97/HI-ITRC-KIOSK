@@ -41,75 +41,128 @@ function computeBoothData(positions) {
 
 const BOOTH_DATA = computeBoothData(boothPositions);
 
-// ── Map_Kiosk GLB ────────────────────────────────────────────
-function MapKioskModel() {
-  const { scene } = useGLTF('/models/Map_Kiosk.glb');
-  const kioskScene = useMemo(() => scene.clone(true), [scene]);
-  return <primitive object={kioskScene} />;
+// ── Walls GLB (천장·조명 숨김) ───────────────────────────────
+function WallsModel() {
+  const { scene } = useGLTF('/models/Walls.glb');
+  const filtered = useMemo(() => {
+    const clone = scene.clone(true);
+    clone.traverse(node => {
+      if (!node.isMesh) return;
+      const n = node.name.toLowerCase();
+      if (n.includes('ceiling') || n.includes('roof') || n.includes('light')) {
+        node.visible = false;
+      }
+    });
+    return clone;
+  }, [scene]);
+  return <primitive object={filtered} />;
 }
 
-// ── Booth_Base.glb → 클릭용 히트 메쉬 ────────────────────────
-function useBoothHitGeometry() {
-  const { scene: baseScene } = useGLTF('/models/Booth_Base.glb');
+// ── Carpet GLB (천장·조명 노드 숨김) ─────────────────────────
+function CarpetModel() {
+  const { scene } = useGLTF('/models/Carpet.glb');
+  const filtered = useMemo(() => {
+    const clone = scene.clone(true);
+    clone.traverse(node => {
+      if (!node.isMesh) return;
+      const n = node.name.toLowerCase();
+      if (n.includes('ceiling') || n.includes('roof') || n.includes('light')) {
+        node.visible = false;
+      }
+    });
+    return clone;
+  }, [scene]);
+  return <primitive object={filtered} position={[0, 0.005, 0]} />;
+}
+
+// ── Booth_Base.glb + Booth_Panel.glb → 부스 렌더링 ──────────
+// Booth_Base: Booth01SingleA + BlueCarpet
+// Booth_Panel: NamePanelHorizontal + NamePanelVertical (이름 패널)
+// 천장 계열 노드(ceiling/roof/light) 제외
+function useBoothParts() {
+  const { scene: baseScene  } = useGLTF('/models/Booth_Base.glb');
+  const { scene: panelScene } = useGLTF('/models/Booth_Panel.glb');
 
   return useMemo(() => {
-    let mainGeo = null;
+    let mainGeo = null, mainMat = null;
+    let carpetGeo = null, carpetMat = null;
     baseScene.traverse(node => {
       if (!node.isMesh) return;
       if (node.name === 'Booth01SingleA') {
-        mainGeo = node.geometry;
+        mainGeo = node.geometry; mainMat = node.material;
+      } else if (node.name === 'BlueCarpet') {
+        carpetGeo = node.geometry; carpetMat = node.material;
       }
     });
 
-    if (!mainGeo) {
-      mainGeo = new THREE.BoxGeometry(2.933, 3, 5.494);
-    }
+    let panelHGeo = null, panelHMat = null;
+    let panelVGeo = null, panelVMat = null;
+    panelScene.traverse(node => {
+      if (!node.isMesh) return;
+      if (node.name === 'NamePanelHorizontal') {
+        panelHGeo = node.geometry; panelHMat = node.material;
+      } else if (node.name === 'NamePanelVertical') {
+        panelVGeo = node.geometry; panelVMat = node.material;
+      }
+    });
 
-    return mainGeo;
-  }, [baseScene]);
+    if (!mainGeo)   mainGeo   = new THREE.BoxGeometry(2.933, 3, 5.494);
+    if (!mainMat)   mainMat   = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+    if (!carpetGeo) carpetGeo = new THREE.PlaneGeometry(2.929, 5.494);
+    if (!carpetMat) carpetMat = new THREE.MeshStandardMaterial({ color: 0x4488cc });
+    if (!panelHGeo) panelHGeo = new THREE.PlaneGeometry(0.001, 0.001);
+    if (!panelHMat) panelHMat = new THREE.MeshStandardMaterial({ visible: false });
+    if (!panelVGeo) panelVGeo = new THREE.PlaneGeometry(0.001, 0.001);
+    if (!panelVMat) panelVMat = new THREE.MeshStandardMaterial({ visible: false });
+
+    return { mainGeo, mainMat, carpetGeo, carpetMat, panelHGeo, panelHMat, panelVGeo, panelVMat };
+  }, [baseScene, panelScene]);
 }
 
-// ── 부스 인스턴스드 클릭 메시 ─────────────────────────────────
+// ── 부스 인스턴스드 메시 ──────────────────────────────────────
 function BoothInstances({ onHover, onSelect }) {
-  const mainGeo = useBoothHitGeometry();
-  const hitMat = useMemo(() => (
-    new THREE.MeshBasicMaterial({
-      transparent: true,
-      opacity: 0,
-      depthWrite: false,
-    })
-  ), []);
+  const { mainGeo, mainMat, carpetGeo, carpetMat,
+          panelHGeo, panelHMat, panelVGeo, panelVMat } = useBoothParts();
 
   const boothList = useMemo(
     () => booths.filter(b => boothPositions[b.id]),
     []
   );
 
-  const mainRef = useRef();
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const pressRef = useRef(null);
+  const mainRef   = useRef();
+  const carpetRef = useRef();
+  const panelHRef = useRef();
+  const panelVRef = useRef();
+  const dummy     = useMemo(() => new THREE.Object3D(), []);
+  const pressRef  = useRef(null);
 
   // 인스턴스 행렬 초기화
   useEffect(() => {
-    if (!mainRef.current) return;
-
+    if (!mainRef.current || !carpetRef.current) return;
+    if (!panelHRef.current || !panelVRef.current) return;
     boothList.forEach((b, i) => {
       const [x, z] = boothPositions[b.id];
       const { rotation } = BOOTH_DATA[b.id];
 
-      // 클릭 판정을 위한 투명 부스 메시
+      // 부스 본체 + 이름 패널 (Y=0, 동일 트랜스폼)
       dummy.position.set(x, 0, z);
       dummy.rotation.set(0, rotation, 0);
       dummy.scale.setScalar(1);
       dummy.updateMatrix();
       mainRef.current.setMatrixAt(i, dummy.matrix);
-    });
-    mainRef.current.instanceMatrix.needsUpdate = true;
-  }, [boothList, dummy]);
+      panelHRef.current.setMatrixAt(i, dummy.matrix);
+      panelVRef.current.setMatrixAt(i, dummy.matrix);
 
-  useEffect(() => () => {
-    hitMat.dispose();
-  }, [hitMat]);
+      // 카펫 (z-fighting 방지를 위해 Y=0.01)
+      dummy.position.set(x, 0.01, z);
+      dummy.updateMatrix();
+      carpetRef.current.setMatrixAt(i, dummy.matrix);
+    });
+    mainRef.current.instanceMatrix.needsUpdate   = true;
+    carpetRef.current.instanceMatrix.needsUpdate = true;
+    panelHRef.current.instanceMatrix.needsUpdate = true;
+    panelVRef.current.instanceMatrix.needsUpdate = true;
+  }, [boothList, dummy]);
 
   // 호버 상태 (시각 피드백용)
   const [hoveredBooth, setHoveredBooth] = useState(null);
@@ -176,10 +229,10 @@ function BoothInstances({ onHover, onSelect }) {
       {/* 호버 하이라이트 */}
       <HoverHighlight booth={hoveredBooth} />
 
-      {/* 투명 클릭 메쉬 */}
+      {/* 부스 본체 — 이벤트 처리 */}
       <instancedMesh
         ref={mainRef}
-        args={[mainGeo, hitMat, boothList.length]}
+        args={[mainGeo, mainMat, boothList.length]}
         onPointerMove={handleMove}
         onPointerOut={handleOut}
         onPointerDown={handlePointerDown}
@@ -187,6 +240,16 @@ function BoothInstances({ onHover, onSelect }) {
         onPointerCancel={handlePointerCancel}
         onClick={handleClick}
       />
+
+      {/* 바닥 카펫 — 이벤트 없음 */}
+      <instancedMesh
+        ref={carpetRef}
+        args={[carpetGeo, carpetMat, boothList.length]}
+      />
+
+      {/* 이름 패널 (Booth_Panel.glb) — 이벤트 없음 */}
+      <instancedMesh ref={panelHRef} args={[panelHGeo, panelHMat, boothList.length]} />
+      <instancedMesh ref={panelVRef} args={[panelVGeo, panelVMat, boothList.length]} />
     </group>
   );
 }
@@ -458,11 +521,12 @@ export default function MapScene({
       {/* 전시장 외부 배경 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
         <planeGeometry args={[200, 200]} />
-      <meshLambertMaterial color={0xd8e8f4} />
+        <meshLambertMaterial color={0xd8e8f4} />
       </mesh>
 
       {/* GLB 환경 모델 */}
-      <MapKioskModel />
+      <CarpetModel />
+      <WallsModel />
 
       {/* 섹션 존 */}
       <SectionZones />
@@ -493,5 +557,7 @@ export default function MapScene({
 }
 
 // 모델 사전 로드 (Floor.glb 삭제됨, CeilingPanels/WholeBooth 미사용)
-useGLTF.preload('/models/Map_Kiosk.glb');
+useGLTF.preload('/models/Walls.glb');
+useGLTF.preload('/models/Carpet.glb');
 useGLTF.preload('/models/Booth_Base.glb');
+useGLTF.preload('/models/Booth_Panel.glb');
