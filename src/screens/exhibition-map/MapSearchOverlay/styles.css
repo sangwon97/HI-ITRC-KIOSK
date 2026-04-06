@@ -25,7 +25,7 @@
   width: min(92%, 1100px);
   height: min(88%, 780px);
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 10px;
   box-shadow: 0 24px 64px rgba(0, 40, 100, 0.22);
   display: flex;
   flex-direction: column;
@@ -53,11 +53,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 20px;
-  background: #f4f8fd;
-  border: 1.5px solid rgba(0, 80, 140, 0.12);
-  border-radius: 12px;
-  transition: border-color 0.18s ease;
+  padding: 0 20px;
 }
 
 .mso-input-filled {
@@ -108,10 +104,9 @@
 
 .mso-close-btn {
   padding: 10px 22px;
-  background: rgba(0, 80, 140, 0.06);
-  border: 1px solid rgba(0, 80, 140, 0.14);
-  border-radius: 10px;
-  color: #3d5a80;
+  background: rgb(255, 255, 255);
+  border: none;
+  color: #3d5a80cc;
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
@@ -121,14 +116,14 @@
 }
 
 .mso-close-btn:hover {
-  background: rgba(0, 80, 140, 0.12);
+  color: #006f7f;
 }
 
 /* 본문 */
 .mso-body {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr clamp(380px, 38%, 520px);
+  grid-template-columns: 1fr 1fr;
   overflow: hidden;
   min-height: 0;
 }
@@ -140,6 +135,12 @@
   overflow: hidden;
   border-right: 1px solid rgba(0, 80, 140, 0.08);
   min-height: 0;
+}
+
+.mso-results-action {
+  padding: 10px 20px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(0, 80, 140, 0.08);
 }
 
 .mso-empty {
@@ -173,7 +174,6 @@
 }
 
 .mso-result-num {
-  font-weight: 800;
   color: #0097a7;
 }
 
@@ -251,17 +251,178 @@
 .mso-keyboard {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 20px 20px 16px;
-  background: #f8fbff;
+  gap: 20px;
+  padding: 20px;
   border-left: 1px solid rgba(0, 80, 140, 0.08);
-  overflow: hidden;
+  overflow-y: auto;
+  min-height: 0;
+  justify-content: center;
 }
 
 .mso-sk-top {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.mso-feature-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mso-all-booths-btn {
+  width: 100%;
+  border: none;
+  color: #3d5a80cc;
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #ffffff;
+}
+
+.mso-all-booths-btn:hover {
+  color: #006f7f;
+}
+
+.mso-all-booths-btn-active {
+  color: #006f7f;
+}
+
+.mso-popular-list {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 158px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 111, 127, 0.35) transparent;
+}
+
+.mso-popular-list::-webkit-scrollbar {
+  height: 4px;
+}
+
+.mso-popular-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mso-popular-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 111, 127, 0.35);
+  border-radius: 999px;
+}
+
+.mso-popular-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex: 0 0 150px;
+  width: 150px;
+  aspect-ratio: 1 / 1;
+  padding: 14px 14px 12px;
+  background: #f8fbff;
+  border: 1px solid rgba(0, 80, 140, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.mso-popular-item:hover {
+  background: #eef5fc;
+  border-color: #0097a7;
+  transform: translateY(-2px);
+}
+
+.mso-popular-rank {
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 151, 167, 0.12);
+  color: #006f7f;
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.mso-popular-item:nth-child(1) .mso-popular-rank {
+  background: rgba(255, 184, 0, 0.18);
+  color: #b77900;
+}
+
+.mso-popular-item:nth-child(2) .mso-popular-rank {
+  background: rgba(148, 163, 184, 0.22);
+  color: #475569;
+}
+
+.mso-popular-item:nth-child(3) .mso-popular-rank {
+  background: rgba(205, 127, 50, 0.2);
+  color: #9a4f16;
+}
+
+.mso-popular-text {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mso-popular-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0c1a2e;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mso-popular-univ {
+  font-size: 0.72rem;
+  color: #7a98b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mso-popular-count {
+  align-self: flex-end;
+  min-width: 32px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0, 151, 167, 0.1);
+  text-align: center;
+  color: #0097a7;
+  font-size: 0.76rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.mso-popular-empty {
+  min-height: 158px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fbff;
+  border: 1px dashed rgba(0, 80, 140, 0.14);
+  border-radius: 12px;
+  color: #7a98b8;
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 .mso-sk-section {
@@ -280,12 +441,12 @@
 
 .mso-sk-quick-btns {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 .mso-sk-quick-btn {
-  padding: 7px 14px;
+  padding: 7px 16px;
   background: #ffffff;
   border: 1px solid rgba(0, 80, 140, 0.14);
   border-radius: 999px;
@@ -310,10 +471,7 @@
 .mso-sk-layout {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  padding: 10px;
-  background: rgba(0, 40, 100, 0.03);
-  border-radius: 12px;
+  gap: 9px;
 }
 
 .mso-sk-row {
@@ -323,19 +481,13 @@
 }
 
 .mso-sk-row-middle {
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
-.mso-sk-row-bottom {
-  padding-left: 30px;
+  padding: 0 16px;
 }
 
 .mso-sk-key {
   flex: 1;
   min-width: 0;
   height: clamp(38px, 4.6vh, 50px);
-  padding: 0 6px;
   background: #ffffff;
   border: 1px solid rgba(0, 80, 140, 0.14);
   border-radius: 10px;
