@@ -117,6 +117,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
+  const [introSignal, setIntroSignal] = useState(0);
 
   useEffect(() => {
     let disposed = false;
@@ -202,6 +203,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   useEffect(() => {
     if (!activePanel) {
       setShowLegendHint(true);
+      setIntroSignal((signal) => signal + 1);
     }
   }, [activePanel]);
 
@@ -242,6 +244,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 boothFrontPositions={boothPositionMaps.boothFrontPositions}
                 navmeshGrid={navmeshGrid}
                 controlsRef={controlsRef}
+                introSignal={introSignal}
                 resetSignal={resetSignal}
               />
             </Suspense>

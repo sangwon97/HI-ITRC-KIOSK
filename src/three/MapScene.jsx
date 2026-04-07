@@ -12,6 +12,11 @@ const BOOTH_LOOKUP = new Map(booths.map((booth) => [booth.id, booth]));
 const BOOTH_NAME_RE = /^Floor_(S\d+B\d+)$/i;
 const DEFAULT_TARGET = new THREE.Vector3(...(DEFAULT_MAP_CAMERA.target ?? [0, 0, 0]));
 const NO_RAYCAST = () => null;
+const INTRO_DURATION = 1.45;
+const INTRO_ROTATION_Y = -Math.PI / 8;
+const INTRO_DISTANCE_MULTIPLIER = 1.18;
+const INTRO_HEIGHT_OFFSET = 10;
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const MAP_MODEL_CACHE = new WeakMap();
 const HIT_MESH_CACHE = new WeakMap();
 const INSTANCE_DUMMY = new THREE.Object3D();
@@ -24,7 +29,7 @@ function extractBoothId(name = '') {
 function getBoothFromObject(object) {
   let current = object;
   while (current) {
-    const boothId = extractBoothId(current.name);
+    const boothId = current.userData?.boothId ?? extractBoothId(current.name);
     if (boothId) {
       return BOOTH_LOOKUP.get(boothId) ?? null;
     }
@@ -53,6 +58,22 @@ function createHitMaterial(material) {
   hitMaterial.side = THREE.DoubleSide;
   hitMaterial.toneMapped = false;
   return hitMaterial;
+}
+
+function easeOutCubic(value) {
+  return 1 - ((1 - value) ** 3);
+}
+
+function buildIntroCameraPosition() {
+  const target = DEFAULT_TARGET.clone();
+  const endPosition = new THREE.Vector3(...DEFAULT_MAP_CAMERA.position);
+  const offset = endPosition.clone().sub(target);
+
+  offset.multiplyScalar(INTRO_DISTANCE_MULTIPLIER);
+  offset.applyAxisAngle(Y_AXIS, INTRO_ROTATION_Y);
+  offset.y += INTRO_HEIGHT_OFFSET;
+
+  return target.add(offset);
 }
 
 function KioskMapModel() {
@@ -490,11 +511,16 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
   );
 }
 
-export function CameraController({ targetBoothPos, boothPositions, resetSignal, controlsRef }) {
+export function CameraController({ targetBoothPos, boothPositions, introSignal, resetSignal, controlsRef }) {
   const lerpTarget = useRef(DEFAULT_TARGET.clone());
   const lerpCamera = useRef(null);
   const isTargetAnimating = useRef(false);
   const isCameraAnimating = useRef(false);
+  const introElapsed = useRef(0);
+  const introFromCamera = useRef(null);
+  const introToCamera = useRef(new THREE.Vector3(...DEFAULT_MAP_CAMERA.position));
+  const isIntroAnimating = useRef(false);
+  const lastIntroSignal = useRef(0);
 
   useEffect(() => {
     const controls = controlsRef.current;
@@ -503,6 +529,7 @@ export function CameraController({ targetBoothPos, boothPositions, resetSignal, 
     }
 
     const handleStart = () => {
+      isIntroAnimating.current = false;
       isTargetAnimating.current = false;
       isCameraAnimating.current = false;
       lerpTarget.current.copy(controls.target);
@@ -538,9 +565,42 @@ export function CameraController({ targetBoothPos, boothPositions, resetSignal, 
     }
   }, [resetSignal]);
 
-  useFrame(({ camera }) => {
+  useFrame(({ camera }, delta) => {
     const controls = controlsRef.current;
     if (!controls) {
+      return;
+    }
+
+    if (!targetBoothPos && introSignal > lastIntroSignal.current) {
+      lastIntroSignal.current = introSignal;
+      const introCameraPosition = buildIntroCameraPosition();
+
+      controls.target.copy(DEFAULT_TARGET);
+      camera.position.copy(introCameraPosition);
+      introFromCamera.current = introCameraPosition;
+      introToCamera.current.set(...DEFAULT_MAP_CAMERA.position);
+      introElapsed.current = 0;
+      isIntroAnimating.current = true;
+      isTargetAnimating.current = false;
+      isCameraAnimating.current = false;
+      lerpCamera.current = null;
+      controls.update();
+    }
+
+    if (isIntroAnimating.current && introFromCamera.current) {
+      introElapsed.current += delta;
+      const progress = Math.min(introElapsed.current / INTRO_DURATION, 1);
+      const easedProgress = easeOutCubic(progress);
+
+      camera.position.lerpVectors(introFromCamera.current, introToCamera.current, easedProgress);
+      controls.target.copy(DEFAULT_TARGET);
+
+      if (progress >= 1) {
+        camera.position.copy(introToCamera.current);
+        isIntroAnimating.current = false;
+      }
+
+      controls.update();
       return;
     }
 
@@ -590,6 +650,7 @@ export default function MapScene({
   boothFrontPositions = {},
   navmeshGrid = null,
   controlsRef,
+  introSignal,
   resetSignal,
 }) {
   const handleHover = useCallback((booth) => onHover(booth), [onHover]);
@@ -660,6 +721,7 @@ export default function MapScene({
       <CameraController
         targetBoothPos={targetBoothPos}
         boothPositions={boothPositions}
+        introSignal={introSignal}
         resetSignal={resetSignal}
         controlsRef={controlsRef}
       />
