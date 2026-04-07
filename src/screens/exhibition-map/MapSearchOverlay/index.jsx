@@ -1,5 +1,5 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { booths, searchBooths, CATEGORY_MAP, SORTED_BOOTHS } from '../../../data/booths';
+import { useEffect, useMemo, useState } from 'react';
+import { booths, CATEGORY_MAP, SORTED_BOOTHS } from '../../../data/booths';
 import { appendHangulInput, removeLastHangulInput } from '../../../utils/hangulInput';
 import {
   NUMBER_ROW,
@@ -10,6 +10,7 @@ import {
 } from '../../../data/keyboard';
 import searchIcon from '../../../assets/icons/search.png';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
+import useBoothSearch from '../../../hooks/useBoothSearch';
 import './styles.css';
 
 const POPULAR_BOOTH_STORAGE_KEY = 'itrc-map-popular-booths';
@@ -48,19 +49,13 @@ export default function MapSearchOverlay({ onClose, onSelect }) {
   const [inputMode, setInputMode] = useState('ko');
   const [showAllBooths, setShowAllBooths] = useState(false);
   const [popularBooths, setPopularBooths] = useState([]);
-  const deferredQuery = useDeferredValue(query);
+  const { hasSearched, results: searchedBooths } = useBoothSearch(query);
 
   useEffect(() => {
     setPopularBooths(loadPopularBooths());
   }, []);
 
-  const searchedBooths = useMemo(() => {
-    if (deferredQuery.trim().length >= 1) return searchBooths(deferredQuery.trim());
-    return [];
-  }, [deferredQuery]);
   const allBooths = useMemo(() => SORTED_BOOTHS, []);
-
-  const hasSearched = query.trim().length >= 1;
   const results = showAllBooths ? allBooths : searchedBooths;
   const activeLetterRows = inputMode === 'ko' ? KOREAN_ROWS : ENGLISH_ROWS;
   const isShowingResults = showAllBooths || hasSearched;

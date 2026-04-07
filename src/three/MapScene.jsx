@@ -2,7 +2,7 @@ import { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html, OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { buildNavmeshGrid, compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
+import { compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
 
 import { booths } from '../data/booths';
 import { ENTRANCE, getBoothPoint, getBoothRoutePoint } from '../utils/mapPath';
@@ -14,7 +14,6 @@ const DEFAULT_TARGET = new THREE.Vector3(...(DEFAULT_MAP_CAMERA.target ?? [0, 0,
 const NO_RAYCAST = () => null;
 const MAP_MODEL_CACHE = new WeakMap();
 const HIT_MESH_CACHE = new WeakMap();
-const NAVMESH_GRID_CACHE = new WeakMap();
 const INSTANCE_DUMMY = new THREE.Object3D();
 
 function extractBoothId(name = '') {
@@ -589,26 +588,13 @@ export default function MapScene({
   pathPoints,
   boothPositions = {},
   boothFrontPositions = {},
+  navmeshGrid = null,
   controlsRef,
   resetSignal,
 }) {
   const handleHover = useCallback((booth) => onHover(booth), [onHover]);
   const handleSelect = useCallback((booth) => onSelect(booth), [onSelect]);
   const targetBoothPos = selectedBooth || null;
-  const { scene: navmeshSceneSource } = useGLTF('/models/Map_Kiosk_NavMeshMovable.glb');
-  const navmeshGrid = useMemo(
-    () => {
-      const cachedGrid = NAVMESH_GRID_CACHE.get(navmeshSceneSource);
-      if (cachedGrid) {
-        return cachedGrid;
-      }
-
-      const nextGrid = buildNavmeshGrid(navmeshSceneSource, { cellSize: 0.6 });
-      NAVMESH_GRID_CACHE.set(navmeshSceneSource, nextGrid);
-      return nextGrid;
-    },
-    [navmeshSceneSource],
-  );
   const resolvedPathCache = useMemo(() => new Map(), [boothFrontPositions, boothPositions, navmeshGrid]);
   const resolvedPathPoints = useMemo(() => {
     if (!selectedBooth) {
@@ -683,4 +669,3 @@ export default function MapScene({
 
 useGLTF.preload('/models/Map_Kiosk.glb');
 useGLTF.preload('/models/KioskBoothArea.glb');
-useGLTF.preload('/models/Map_Kiosk_NavMeshMovable.glb');

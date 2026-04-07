@@ -1,7 +1,8 @@
-import { useDeferredValue, useMemo, useState } from 'react';
-import { searchBooths, CATEGORY_MAP } from '../../../data/booths';
+import { useState } from 'react';
+import { CATEGORY_MAP } from '../../../data/booths';
 import { appendHangulInput, removeLastHangulInput } from '../../../utils/hangulInput';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
+import useBoothSearch from '../../../hooks/useBoothSearch';
 import {
   NUMBER_ROW,
   KOREAN_ROWS,
@@ -14,16 +15,7 @@ import './styles.css';
 export default function SearchScreen({ navigate, goBack, goHome, embedded = false }) {
   const [query, setQuery] = useState('');
   const [inputMode, setInputMode] = useState('ko');
-  const deferredQuery = useDeferredValue(query);
-
-  const hasSearched = query.trim().length >= 1;
-  const results = useMemo(() => {
-    if (deferredQuery.trim().length < 1) {
-      return [];
-    }
-
-    return searchBooths(deferredQuery.trim());
-  }, [deferredQuery]);
+  const { hasSearched, results } = useBoothSearch(query);
 
   const appendText = (text) => {
     setQuery((currentQuery) => {

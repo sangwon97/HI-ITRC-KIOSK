@@ -117,7 +117,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
-  const [useContinuousRender, setUseContinuousRender] = useState(false);
 
   useEffect(() => {
     let disposed = false;
@@ -142,12 +141,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   }, []);
 
   const handleSelect = useCallback(booth => {
-    setUseContinuousRender(Boolean(booth));
     setSelected(booth);
   }, []);
 
   const handleClose = useCallback(() => {
-    setUseContinuousRender(true);
     setSelected(null);
     setResetSignal(s => s + 1);
   }, []);
@@ -199,24 +196,8 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     if (activePanel) {
       setSelected(null);
       setShowMapSearch(false);
-      setUseContinuousRender(false);
     }
   }, [activePanel]);
-
-  useEffect(() => {
-    if (selected) {
-      setUseContinuousRender(true);
-      return undefined;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setUseContinuousRender(false);
-    }, 900);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [resetSignal, selected]);
 
   useEffect(() => {
     if (!activePanel) {
@@ -246,7 +227,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             camera={{ position: DEFAULT_MAP_CAMERA.position, fov: 38, near: 0.5, far: 400 }}
             gl={{ antialias: false, powerPreference: 'high-performance' }}
             dpr={[1, 1.5]}
-            frameloop={useContinuousRender ? 'always' : 'demand'}
+            frameloop="always"
             onCreated={({ gl }) => {
               gl.setClearColor(new THREE.Color(0xeef5fc));
             }}

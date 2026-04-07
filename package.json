@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:navmesh": "node scripts/generate-navmesh-grid.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
