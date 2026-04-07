@@ -333,90 +333,6 @@
 }
 
 
-.map3d-legend-help {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 10px;
-  z-index: 13;
-}
-
-.map3d-legend-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 1px solid rgba(0, 151, 167, 0.24);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.94);
-  color: #006f7f;
-  font-size: 0.9rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0, 40, 100, 0.08);
-  backdrop-filter: blur(10px);
-  transition: all 0.18s ease;
-}
-
-.map3d-legend-toggle-active {
-  background: #0097a7;
-  border-color: #0097a7;
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.map3d-legend-overlay {
-  width: min(280px, calc(100vw - 420px));
-  padding: 14px 14px 12px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(0, 80, 140, 0.10);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 24px rgba(0, 40, 100, 0.08);
-}
-
-.map3d-legend-overlay-header {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  margin-bottom: 10px;
-}
-
-.map3d-legend-overlay-title {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: #3d5a80;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.map3d-legend-overlay-caption {
-  font-size: 0.72rem;
-  color: #7a98b8;
-  font-weight: 600;
-}
-
-.map3d-legend-overlay-list {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.map3d-legend-overlay-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.76rem;
-  color: #3d5a80;
-  font-weight: 600;
-}
-
 .map3d-map-search-btn {
   position: absolute;
   top: 18px;
@@ -512,9 +428,9 @@
 
 .map3d-entrance-label {
   padding: 20px 40px;
-  border-radius: 999px;
+  border-radius: 10px;
   background: rgba(190, 40, 142, 0.72);
-  border: 1px solid rgba(164, 255, 228, 0.17);
+  border: 3px solid rgb(255, 255, 255);
   color: #f4fffd;
   font-size: 55px;
   font-weight: 800;
@@ -524,6 +440,23 @@
   pointer-events: none;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(6px);
+}
+
+.map3d-category-label {
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: var(--cat-bg, rgba(22, 111, 168, 0.88));
+  border: 1px solid var(--cat-border, rgba(255, 255, 255, 0.16));
+  color: var(--cat-text, #f6fffd);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(4px);
+  opacity: 0.94;
 }
 
 /* ── 선택 부스 패널 ─────────────────────────── */

@@ -113,7 +113,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   });
   const [navmeshGrid, setNavmeshGrid] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(() => formatDateTimeParts(new Date()));
-  const [showLegendHint, setShowLegendHint] = useState(true);
 
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
@@ -202,7 +201,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
   useEffect(() => {
     if (!activePanel) {
-      setShowLegendHint(true);
       setIntroSignal((signal) => signal + 1);
     }
   }, [activePanel]);
@@ -267,37 +265,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
               />
             </Suspense>
           )}
-
-          <div className="map3d-legend-help">
-            <button
-              className={`map3d-legend-toggle ${showLegendHint ? 'map3d-legend-toggle-active' : ''}`}
-              onClick={() => setShowLegendHint((visible) => !visible)}
-              aria-label="전시 카테고리 도움말 보기"
-            >
-              ?
-            </button>
-
-            {showLegendHint && (
-              <div className="map3d-legend-overlay">
-                <div className="map3d-legend-overlay-header">
-                  <span className="map3d-legend-overlay-title">전시 카테고리 안내</span>
-                </div>
-                <div className="map3d-legend-overlay-list">
-                  {categories.map((category) => (
-                    <div key={category.id} className="map3d-legend-overlay-item">
-                      <span
-                        className="map3d-legend-dot"
-                        style={{
-                          background: hexStr(CAT_HEX[category.id]),
-                        }}
-                      />
-                      <span>{category.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
 
           {pathPoints && selected && (
             <div className="map3d-route-badge">

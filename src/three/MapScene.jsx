@@ -4,7 +4,7 @@ import { Html, OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
 
-import { booths } from '../data/booths';
+import { booths, categories } from '../data/booths';
 import { ENTRANCE, getBoothPoint, getBoothRoutePoint } from '../utils/mapPath';
 import { DEFAULT_MAP_CAMERA } from './mapCameraConfig';
 
@@ -108,8 +108,9 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
       return cachedMeshes;
     }
 
+    const clone = scene.clone(true);
     const meshes = [];
-    scene.traverse((node) => {
+    clone.traverse((node) => {
       if (!node.isMesh) {
         return;
       }
@@ -204,6 +205,16 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
     pressRef.current = null;
   }, []);
 
+  const handleClick = useCallback((event) => {
+    const booth = resolveBooth(event);
+    if (!booth) {
+      return;
+    }
+
+    event.stopPropagation();
+    onSelect(booth);
+  }, [onSelect, resolveBooth]);
+
   return (
     <group>
       <HoverHighlight booth={hoveredBooth} boothPositions={boothPositions} />
@@ -216,8 +227,73 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
+          onClick={handleClick}
         />
       ))}
+    </group>
+  );
+}
+
+function CategoryLabels({ boothPositions }) {
+  const labels = useMemo(() => {
+    return categories
+      .map((category) => {
+        const categoryBooths = booths.filter((booth) => booth.category === category.id);
+        const points = categoryBooths
+          .map((booth) => boothPositions[booth.id])
+          .filter(Boolean);
+
+        if (points.length === 0) {
+          return null;
+        }
+
+        const sum = points.reduce(
+          (accumulator, point) => ({
+            x: accumulator.x + point[0],
+            z: accumulator.z + point[1],
+          }),
+          { x: 0, z: 0 },
+        );
+
+        return {
+          id: category.id,
+          label: category.label,
+          color: category.color,
+          x: sum.x / points.length,
+          z: sum.z / points.length,
+        };
+      })
+      .filter(Boolean);
+  }, [boothPositions]);
+
+  return (
+    <group>
+      {labels.map((label) => {
+        const whiteCategory = label.color.toLowerCase() === '#ffffff';
+        return (
+          <Html
+            key={label.id}
+            position={[label.x, 4.6, label.z]}
+            center
+            distanceFactor={10}
+            sprite
+            transform
+            occlude={false}
+            zIndexRange={[6, 0]}
+          >
+            <div
+              className="map3d-category-label"
+              style={{
+                '--cat-bg': label.color,
+                '--cat-text': whiteCategory ? '#101820' : '#f6fffd',
+                '--cat-border': whiteCategory ? 'rgba(16, 24, 32, 0.18)' : 'rgba(255, 255, 255, 0.16)',
+              }}
+            >
+              {label.label}
+            </div>
+          </Html>
+        );
+      })}
     </group>
   );
 }
@@ -714,6 +790,7 @@ export default function MapScene({
 
       <KioskMapModel />
       <BoothHitAreas onHover={handleHover} onSelect={handleSelect} boothPositions={boothPositions} />
+      <CategoryLabels boothPositions={boothPositions} />
       <SelectionRing booth={selectedBooth} boothPositions={boothPositions} />
       <EntranceMarker />
       <PathGuide pathPoints={resolvedPathPoints} targetBooth={selectedBooth} boothPositions={boothPositions} />
