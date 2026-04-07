@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { booths, searchBooths, categories } from '../../../data/booths';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { booths, searchBooths, CATEGORY_MAP, SORTED_BOOTHS } from '../../../data/booths';
 import { appendHangulInput, removeLastHangulInput } from '../../../utils/hangulInput';
 import {
   NUMBER_ROW,
@@ -14,10 +14,6 @@ import './styles.css';
 
 const POPULAR_BOOTH_STORAGE_KEY = 'itrc-map-popular-booths';
 const POPULAR_BOOTH_LIMIT = 5;
-
-function sortBoothsById(a, b) {
-  return a.id.localeCompare(b.id, 'ko');
-}
 
 function loadPopularBooths() {
   if (typeof window === 'undefined') {
@@ -39,7 +35,7 @@ function loadPopularBooths() {
           return b.count - a.count;
         }
 
-        return sortBoothsById(a.booth, b.booth);
+        return a.booth.id.localeCompare(b.booth.id, 'ko');
       })
       .slice(0, POPULAR_BOOTH_LIMIT);
   } catch {
@@ -52,16 +48,17 @@ export default function MapSearchOverlay({ onClose, onSelect }) {
   const [inputMode, setInputMode] = useState('ko');
   const [showAllBooths, setShowAllBooths] = useState(false);
   const [popularBooths, setPopularBooths] = useState([]);
+  const deferredQuery = useDeferredValue(query);
 
   useEffect(() => {
     setPopularBooths(loadPopularBooths());
   }, []);
 
   const searchedBooths = useMemo(() => {
-    if (query.trim().length >= 1) return searchBooths(query.trim());
+    if (deferredQuery.trim().length >= 1) return searchBooths(deferredQuery.trim());
     return [];
-  }, [query]);
-  const allBooths = useMemo(() => booths.slice().sort(sortBoothsById), []);
+  }, [deferredQuery]);
+  const allBooths = useMemo(() => SORTED_BOOTHS, []);
 
   const hasSearched = query.trim().length >= 1;
   const results = showAllBooths ? allBooths : searchedBooths;
@@ -159,7 +156,7 @@ export default function MapSearchOverlay({ onClose, onSelect }) {
                 </div>
                 <div className="mso-result-list scrollable">
                   {results.map(b => {
-                    const category = categories.find(c => c.id === b.category);
+                    const category = CATEGORY_MAP.get(b.category);
                     const categoryPresentation = getCategoryPresentation(category?.color);
                     return (
                       <button

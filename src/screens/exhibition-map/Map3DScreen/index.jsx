@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, Suspense } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -6,12 +6,12 @@ import aiIcon from '../../../assets/icons/ai.png';
 import documentIcon from '../../../assets/icons/document.png';
 import mapIcon from '../../../assets/icons/map.png';
 import searchIcon from '../../../assets/icons/search.png';
-import { categories } from '../../../data/booths';
+import { categories, CATEGORY_MAP } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
 import MapScene from '../../../three/MapScene';
 import MapSearchOverlay from '../MapSearchOverlay';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
-import { getCategoryPresentation, isWhiteCategoryColor } from '../../../utils/categoryPresentation';
+import { getCategoryPresentation } from '../../../utils/categoryPresentation';
 import { computeBoothPath } from '../../../utils/mapPath';
 import BoothBrowser from '../../booth-guide/BoothBrowser';
 import BoothDetail from '../../booth-guide/BoothDetail';
@@ -22,6 +22,7 @@ import InfoScreen from '../../event-info/InfoScreen';
 import './styles.css';
 
 const CAT_HEX = Object.fromEntries(categories.map((category) => [category.id, category.color]));
+const NOOP = () => {};
 
 function hexStr(v) {
   if (typeof v === 'string') {
@@ -94,7 +95,6 @@ function getActiveNavScreen(activePanel) {
 export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const controlsRef  = useRef();
   const [selected, setSelected]   = useState(null);
-  const [pathPoints, setPathPoints] = useState(null);
   const [boothPositionMaps, setBoothPositionMaps] = useState({
     boothPositions: {},
     boothFrontPositions: {},
@@ -125,18 +125,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
   const handleSelect = useCallback(booth => {
     setSelected(booth);
-    if (booth) {
-      setPathPoints(computeBoothPath(
-        booth.id,
-        boothPositionMaps.boothPositions,
-        boothPositionMaps.boothFrontPositions,
-      ));
-    }
-  }, [boothPositionMaps]);
+  }, []);
 
   const handleClose = useCallback(() => {
     setSelected(null);
-    setPathPoints(null);
     setResetSignal(s => s + 1);
   }, []);
 
@@ -163,7 +155,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     navigate(screen);
   }, [activePanel, goHome, navigate]);
 
-  const cat = selected ? categories.find(c => c.id === selected.category) : null;
+  const cat = selected ? CATEGORY_MAP.get(selected.category) : null;
   const catColor = selected ? hexStr(CAT_HEX[selected.category]) : '#00b4ff';
   const categoryPresentation = getCategoryPresentation(catColor);
   const panelTitle = activePanel ? PANEL_TITLES[activePanel] : null;
@@ -171,11 +163,21 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const activeViewSubtitle = activePanel ? 'ITRC 2026 Kiosk Content' : 'Exhibition Map';
   const boothPayload = normalizeBoothPayload(data);
   const activeNavScreen = getActiveNavScreen(activePanel);
+  const pathPoints = useMemo(() => {
+    if (!selected) {
+      return null;
+    }
+
+    return computeBoothPath(
+      selected.id,
+      boothPositionMaps.boothPositions,
+      boothPositionMaps.boothFrontPositions,
+    );
+  }, [boothPositionMaps, selected]);
 
   useEffect(() => {
     if (activePanel) {
       setSelected(null);
-      setPathPoints(null);
       setShowMapSearch(false);
     }
   }, [activePanel]);
@@ -199,18 +201,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (!selected) {
-      return;
-    }
-
-    setPathPoints(computeBoothPath(
-      selected.id,
-      boothPositionMaps.boothPositions,
-      boothPositionMaps.boothFrontPositions,
-    ));
-  }, [boothPositionMaps, selected]);
-
   const renderMainContent = () => {
     if (!activePanel) {
       return (
@@ -219,7 +209,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
             camera={{ position: DEFAULT_MAP_CAMERA.position, fov: 38, near: 0.5, far: 400 }}
             gl={{ antialias: false, powerPreference: 'high-performance' }}
-            dpr={Math.min(window.devicePixelRatio, 1.5)}
+            dpr={[1, 1.5]}
             onCreated={({ gl }) => {
               gl.setClearColor(new THREE.Color(0xeef5fc));
             }}
@@ -227,7 +217,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             <Suspense fallback={null}>
               <MapScene
                 onSelect={handleSelect}
-                onHover={() => {}}
+                onHover={NOOP}
                 selectedBooth={selected}
                 pathPoints={pathPoints}
                 boothPositions={boothPositionMaps.boothPositions}

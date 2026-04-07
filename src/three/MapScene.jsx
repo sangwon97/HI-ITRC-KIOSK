@@ -12,6 +12,10 @@ const BOOTH_LOOKUP = new Map(booths.map((booth) => [booth.id, booth]));
 const BOOTH_NAME_RE = /^Floor_(S\d+B\d+)$/i;
 const DEFAULT_TARGET = new THREE.Vector3(...(DEFAULT_MAP_CAMERA.target ?? [0, 0, 0]));
 const NO_RAYCAST = () => null;
+const MAP_MODEL_CACHE = new WeakMap();
+const HIT_MESH_CACHE = new WeakMap();
+const NAVMESH_GRID_CACHE = new WeakMap();
+const INSTANCE_DUMMY = new THREE.Object3D();
 
 function extractBoothId(name = '') {
   const match = name.match(BOOTH_NAME_RE);
@@ -55,13 +59,19 @@ function createHitMaterial(material) {
 function KioskMapModel() {
   const { scene } = useGLTF('/models/Map_Kiosk.glb');
   const model = useMemo(() => {
-    const clone = scene.clone(true);
-    clone.traverse((node) => {
+    const cachedModel = MAP_MODEL_CACHE.get(scene);
+    if (cachedModel) {
+      return cachedModel;
+    }
+
+    scene.traverse((node) => {
       if (node.isMesh) {
         node.raycast = NO_RAYCAST;
       }
     });
-    return clone;
+
+    MAP_MODEL_CACHE.set(scene, scene);
+    return scene;
   }, [scene]);
   return <primitive object={model} />;
 }
@@ -73,10 +83,13 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
   const pressRef = useRef(null);
 
   const interactiveMeshes = useMemo(() => {
-    const clone = scene.clone(true);
-    const meshes = [];
+    const cachedMeshes = HIT_MESH_CACHE.get(scene);
+    if (cachedMeshes) {
+      return cachedMeshes;
+    }
 
-    clone.traverse((node) => {
+    const meshes = [];
+    scene.traverse((node) => {
       if (!node.isMesh) {
         return;
       }
@@ -92,6 +105,7 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
       meshes.push(node);
     });
 
+    HIT_MESH_CACHE.set(scene, meshes);
     return meshes;
   }, [scene]);
 
@@ -306,7 +320,7 @@ function EntranceMarker() {
 }
 
 function PathGuide({ pathPoints, targetBooth, boothPositions }) {
-  const arrowRefs = useRef([]);
+  const arrowMeshRef = useRef(null);
   const targetPoint2D = targetBooth ? getBoothPoint(targetBooth.id, boothPositions) : null;
 
   const arrowGeo = useMemo(() => {
@@ -383,21 +397,24 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
   }, [pathPoints]);
 
   useFrame(({ clock }) => {
+    const arrowMesh = arrowMeshRef.current;
+    if (!arrowMesh || arrowMarkers.length === 0) {
+      return;
+    }
+
     const seconds = clock.getElapsedTime() * 0.8;
     arrowMarkers.forEach((marker, index) => {
-      const mesh = arrowRefs.current[index];
-      if (!mesh) {
-        return;
-      }
-
       const progress = (seconds + marker.offset) % marker.distance;
-      mesh.position.set(
+      INSTANCE_DUMMY.position.set(
         marker.start[0] + marker.directionX * progress,
         marker.y,
         marker.start[2] + marker.directionZ * progress,
       );
+      INSTANCE_DUMMY.rotation.set(0, marker.rotationY, 0);
+      INSTANCE_DUMMY.updateMatrix();
+      arrowMesh.setMatrixAt(index, INSTANCE_DUMMY.matrix);
     });
-
+    arrowMesh.instanceMatrix.needsUpdate = true;
   });
 
   if (!pathPoints || pathPoints.length < 2) {
@@ -453,17 +470,13 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
         </>
       )}
 
-      {arrowMarkers.map((marker, index) => (
-        <mesh
-          key={marker.key}
+      {arrowMarkers.length > 0 && (
+        <instancedMesh
+          ref={arrowMeshRef}
           geometry={arrowGeo}
           raycast={NO_RAYCAST}
-          ref={(node) => {
-            arrowRefs.current[index] = node;
-          }}
-          position={[marker.start[0], marker.y, marker.start[2]]}
-          rotation={[0, marker.rotationY, 0]}
           renderOrder={7}
+          args={[null, null, arrowMarkers.length]}
         >
           <meshBasicMaterial
             color={0xffffff}
@@ -472,8 +485,8 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
             depthWrite={false}
             side={THREE.DoubleSide}
           />
-        </mesh>
-      ))}
+        </instancedMesh>
+      )}
     </group>
   );
 }
@@ -584,12 +597,27 @@ export default function MapScene({
   const targetBoothPos = selectedBooth || null;
   const { scene: navmeshSceneSource } = useGLTF('/models/Map_Kiosk_NavMeshMovable.glb');
   const navmeshGrid = useMemo(
-    () => buildNavmeshGrid(navmeshSceneSource, { cellSize: 0.6 }),
+    () => {
+      const cachedGrid = NAVMESH_GRID_CACHE.get(navmeshSceneSource);
+      if (cachedGrid) {
+        return cachedGrid;
+      }
+
+      const nextGrid = buildNavmeshGrid(navmeshSceneSource, { cellSize: 0.6 });
+      NAVMESH_GRID_CACHE.set(navmeshSceneSource, nextGrid);
+      return nextGrid;
+    },
     [navmeshSceneSource],
   );
+  const resolvedPathCache = useMemo(() => new Map(), [boothFrontPositions, boothPositions, navmeshGrid]);
   const resolvedPathPoints = useMemo(() => {
     if (!selectedBooth) {
       return pathPoints;
+    }
+
+    const cachedPath = resolvedPathCache.get(selectedBooth.id);
+    if (cachedPath) {
+      return cachedPath;
     }
 
     const boothPoint = getBoothPoint(selectedBooth.id, boothPositions);
@@ -622,8 +650,10 @@ export default function MapScene({
       (lastPoint?.[2] ?? boothCenterPoint[2]) - boothCenterPoint[2],
     );
 
-    return distanceToCenter > 0.05 ? [...basePath, boothCenterPoint] : basePath;
-  }, [boothFrontPositions, boothPositions, navmeshGrid, pathPoints, selectedBooth]);
+    const resolvedPath = distanceToCenter > 0.05 ? [...basePath, boothCenterPoint] : basePath;
+    resolvedPathCache.set(selectedBooth.id, resolvedPath);
+    return resolvedPath;
+  }, [boothFrontPositions, boothPositions, navmeshGrid, pathPoints, resolvedPathCache, selectedBooth]);
 
   return (
     <>
