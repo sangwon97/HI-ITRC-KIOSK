@@ -539,11 +539,11 @@
   gap: 8px;
   padding: 4px 12px;
   background: color-mix(in srgb, var(--cat-color, #00b4ff) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--cat-color, #00b4ff) 35%, transparent);
+  border: 1px solid var(--cat-border-color, color-mix(in srgb, var(--cat-color, #00b4ff) 35%, transparent));
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--cat-color, #00b4ff);
+  color: var(--cat-text-color, var(--cat-color, #00b4ff));
   width: fit-content;
 }
 

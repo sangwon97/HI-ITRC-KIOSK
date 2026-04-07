@@ -11,6 +11,7 @@ import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
 import MapScene from '../../../three/MapScene';
 import MapSearchOverlay from '../MapSearchOverlay';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
+import { getCategoryPresentation, isWhiteCategoryColor } from '../../../utils/categoryPresentation';
 import { computeBoothPath } from '../../../utils/mapPath';
 import BoothBrowser from '../../booth-guide/BoothBrowser';
 import BoothDetail from '../../booth-guide/BoothDetail';
@@ -20,20 +21,13 @@ import SearchScreen from '../../booth-search/SearchScreen';
 import InfoScreen from '../../event-info/InfoScreen';
 import './styles.css';
 
-const CAT_HEX = {
-  ai_semiconductor:  0x6c63ff,
-  bio_healthcare:    0x00c896,
-  cloud_security:    0xff6b6b,
-  ai_bigdata:        0xf7b731,
-  ai_platform:       0x45aaf2,
-  next_gen_comm:     0x26de81,
-  immersive_sw:      0xfd9644,
-  robotics_mobility: 0xeb3b5a,
-  quantum:           0xa29bfe,
-  ict_industry:      0x20bf6b,
-};
+const CAT_HEX = Object.fromEntries(categories.map((category) => [category.id, category.color]));
 
 function hexStr(v) {
+  if (typeof v === 'string') {
+    return v;
+  }
+
   return '#' + (v ?? 0x888888).toString(16).padStart(6, '0');
 }
 
@@ -171,6 +165,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
   const cat = selected ? categories.find(c => c.id === selected.category) : null;
   const catColor = selected ? hexStr(CAT_HEX[selected.category]) : '#00b4ff';
+  const categoryPresentation = getCategoryPresentation(catColor);
   const panelTitle = activePanel ? PANEL_TITLES[activePanel] : null;
   const activeViewTitle = panelTitle ?? '전시장 지도';
   const activeViewSubtitle = activePanel ? 'ITRC 2026 Kiosk Content' : 'Exhibition Map';
@@ -278,7 +273,9 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                     <div key={category.id} className="map3d-legend-overlay-item">
                       <span
                         className="map3d-legend-dot"
-                        style={{ background: hexStr(CAT_HEX[category.id]) }}
+                        style={{
+                          background: hexStr(CAT_HEX[category.id]),
+                        }}
                       />
                       <span>{category.label}</span>
                     </div>
@@ -296,7 +293,14 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
           )}
 
           {selected && (
-            <div className="map3d-panel" style={{ '--cat-color': catColor }}>
+            <div
+              className="map3d-panel"
+              style={{
+                '--cat-color': catColor,
+                '--cat-border-color': categoryPresentation.borderColor,
+                '--cat-text-color': categoryPresentation.textColor,
+              }}
+            >
               <button className="map3d-panel-close" onClick={handleClose}>✕</button>
               <div className="map3d-panel-cat">
                 <span>{cat?.icon}</span>
