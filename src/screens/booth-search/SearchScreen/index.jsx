@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { searchBooths, categories } from '../../../data/booths';
+import { useState } from 'react';
+import { CATEGORY_MAP } from '../../../data/booths';
 import { appendHangulInput, removeLastHangulInput } from '../../../utils/hangulInput';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
+import useBoothSearch from '../../../hooks/useBoothSearch';
 import {
   NUMBER_ROW,
   KOREAN_ROWS,
@@ -13,20 +14,8 @@ import './styles.css';
 
 export default function SearchScreen({ navigate, goBack, goHome, embedded = false }) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [hasSearched, setHasSearched] = useState(false);
   const [inputMode, setInputMode] = useState('ko');
-
-  useEffect(() => {
-    if (query.trim().length >= 1) {
-      const found = searchBooths(query.trim());
-      setResults(found);
-      setHasSearched(true);
-    } else {
-      setResults([]);
-      setHasSearched(false);
-    }
-  }, [query]);
+  const { hasSearched, results } = useBoothSearch(query);
 
   const appendText = (text) => {
     setQuery((currentQuery) => {
@@ -50,7 +39,6 @@ export default function SearchScreen({ navigate, goBack, goHome, embedded = fals
     setInputMode((currentMode) => (currentMode === 'ko' ? 'en' : 'ko'));
   };
 
-  const cat = (id) => categories.find(c => c.id === id);
   const activeLetterRows = inputMode === 'ko' ? KOREAN_ROWS : ENGLISH_ROWS;
 
   return (
@@ -103,7 +91,7 @@ export default function SearchScreen({ navigate, goBack, goHome, embedded = fals
                 </div>
                 <div className="ss-result-list scrollable">
                   {results.map(b => {
-                    const category = cat(b.category);
+                    const category = CATEGORY_MAP.get(b.category);
                     const categoryPresentation = getCategoryPresentation(category?.color);
                     return (
                       <button

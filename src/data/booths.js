@@ -95,6 +95,8 @@ export const categories = [
   { id: 'robotics_mobility', label: '첨단 로봇·모빌리티', icon: '🤖', color: '#5e2f90' },
 ];
 
+export const CATEGORY_MAP = new Map(categories.map((category) => [category.id, category]));
+
 export function getBoothsByCategory(categoryId) {
   return booths.filter(b => b.category === categoryId);
 }
@@ -136,6 +138,20 @@ function extractInitialConsonants(value) {
     .join('');
 }
 
+function sortBoothsById(a, b) {
+  return a.id.localeCompare(b.id, 'ko');
+}
+
+const BOOTH_SEARCH_INDEX = booths.map((booth) => ({
+  booth,
+  normalizedName: normalizeSearchText(booth.name),
+  normalizedUniv: normalizeSearchText(booth.univ),
+  nameInitials: extractInitialConsonants(booth.name),
+  univInitials: extractInitialConsonants(booth.univ),
+}));
+
+export const SORTED_BOOTHS = booths.slice().sort(sortBoothsById);
+
 export function searchBooths(query) {
   const q = normalizeSearchText(query.trim());
 
@@ -145,11 +161,8 @@ export function searchBooths(query) {
 
   const isChoseongQuery = CHOSEONG_QUERY_RE.test(q);
 
-  return booths.filter((b) => {
-    const normalizedName = normalizeSearchText(b.name);
-    const normalizedUniv = normalizeSearchText(b.univ);
-
-    if (normalizedName.includes(q) || normalizedUniv.includes(q)) {
+  return BOOTH_SEARCH_INDEX.filter((entry) => {
+    if (entry.normalizedName.includes(q) || entry.normalizedUniv.includes(q)) {
       return true;
     }
 
@@ -157,9 +170,6 @@ export function searchBooths(query) {
       return false;
     }
 
-    const nameInitials = extractInitialConsonants(b.name);
-    const univInitials = extractInitialConsonants(b.univ);
-
-    return nameInitials.includes(q) || univInitials.includes(q);
-  });
+    return entry.nameInitials.includes(q) || entry.univInitials.includes(q);
+  }).map((entry) => entry.booth);
 }

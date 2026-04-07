@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, Suspense } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo, Suspense, lazy } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -6,22 +6,35 @@ import aiIcon from '../../../assets/icons/ai.png';
 import documentIcon from '../../../assets/icons/document.png';
 import mapIcon from '../../../assets/icons/map.png';
 import searchIcon from '../../../assets/icons/search.png';
-import { categories } from '../../../data/booths';
+import itrcLogo from '../../../assets/icons/ITRC_logo.jpg';
+import { categories, CATEGORY_MAP } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
+import { loadNavmeshGrid } from '../../../data/navmeshGrid';
 import MapScene from '../../../three/MapScene';
-import MapSearchOverlay from '../MapSearchOverlay';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
-import { getCategoryPresentation, isWhiteCategoryColor } from '../../../utils/categoryPresentation';
+import { getCategoryPresentation } from '../../../utils/categoryPresentation';
 import { computeBoothPath } from '../../../utils/mapPath';
-import BoothBrowser from '../../booth-guide/BoothBrowser';
-import BoothDetail from '../../booth-guide/BoothDetail';
-import CenterInfo from '../../booth-guide/CenterInfo';
-import PosterDetail from '../../booth-guide/PosterDetail';
-import SearchScreen from '../../booth-search/SearchScreen';
-import InfoScreen from '../../event-info/InfoScreen';
 import './styles.css';
 
+const MapSearchOverlay = lazy(() => import('../MapSearchOverlay'));
+const BoothBrowser = lazy(() => import('../../booth-guide/BoothBrowser'));
+const BoothDetail = lazy(() => import('../../booth-guide/BoothDetail'));
+const CenterInfo = lazy(() => import('../../booth-guide/CenterInfo'));
+const PosterDetail = lazy(() => import('../../booth-guide/PosterDetail'));
+const SearchScreen = lazy(() => import('../../booth-search/SearchScreen'));
+const InfoScreen = lazy(() => import('../../event-info/InfoScreen'));
+
 const CAT_HEX = Object.fromEntries(categories.map((category) => [category.id, category.color]));
+const NOOP = () => {};
+const LOADING_FALLBACK_STYLE = {
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'var(--text-muted)',
+  fontSize: '1rem',
+};
 
 function hexStr(v) {
   if (typeof v === 'string') {
@@ -94,28 +107,32 @@ function getActiveNavScreen(activePanel) {
 export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const controlsRef  = useRef();
   const [selected, setSelected]   = useState(null);
-  const [pathPoints, setPathPoints] = useState(null);
   const [boothPositionMaps, setBoothPositionMaps] = useState({
     boothPositions: {},
     boothFrontPositions: {},
   });
+  const [navmeshGrid, setNavmeshGrid] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(() => formatDateTimeParts(new Date()));
-  const [showLegendHint, setShowLegendHint] = useState(true);
 
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
+  const [introSignal, setIntroSignal] = useState(0);
 
   useEffect(() => {
     let disposed = false;
 
-    loadBoothPositionMaps()
-      .then((maps) => {
+    Promise.all([
+      loadBoothPositionMaps(),
+      loadNavmeshGrid(),
+    ])
+      .then(([maps, loadedNavmeshGrid]) => {
         if (!disposed) {
           setBoothPositionMaps(maps);
+          setNavmeshGrid(loadedNavmeshGrid);
         }
       })
       .catch((error) => {
-        console.error('Failed to load booth position CSV files.', error);
+        console.error('Failed to load map scene assets.', error);
       });
 
     return () => {
@@ -125,18 +142,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
   const handleSelect = useCallback(booth => {
     setSelected(booth);
-    if (booth) {
-      setPathPoints(computeBoothPath(
-        booth.id,
-        boothPositionMaps.boothPositions,
-        boothPositionMaps.boothFrontPositions,
-      ));
-    }
-  }, [boothPositionMaps]);
+  }, []);
 
   const handleClose = useCallback(() => {
     setSelected(null);
-    setPathPoints(null);
     setResetSignal(s => s + 1);
   }, []);
 
@@ -163,7 +172,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     navigate(screen);
   }, [activePanel, goHome, navigate]);
 
-  const cat = selected ? categories.find(c => c.id === selected.category) : null;
+  const cat = selected ? CATEGORY_MAP.get(selected.category) : null;
   const catColor = selected ? hexStr(CAT_HEX[selected.category]) : '#00b4ff';
   const categoryPresentation = getCategoryPresentation(catColor);
   const panelTitle = activePanel ? PANEL_TITLES[activePanel] : null;
@@ -171,18 +180,28 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const activeViewSubtitle = activePanel ? 'ITRC 2026 Kiosk Content' : 'Exhibition Map';
   const boothPayload = normalizeBoothPayload(data);
   const activeNavScreen = getActiveNavScreen(activePanel);
+  const pathPoints = useMemo(() => {
+    if (!selected) {
+      return null;
+    }
+
+    return computeBoothPath(
+      selected.id,
+      boothPositionMaps.boothPositions,
+      boothPositionMaps.boothFrontPositions,
+    );
+  }, [boothPositionMaps, selected]);
 
   useEffect(() => {
     if (activePanel) {
       setSelected(null);
-      setPathPoints(null);
       setShowMapSearch(false);
     }
   }, [activePanel]);
 
   useEffect(() => {
     if (!activePanel) {
-      setShowLegendHint(true);
+      setIntroSignal((signal) => signal + 1);
     }
   }, [activePanel]);
 
@@ -199,18 +218,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (!selected) {
-      return;
-    }
-
-    setPathPoints(computeBoothPath(
-      selected.id,
-      boothPositionMaps.boothPositions,
-      boothPositionMaps.boothFrontPositions,
-    ));
-  }, [boothPositionMaps, selected]);
-
   const renderMainContent = () => {
     if (!activePanel) {
       return (
@@ -219,7 +226,8 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
             camera={{ position: DEFAULT_MAP_CAMERA.position, fov: 38, near: 0.5, far: 400 }}
             gl={{ antialias: false, powerPreference: 'high-performance' }}
-            dpr={Math.min(window.devicePixelRatio, 1.5)}
+            dpr={[1, 1.5]}
+            frameloop="always"
             onCreated={({ gl }) => {
               gl.setClearColor(new THREE.Color(0xeef5fc));
             }}
@@ -227,12 +235,14 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             <Suspense fallback={null}>
               <MapScene
                 onSelect={handleSelect}
-                onHover={() => {}}
+                onHover={NOOP}
                 selectedBooth={selected}
                 pathPoints={pathPoints}
                 boothPositions={boothPositionMaps.boothPositions}
                 boothFrontPositions={boothPositionMaps.boothFrontPositions}
+                navmeshGrid={navmeshGrid}
                 controlsRef={controlsRef}
+                introSignal={introSignal}
                 resetSignal={resetSignal}
               />
             </Suspense>
@@ -248,42 +258,13 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
           </button>
 
           {showMapSearch && (
-            <MapSearchOverlay
-              onClose={() => setShowMapSearch(false)}
-              onSelect={(booth) => { handleSelect(booth); setShowMapSearch(false); }}
-            />
+            <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>검색 화면 로딩 중...</div>}>
+              <MapSearchOverlay
+                onClose={() => setShowMapSearch(false)}
+                onSelect={(booth) => { handleSelect(booth); setShowMapSearch(false); }}
+              />
+            </Suspense>
           )}
-
-          <div className="map3d-legend-help">
-            <button
-              className={`map3d-legend-toggle ${showLegendHint ? 'map3d-legend-toggle-active' : ''}`}
-              onClick={() => setShowLegendHint((visible) => !visible)}
-              aria-label="전시 카테고리 도움말 보기"
-            >
-              ?
-            </button>
-
-            {showLegendHint && (
-              <div className="map3d-legend-overlay">
-                <div className="map3d-legend-overlay-header">
-                  <span className="map3d-legend-overlay-title">전시 카테고리 안내</span>
-                </div>
-                <div className="map3d-legend-overlay-list">
-                  {categories.map((category) => (
-                    <div key={category.id} className="map3d-legend-overlay-item">
-                      <span
-                        className="map3d-legend-dot"
-                        style={{
-                          background: hexStr(CAT_HEX[category.id]),
-                        }}
-                      />
-                      <span>{category.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
 
           {pathPoints && selected && (
             <div className="map3d-route-badge">
@@ -322,15 +303,27 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     }
 
     if (activePanel === 'booth-browser') {
-      return <BoothBrowser embedded data={data} navigate={navigate} goHome={goHome} />;
+      return (
+        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>부스 안내 로딩 중...</div>}>
+          <BoothBrowser embedded data={data} navigate={navigate} goHome={goHome} />
+        </Suspense>
+      );
     }
 
     if (activePanel === 'search') {
-      return <SearchScreen embedded navigate={navigate} goHome={goHome} />;
+      return (
+        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>검색 화면 로딩 중...</div>}>
+          <SearchScreen embedded navigate={navigate} goHome={goHome} />
+        </Suspense>
+      );
     }
 
     if (activePanel === 'info') {
-      return <InfoScreen embedded navigate={navigate} goHome={goHome} />;
+      return (
+        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>행사 안내 로딩 중...</div>}>
+          <InfoScreen embedded navigate={navigate} goHome={goHome} />
+        </Suspense>
+      );
     }
 
     if (activePanel === 'booth-detail') {
@@ -352,43 +345,49 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
       };
 
       return (
-        <BoothDetail
-          embedded
-          data={boothPayload}
-          navigate={navigate}
-          goBack={handleBoothBack}
-          goHome={goHome}
-        />
+        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>부스 상세 로딩 중...</div>}>
+          <BoothDetail
+            embedded
+            data={boothPayload}
+            navigate={navigate}
+            goBack={handleBoothBack}
+            goHome={goHome}
+          />
+        </Suspense>
       );
     }
 
     if (activePanel === 'center') {
       return (
-        <CenterInfo
-          embedded
-          data={data}
-          goBack={() => navigate('booth-detail', {
-            booth: data?.booth,
-            categoryId: data?.categoryId ?? data?.booth?.category,
-            source: data?.source ?? null,
-          })}
-          goHome={goHome}
-        />
+        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>센터 정보 로딩 중...</div>}>
+          <CenterInfo
+            embedded
+            data={data}
+            goBack={() => navigate('booth-detail', {
+              booth: data?.booth,
+              categoryId: data?.categoryId ?? data?.booth?.category,
+              source: data?.source ?? null,
+            })}
+            goHome={goHome}
+          />
+        </Suspense>
       );
     }
 
     if (activePanel === 'poster') {
       return (
-        <PosterDetail
-          embedded
-          data={data}
-          goBack={() => navigate('booth-detail', {
-            booth: data?.booth,
-            categoryId: data?.categoryId ?? data?.booth?.category,
-            source: data?.source ?? null,
-          })}
-          goHome={goHome}
-        />
+        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>포스터 로딩 중...</div>}>
+          <PosterDetail
+            embedded
+            data={data}
+            goBack={() => navigate('booth-detail', {
+              booth: data?.booth,
+              categoryId: data?.categoryId ?? data?.booth?.category,
+              source: data?.source ?? null,
+            })}
+            goHome={goHome}
+          />
+        </Suspense>
       );
     }
 
@@ -403,18 +402,16 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
         {/* 로고 */}
         <div className="map3d-sidebar-logo">
-          <div className="map3d-logo-badge">
-            <span className="map3d-logo-bars">||</span>
-            <span>ITRC</span>
-          </div>
+          <img className="map3d-sidebar-logo-image" src={itrcLogo} alt="ITRC 2026 인재양성대전" />
           <div className="map3d-logo-info">
-            <strong>ITRC 2026</strong>
-            <span>인재양성대전</span>
+            <span className="main-title">인재양성대전</span>
+            <span className="sub-title">대학정보통신연구센터협의회</span>
           </div>
         </div>
 
         <p className="map3d-sidebar-desc">
-          AI·ICT 연구 성과를 한자리에서 만날 수 있는 곳, ITRC 인재양성대전입니다.
+          AI·ICT 연구 성과를 한자리에서 만날 수 있는 곳,
+          ITRC 인재양성대전입니다.
         </p>
 
         <div className="map3d-sidebar-divider" />

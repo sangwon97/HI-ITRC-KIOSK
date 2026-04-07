@@ -2,9 +2,9 @@ import { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html, OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { buildNavmeshGrid, compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
+import { compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
 
-import { booths } from '../data/booths';
+import { booths, categories } from '../data/booths';
 import { ENTRANCE, getBoothPoint, getBoothRoutePoint } from '../utils/mapPath';
 import { DEFAULT_MAP_CAMERA } from './mapCameraConfig';
 
@@ -12,6 +12,14 @@ const BOOTH_LOOKUP = new Map(booths.map((booth) => [booth.id, booth]));
 const BOOTH_NAME_RE = /^Floor_(S\d+B\d+)$/i;
 const DEFAULT_TARGET = new THREE.Vector3(...(DEFAULT_MAP_CAMERA.target ?? [0, 0, 0]));
 const NO_RAYCAST = () => null;
+const INTRO_DURATION = 1.45;
+const INTRO_ROTATION_Y = -Math.PI / 8;
+const INTRO_DISTANCE_MULTIPLIER = 1.18;
+const INTRO_HEIGHT_OFFSET = 10;
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+const MAP_MODEL_CACHE = new WeakMap();
+const HIT_MESH_CACHE = new WeakMap();
+const INSTANCE_DUMMY = new THREE.Object3D();
 
 function extractBoothId(name = '') {
   const match = name.match(BOOTH_NAME_RE);
@@ -21,7 +29,7 @@ function extractBoothId(name = '') {
 function getBoothFromObject(object) {
   let current = object;
   while (current) {
-    const boothId = extractBoothId(current.name);
+    const boothId = current.userData?.boothId ?? extractBoothId(current.name);
     if (boothId) {
       return BOOTH_LOOKUP.get(boothId) ?? null;
     }
@@ -52,16 +60,38 @@ function createHitMaterial(material) {
   return hitMaterial;
 }
 
+function easeOutCubic(value) {
+  return 1 - ((1 - value) ** 3);
+}
+
+function buildIntroCameraPosition() {
+  const target = DEFAULT_TARGET.clone();
+  const endPosition = new THREE.Vector3(...DEFAULT_MAP_CAMERA.position);
+  const offset = endPosition.clone().sub(target);
+
+  offset.multiplyScalar(INTRO_DISTANCE_MULTIPLIER);
+  offset.applyAxisAngle(Y_AXIS, INTRO_ROTATION_Y);
+  offset.y += INTRO_HEIGHT_OFFSET;
+
+  return target.add(offset);
+}
+
 function KioskMapModel() {
   const { scene } = useGLTF('/models/Map_Kiosk.glb');
   const model = useMemo(() => {
-    const clone = scene.clone(true);
-    clone.traverse((node) => {
+    const cachedModel = MAP_MODEL_CACHE.get(scene);
+    if (cachedModel) {
+      return cachedModel;
+    }
+
+    scene.traverse((node) => {
       if (node.isMesh) {
         node.raycast = NO_RAYCAST;
       }
     });
-    return clone;
+
+    MAP_MODEL_CACHE.set(scene, scene);
+    return scene;
   }, [scene]);
   return <primitive object={model} />;
 }
@@ -73,9 +103,13 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
   const pressRef = useRef(null);
 
   const interactiveMeshes = useMemo(() => {
+    const cachedMeshes = HIT_MESH_CACHE.get(scene);
+    if (cachedMeshes) {
+      return cachedMeshes;
+    }
+
     const clone = scene.clone(true);
     const meshes = [];
-
     clone.traverse((node) => {
       if (!node.isMesh) {
         return;
@@ -92,6 +126,7 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
       meshes.push(node);
     });
 
+    HIT_MESH_CACHE.set(scene, meshes);
     return meshes;
   }, [scene]);
 
@@ -170,6 +205,16 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
     pressRef.current = null;
   }, []);
 
+  const handleClick = useCallback((event) => {
+    const booth = resolveBooth(event);
+    if (!booth) {
+      return;
+    }
+
+    event.stopPropagation();
+    onSelect(booth);
+  }, [onSelect, resolveBooth]);
+
   return (
     <group>
       <HoverHighlight booth={hoveredBooth} boothPositions={boothPositions} />
@@ -182,8 +227,74 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
+          onClick={handleClick}
         />
       ))}
+    </group>
+  );
+}
+
+function CategoryLabels({ boothPositions }) {
+  const labels = useMemo(() => {
+    return categories
+      .map((category) => {
+        const categoryBooths = booths.filter((booth) => booth.category === category.id);
+        const points = categoryBooths
+          .map((booth) => boothPositions[booth.id])
+          .filter(Boolean);
+
+        if (points.length === 0) {
+          return null;
+        }
+
+        const sum = points.reduce(
+          (accumulator, point) => ({
+            x: accumulator.x + point[0],
+            z: accumulator.z + point[1],
+          }),
+          { x: 0, z: 0 },
+        );
+
+        return {
+          id: category.id,
+          label: category.label,
+          color: category.color,
+          x: sum.x / points.length,
+          z: sum.z / points.length,
+        };
+      })
+      .filter(Boolean);
+  }, [boothPositions]);
+
+  return (
+    <group>
+      {labels.map((label) => {
+        const whiteCategory = label.color.toLowerCase() === '#ffffff';
+        return (
+          <Html
+            key={label.id}
+            position={[label.x, 4.6, label.z]}
+            center
+            distanceFactor={10}
+            sprite
+            transform
+            occlude={false}
+            zIndexRange={[6, 0]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div
+              className="map3d-category-label"
+              style={{
+                '--cat-bg': label.color,
+                '--cat-text': whiteCategory ? '#101820' : '#f6fffd',
+                '--cat-border': whiteCategory ? 'rgba(16, 24, 32, 0.18)' : 'rgba(255, 255, 255, 0.16)',
+              }}
+            >
+              {label.label}
+            </div>
+          </Html>
+        );
+      })}
     </group>
   );
 }
@@ -298,6 +409,7 @@ function EntranceMarker() {
         transform
         occlude={false}
         zIndexRange={[8, 0]}
+        style={{ pointerEvents: 'none' }}
       >
         <div className="map3d-entrance-label">현재 위치</div>
       </Html>
@@ -306,7 +418,7 @@ function EntranceMarker() {
 }
 
 function PathGuide({ pathPoints, targetBooth, boothPositions }) {
-  const arrowRefs = useRef([]);
+  const arrowMeshRef = useRef(null);
   const targetPoint2D = targetBooth ? getBoothPoint(targetBooth.id, boothPositions) : null;
 
   const arrowGeo = useMemo(() => {
@@ -383,21 +495,24 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
   }, [pathPoints]);
 
   useFrame(({ clock }) => {
+    const arrowMesh = arrowMeshRef.current;
+    if (!arrowMesh || arrowMarkers.length === 0) {
+      return;
+    }
+
     const seconds = clock.getElapsedTime() * 0.8;
     arrowMarkers.forEach((marker, index) => {
-      const mesh = arrowRefs.current[index];
-      if (!mesh) {
-        return;
-      }
-
       const progress = (seconds + marker.offset) % marker.distance;
-      mesh.position.set(
+      INSTANCE_DUMMY.position.set(
         marker.start[0] + marker.directionX * progress,
         marker.y,
         marker.start[2] + marker.directionZ * progress,
       );
+      INSTANCE_DUMMY.rotation.set(0, marker.rotationY, 0);
+      INSTANCE_DUMMY.updateMatrix();
+      arrowMesh.setMatrixAt(index, INSTANCE_DUMMY.matrix);
     });
-
+    arrowMesh.instanceMatrix.needsUpdate = true;
   });
 
   if (!pathPoints || pathPoints.length < 2) {
@@ -453,17 +568,13 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
         </>
       )}
 
-      {arrowMarkers.map((marker, index) => (
-        <mesh
-          key={marker.key}
+      {arrowMarkers.length > 0 && (
+        <instancedMesh
+          ref={arrowMeshRef}
           geometry={arrowGeo}
           raycast={NO_RAYCAST}
-          ref={(node) => {
-            arrowRefs.current[index] = node;
-          }}
-          position={[marker.start[0], marker.y, marker.start[2]]}
-          rotation={[0, marker.rotationY, 0]}
           renderOrder={7}
+          args={[null, null, arrowMarkers.length]}
         >
           <meshBasicMaterial
             color={0xffffff}
@@ -472,17 +583,22 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
             depthWrite={false}
             side={THREE.DoubleSide}
           />
-        </mesh>
-      ))}
+        </instancedMesh>
+      )}
     </group>
   );
 }
 
-export function CameraController({ targetBoothPos, boothPositions, resetSignal, controlsRef }) {
+export function CameraController({ targetBoothPos, boothPositions, introSignal, resetSignal, controlsRef }) {
   const lerpTarget = useRef(DEFAULT_TARGET.clone());
   const lerpCamera = useRef(null);
   const isTargetAnimating = useRef(false);
   const isCameraAnimating = useRef(false);
+  const introElapsed = useRef(0);
+  const introFromCamera = useRef(null);
+  const introToCamera = useRef(new THREE.Vector3(...DEFAULT_MAP_CAMERA.position));
+  const isIntroAnimating = useRef(false);
+  const lastIntroSignal = useRef(0);
 
   useEffect(() => {
     const controls = controlsRef.current;
@@ -491,6 +607,7 @@ export function CameraController({ targetBoothPos, boothPositions, resetSignal, 
     }
 
     const handleStart = () => {
+      isIntroAnimating.current = false;
       isTargetAnimating.current = false;
       isCameraAnimating.current = false;
       lerpTarget.current.copy(controls.target);
@@ -526,9 +643,42 @@ export function CameraController({ targetBoothPos, boothPositions, resetSignal, 
     }
   }, [resetSignal]);
 
-  useFrame(({ camera }) => {
+  useFrame(({ camera }, delta) => {
     const controls = controlsRef.current;
     if (!controls) {
+      return;
+    }
+
+    if (!targetBoothPos && introSignal > lastIntroSignal.current) {
+      lastIntroSignal.current = introSignal;
+      const introCameraPosition = buildIntroCameraPosition();
+
+      controls.target.copy(DEFAULT_TARGET);
+      camera.position.copy(introCameraPosition);
+      introFromCamera.current = introCameraPosition;
+      introToCamera.current.set(...DEFAULT_MAP_CAMERA.position);
+      introElapsed.current = 0;
+      isIntroAnimating.current = true;
+      isTargetAnimating.current = false;
+      isCameraAnimating.current = false;
+      lerpCamera.current = null;
+      controls.update();
+    }
+
+    if (isIntroAnimating.current && introFromCamera.current) {
+      introElapsed.current += delta;
+      const progress = Math.min(introElapsed.current / INTRO_DURATION, 1);
+      const easedProgress = easeOutCubic(progress);
+
+      camera.position.lerpVectors(introFromCamera.current, introToCamera.current, easedProgress);
+      controls.target.copy(DEFAULT_TARGET);
+
+      if (progress >= 1) {
+        camera.position.copy(introToCamera.current);
+        isIntroAnimating.current = false;
+      }
+
+      controls.update();
       return;
     }
 
@@ -576,20 +726,23 @@ export default function MapScene({
   pathPoints,
   boothPositions = {},
   boothFrontPositions = {},
+  navmeshGrid = null,
   controlsRef,
+  introSignal,
   resetSignal,
 }) {
   const handleHover = useCallback((booth) => onHover(booth), [onHover]);
   const handleSelect = useCallback((booth) => onSelect(booth), [onSelect]);
   const targetBoothPos = selectedBooth || null;
-  const { scene: navmeshSceneSource } = useGLTF('/models/Map_Kiosk_NavMeshMovable.glb');
-  const navmeshGrid = useMemo(
-    () => buildNavmeshGrid(navmeshSceneSource, { cellSize: 0.6 }),
-    [navmeshSceneSource],
-  );
+  const resolvedPathCache = useMemo(() => new Map(), [boothFrontPositions, boothPositions, navmeshGrid]);
   const resolvedPathPoints = useMemo(() => {
     if (!selectedBooth) {
       return pathPoints;
+    }
+
+    const cachedPath = resolvedPathCache.get(selectedBooth.id);
+    if (cachedPath) {
+      return cachedPath;
     }
 
     const boothPoint = getBoothPoint(selectedBooth.id, boothPositions);
@@ -622,8 +775,10 @@ export default function MapScene({
       (lastPoint?.[2] ?? boothCenterPoint[2]) - boothCenterPoint[2],
     );
 
-    return distanceToCenter > 0.05 ? [...basePath, boothCenterPoint] : basePath;
-  }, [boothFrontPositions, boothPositions, navmeshGrid, pathPoints, selectedBooth]);
+    const resolvedPath = distanceToCenter > 0.05 ? [...basePath, boothCenterPoint] : basePath;
+    resolvedPathCache.set(selectedBooth.id, resolvedPath);
+    return resolvedPath;
+  }, [boothFrontPositions, boothPositions, navmeshGrid, pathPoints, resolvedPathCache, selectedBooth]);
 
   return (
     <>
@@ -637,6 +792,7 @@ export default function MapScene({
 
       <KioskMapModel />
       <BoothHitAreas onHover={handleHover} onSelect={handleSelect} boothPositions={boothPositions} />
+      <CategoryLabels boothPositions={boothPositions} />
       <SelectionRing booth={selectedBooth} boothPositions={boothPositions} />
       <EntranceMarker />
       <PathGuide pathPoints={resolvedPathPoints} targetBooth={selectedBooth} boothPositions={boothPositions} />
@@ -644,6 +800,7 @@ export default function MapScene({
       <CameraController
         targetBoothPos={targetBoothPos}
         boothPositions={boothPositions}
+        introSignal={introSignal}
         resetSignal={resetSignal}
         controlsRef={controlsRef}
       />
@@ -653,4 +810,3 @@ export default function MapScene({
 
 useGLTF.preload('/models/Map_Kiosk.glb');
 useGLTF.preload('/models/KioskBoothArea.glb');
-useGLTF.preload('/models/Map_Kiosk_NavMeshMovable.glb');

@@ -538,39 +538,3 @@
   font-size: 0.76rem;
   flex: 1.2;
 }
-
-/* ── 검색 버튼 (캔버스 위) ── */
-.map3d-map-search-btn {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(0, 151, 167, 0.24);
-  border-radius: 999px;
-  color: #006f7f;
-  font-size: 0.84rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-  z-index: 14;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 20px rgba(0, 40, 100, 0.08);
-}
-
-.map3d-map-search-btn:hover {
-  background: rgba(0, 151, 167, 0.10);
-  border-color: rgba(0, 151, 167, 0.45);
-  transform: translateY(-1px);
-}
-
-.map3d-map-search-btn-icon {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-  opacity: 0.75;
-}
