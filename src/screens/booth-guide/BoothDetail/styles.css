@@ -161,7 +161,7 @@
   top: 0;
   bottom: 0;
   width: 6px;
-  background: var(--cat-color, var(--accent));
+  background: var(--cat-accent-color, var(--cat-color, var(--accent)));
   border-radius: 0 4px 4px 0;
 }
 
@@ -170,12 +170,12 @@
   align-items: center;
   gap: 8px;
   padding: 6px 14px;
-  background: color-mix(in srgb, var(--cat-color, var(--accent)) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--cat-color, var(--accent)) 40%, transparent);
+  background: var(--cat-bg-color, color-mix(in srgb, var(--cat-color, var(--accent)) 15%, transparent));
+  border: 1px solid var(--cat-border-color, color-mix(in srgb, var(--cat-color, var(--accent)) 40%, transparent));
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--cat-color, var(--accent));
+  color: var(--cat-accent-color, var(--cat-color, var(--accent)));
   margin-bottom: 16px;
   margin-left: 16px;
 }

@@ -9,6 +9,7 @@ import {
   QUICK_UNIVERSITIES,
 } from '../../../data/keyboard';
 import searchIcon from '../../../assets/icons/search.png';
+import { getCategoryPresentation } from '../../../utils/categoryPresentation';
 import './styles.css';
 
 const POPULAR_BOOTH_STORAGE_KEY = 'itrc-map-popular-booths';
@@ -159,13 +160,21 @@ export default function MapSearchOverlay({ onClose, onSelect }) {
                 <div className="mso-result-list scrollable">
                   {results.map(b => {
                     const category = categories.find(c => c.id === b.category);
+                    const categoryPresentation = getCategoryPresentation(category?.color);
                     return (
                       <button
                         key={b.id}
                         className="mso-result-item"
                         onClick={() => selectBooth(b)}
                       >
-                        <div className="mso-result-cat" style={{ background: `${category?.color}20`, color: category?.color }}>
+                        <div
+                          className="mso-result-cat"
+                          style={{
+                            background: categoryPresentation.solidBackground,
+                            color: categoryPresentation.textColor,
+                            borderColor: categoryPresentation.borderColor,
+                          }}
+                        >
                           {category?.icon} {category?.label}
                         </div>
                         <div className="mso-result-info">
