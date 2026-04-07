@@ -280,6 +280,7 @@ function CategoryLabels({ boothPositions }) {
             transform
             occlude={false}
             zIndexRange={[6, 0]}
+            style={{ pointerEvents: 'none' }}
           >
             <div
               className="map3d-category-label"
@@ -408,6 +409,7 @@ function EntranceMarker() {
         transform
         occlude={false}
         zIndexRange={[8, 0]}
+        style={{ pointerEvents: 'none' }}
       >
         <div className="map3d-entrance-label">현재 위치</div>
       </Html>
