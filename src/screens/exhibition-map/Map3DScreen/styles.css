@@ -31,9 +31,17 @@
 .map3d-sidebar-logo {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 28px 24px 20px;
+  justify-content: space-between;
+  padding: 28px 20px 20px;
   flex-shrink: 0;
+}
+
+.map3d-sidebar-logo-image {
+  display: block;
+  width: 100%;
+  max-width: 110px;
+  height: auto;
+  object-fit: contain;
 }
 
 .map3d-logo-badge {
@@ -60,18 +68,15 @@
 .map3d-logo-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
-.map3d-logo-info strong {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #0c1a2e;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+.main-title {
+  font-size: 0.95rem;
+  color: #1c1c1c;
+  font-weight: 700;
 }
 
-.map3d-logo-info span {
+.sub-title {
   font-size: 0.75rem;
   color: #7a98b8;
   font-weight: 500;
@@ -79,11 +84,12 @@
 
 /* 설명 */
 .map3d-sidebar-desc {
-  padding: 0 24px 20px;
+  padding: 0 20px 20px;
   font-size: 0.72rem;
   color: #7a98b8;
   line-height: 1.6;
   flex-shrink: 0;
+  text-align: justify;
 }
 
 /* 구분선 */
