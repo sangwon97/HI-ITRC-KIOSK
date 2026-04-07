@@ -1,6 +1,3 @@
-import { boothPositions } from '../data/boothPositions';
-import { boothFrontPositions } from '../data/boothFrontPositions';
-
 // 임시 스폰 위치
 export const ENTRANCE = [8.8, 0, -8.4];
 
@@ -36,9 +33,11 @@ function getCorridorXForBoothX(bx) {
 /**
  * 입구에서 부스까지 복도를 따라가는 경로 포인트를 반환합니다.
  * @param {string} boothId
+ * @param {Record<string, [number, number]>} boothPositions
+ * @param {Record<string, [number, number]>} boothFrontPositions
  * @returns {[number,number,number][]|null} [[x,y,z], ...] 배열
  */
-export function computeBoothPath(boothId) {
+export function computeBoothPath(boothId, boothPositions, boothFrontPositions) {
   const pos = boothPositions[boothId];
   if (!pos) return null;
 
@@ -53,7 +52,7 @@ export function computeBoothPath(boothId) {
   // bx 기준으로 사용할 세로 복도 결정
   const corridorX = getCorridorXForBoothX(bx);
 
-  const routePoint = getBoothRoutePoint(boothId);
+  const routePoint = getBoothRoutePoint(boothId, boothPositions, boothFrontPositions);
   const targetX = routePoint?.[0] ?? bx;
   const targetZ = routePoint?.[1] ?? bz;
 
@@ -67,11 +66,11 @@ export function computeBoothPath(boothId) {
   return path;
 }
 
-export function getBoothPoint(boothId) {
+export function getBoothPoint(boothId, boothPositions) {
   return boothPositions[boothId] ?? null;
 }
 
-export function getBoothRoutePoint(boothId, extraOffset = 0.9) {
+export function getBoothRoutePoint(boothId, boothPositions, boothFrontPositions, extraOffset = 0.9) {
   const frontPoint = boothFrontPositions[boothId];
   if (frontPoint) {
     const centerPoint = boothPositions[boothId];

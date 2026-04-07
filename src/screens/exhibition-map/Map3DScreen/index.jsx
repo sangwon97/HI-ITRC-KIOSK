@@ -7,6 +7,7 @@ import documentIcon from '../../../assets/icons/document.png';
 import mapIcon from '../../../assets/icons/map.png';
 import searchIcon from '../../../assets/icons/search.png';
 import { categories } from '../../../data/booths';
+import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
 import MapScene from '../../../three/MapScene';
 import MapSearchOverlay from '../MapSearchOverlay';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
@@ -100,18 +101,44 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const controlsRef  = useRef();
   const [selected, setSelected]   = useState(null);
   const [pathPoints, setPathPoints] = useState(null);
+  const [boothPositionMaps, setBoothPositionMaps] = useState({
+    boothPositions: {},
+    boothFrontPositions: {},
+  });
   const [currentDateTime, setCurrentDateTime] = useState(() => formatDateTimeParts(new Date()));
   const [showLegendHint, setShowLegendHint] = useState(true);
 
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
 
+  useEffect(() => {
+    let disposed = false;
+
+    loadBoothPositionMaps()
+      .then((maps) => {
+        if (!disposed) {
+          setBoothPositionMaps(maps);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load booth position CSV files.', error);
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, []);
+
   const handleSelect = useCallback(booth => {
     setSelected(booth);
     if (booth) {
-      setPathPoints(computeBoothPath(booth.id));
+      setPathPoints(computeBoothPath(
+        booth.id,
+        boothPositionMaps.boothPositions,
+        boothPositionMaps.boothFrontPositions,
+      ));
     }
-  }, []);
+  }, [boothPositionMaps]);
 
   const handleClose = useCallback(() => {
     setSelected(null);
@@ -177,6 +204,18 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!selected) {
+      return;
+    }
+
+    setPathPoints(computeBoothPath(
+      selected.id,
+      boothPositionMaps.boothPositions,
+      boothPositionMaps.boothFrontPositions,
+    ));
+  }, [boothPositionMaps, selected]);
+
   const renderMainContent = () => {
     if (!activePanel) {
       return (
@@ -196,6 +235,8 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 onHover={() => {}}
                 selectedBooth={selected}
                 pathPoints={pathPoints}
+                boothPositions={boothPositionMaps.boothPositions}
+                boothFrontPositions={boothPositionMaps.boothFrontPositions}
                 controlsRef={controlsRef}
                 resetSignal={resetSignal}
               />
@@ -231,7 +272,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
               <div className="map3d-legend-overlay">
                 <div className="map3d-legend-overlay-header">
                   <span className="map3d-legend-overlay-title">전시 카테고리 안내</span>
-                  <span className="map3d-legend-overlay-caption">색상별 분야 구분</span>
                 </div>
                 <div className="map3d-legend-overlay-list">
                   {categories.map((category) => (
@@ -251,7 +291,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
           {pathPoints && selected && (
             <div className="map3d-route-badge">
               <span>📍</span>
-              <span>입구 → {selected.name} 경로 안내 중</span>
+              <span>현재위치 → {selected.name} 경로 안내 중</span>
             </div>
           )}
 

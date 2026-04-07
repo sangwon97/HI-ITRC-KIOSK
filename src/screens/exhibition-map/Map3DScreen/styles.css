@@ -451,7 +451,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 20px;
-  background: rgba(0, 100, 180, 0.88);
+  background: rgba(0, 84, 140, 0.501);
   border: 1px solid rgba(0, 160, 220, 0.35);
   border-radius: 999px;
   font-size: 0.82rem;
@@ -467,6 +467,22 @@
 @keyframes badgeFadeIn {
   from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.map3d-entrance-label {
+  padding: 20px 40px;
+  border-radius: 999px;
+  background: rgba(190, 40, 142, 0.72);
+  border: 1px solid rgba(164, 255, 228, 0.17);
+  color: #f4fffd;
+  font-size: 55px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
 }
 
 /* ── 선택 부스 패널 ─────────────────────────── */

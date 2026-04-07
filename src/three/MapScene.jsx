@@ -5,7 +5,6 @@ import * as THREE from 'three';
 import { buildNavmeshGrid, compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
 
 import { booths } from '../data/booths';
-import { boothPositions } from '../data/boothPositions';
 import { ENTRANCE, getBoothPoint, getBoothRoutePoint } from '../utils/mapPath';
 import { DEFAULT_MAP_CAMERA } from './mapCameraConfig';
 
@@ -31,7 +30,7 @@ function getBoothFromObject(object) {
   return null;
 }
 
-function getBoothPosition(booth) {
+function getBoothPosition(booth, boothPositions) {
   if (!booth) {
     return null;
   }
@@ -67,7 +66,7 @@ function KioskMapModel() {
   return <primitive object={model} />;
 }
 
-function BoothHitAreas({ onHover, onSelect }) {
+function BoothHitAreas({ onHover, onSelect, boothPositions }) {
   const { scene } = useGLTF('/models/KioskBoothArea.glb');
   const [hoveredBooth, setHoveredBooth] = useState(null);
   const hoveredBoothIdRef = useRef(null);
@@ -173,7 +172,7 @@ function BoothHitAreas({ onHover, onSelect }) {
 
   return (
     <group>
-      <HoverHighlight booth={hoveredBooth} />
+      <HoverHighlight booth={hoveredBooth} boothPositions={boothPositions} />
       {interactiveMeshes.map((mesh) => (
         <primitive
           key={mesh.uuid}
@@ -189,8 +188,8 @@ function BoothHitAreas({ onHover, onSelect }) {
   );
 }
 
-function HoverHighlight({ booth }) {
-  const position = getBoothPosition(booth);
+function HoverHighlight({ booth, boothPositions }) {
+  const position = getBoothPosition(booth, boothPositions);
 
   return (
     <mesh
@@ -200,9 +199,9 @@ function HoverHighlight({ booth }) {
     >
       <planeGeometry args={[3.2, 5.8]} />
       <meshBasicMaterial
-        color={0x00c4ff}
+        color={0xffd84d}
         transparent
-        opacity={0.22}
+        opacity={0.38}
         depthWrite={false}
         side={THREE.DoubleSide}
       />
@@ -210,10 +209,10 @@ function HoverHighlight({ booth }) {
   );
 }
 
-function SelectionRing({ booth }) {
+function SelectionRing({ booth, boothPositions }) {
   const ringRef = useRef();
   const pulse = useRef(0);
-  const position = getBoothPosition(booth);
+  const position = getBoothPosition(booth, boothPositions);
 
   useFrame((_, delta) => {
     if (!ringRef.current) {
@@ -249,6 +248,7 @@ function SelectionRing({ booth }) {
 function EntranceMarker() {
   const outerRef = useRef();
   const innerRef = useRef();
+  const arrowRef = useRef();
   const t = useRef(0);
 
   useFrame((_, delta) => {
@@ -259,6 +259,10 @@ function EntranceMarker() {
     }
     if (innerRef.current) {
       innerRef.current.material.opacity = 0.8 + 0.2 * Math.sin(t.current * 1.3);
+    }
+    if (arrowRef.current) {
+      arrowRef.current.position.y = 1.4 + 0.24 * Math.abs(Math.sin(t.current * 1.55));
+      arrowRef.current.scale.setScalar(1 + 0.05 * Math.sin(t.current * 1.55));
     }
   });
 
@@ -272,36 +276,38 @@ function EntranceMarker() {
         <circleGeometry args={[0.7, 32]} />
         <meshBasicMaterial color={0x00ffaa} transparent opacity={0.9} depthWrite={false} />
       </mesh>
-      <mesh raycast={NO_RAYCAST} position={[0, 0.5, 0]} renderOrder={19}>
-        <cylinderGeometry args={[0.12, 0.12, 1.0, 16]} />
-        <meshBasicMaterial color={0x00ffaa} transparent opacity={0.7} />
-      </mesh>
-      <Html position={[0, 1.5, 0]} center distanceFactor={12} style={{ pointerEvents: 'none' }}>
-        <div
-          style={{
-            padding: '10px 16px',
-            borderRadius: '999px',
-            background: 'rgba(12, 38, 46, 0.9)',
-            border: '1px solid rgba(164, 255, 228, 0.45)',
-            color: '#f4fffd',
-            fontSize: '16px',
-            fontWeight: 800,
-            letterSpacing: '-0.02em',
-            whiteSpace: 'nowrap',
-            boxShadow: '0 10px 26px rgba(0, 0, 0, 0.22)',
-            backdropFilter: 'blur(6px)',
-          }}
-        >
-          현재 위치
-        </div>
+      <group ref={arrowRef} position={[0, 1.08, 0]} renderOrder={19}>
+        <mesh raycast={NO_RAYCAST} rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.44, 0.86, 24]} />
+          <meshStandardMaterial
+            color={0x7affdb}
+            emissive={0x00ffaa}
+            emissiveIntensity={0.62}
+            metalness={0.12}
+            roughness={0.24}
+            transparent
+            opacity={0.7}
+          />
+        </mesh>
+      </group>
+      <Html
+        position={[0, 4.0, 0]}
+        center
+        distanceFactor={9}
+        sprite
+        transform
+        occlude={false}
+        zIndexRange={[8, 0]}
+      >
+        <div className="map3d-entrance-label">현재 위치</div>
       </Html>
     </group>
   );
 }
 
-function PathGuide({ pathPoints, targetBooth }) {
+function PathGuide({ pathPoints, targetBooth, boothPositions }) {
   const arrowRefs = useRef([]);
-  const targetPoint2D = targetBooth ? getBoothPoint(targetBooth.id) : null;
+  const targetPoint2D = targetBooth ? getBoothPoint(targetBooth.id, boothPositions) : null;
 
   const arrowGeo = useMemo(() => {
     const geometry = new THREE.BufferGeometry();
@@ -391,6 +397,7 @@ function PathGuide({ pathPoints, targetBooth }) {
         marker.start[2] + marker.directionZ * progress,
       );
     });
+
   });
 
   if (!pathPoints || pathPoints.length < 2) {
@@ -471,7 +478,7 @@ function PathGuide({ pathPoints, targetBooth }) {
   );
 }
 
-export function CameraController({ targetBoothPos, resetSignal, controlsRef }) {
+export function CameraController({ targetBoothPos, boothPositions, resetSignal, controlsRef }) {
   const lerpTarget = useRef(DEFAULT_TARGET.clone());
   const lerpCamera = useRef(null);
   const isTargetAnimating = useRef(false);
@@ -567,6 +574,8 @@ export default function MapScene({
   onHover,
   selectedBooth,
   pathPoints,
+  boothPositions = {},
+  boothFrontPositions = {},
   controlsRef,
   resetSignal,
 }) {
@@ -583,8 +592,8 @@ export default function MapScene({
       return pathPoints;
     }
 
-    const boothPoint = getBoothPoint(selectedBooth.id);
-    const boothRoutePoint = getBoothRoutePoint(selectedBooth.id);
+    const boothPoint = getBoothPoint(selectedBooth.id, boothPositions);
+    const boothRoutePoint = getBoothRoutePoint(selectedBooth.id, boothPositions, boothFrontPositions);
     if (!boothPoint || !boothRoutePoint || !navmeshGrid) {
       return pathPoints;
     }
@@ -614,7 +623,7 @@ export default function MapScene({
     );
 
     return distanceToCenter > 0.05 ? [...basePath, boothCenterPoint] : basePath;
-  }, [navmeshGrid, pathPoints, selectedBooth]);
+  }, [boothFrontPositions, boothPositions, navmeshGrid, pathPoints, selectedBooth]);
 
   return (
     <>
@@ -627,13 +636,14 @@ export default function MapScene({
       </mesh>
 
       <KioskMapModel />
-      <BoothHitAreas onHover={handleHover} onSelect={handleSelect} />
-      <SelectionRing booth={selectedBooth} />
+      <BoothHitAreas onHover={handleHover} onSelect={handleSelect} boothPositions={boothPositions} />
+      <SelectionRing booth={selectedBooth} boothPositions={boothPositions} />
       <EntranceMarker />
-      <PathGuide pathPoints={resolvedPathPoints} targetBooth={selectedBooth} />
+      <PathGuide pathPoints={resolvedPathPoints} targetBooth={selectedBooth} boothPositions={boothPositions} />
 
       <CameraController
         targetBoothPos={targetBoothPos}
+        boothPositions={boothPositions}
         resetSignal={resetSignal}
         controlsRef={controlsRef}
       />
