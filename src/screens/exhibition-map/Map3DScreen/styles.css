@@ -428,9 +428,9 @@
 
 .map3d-entrance-label {
   padding: 20px 40px;
-  border-radius: 10px;
+  border-radius: 20px;
   background: rgba(190, 40, 142, 0.72);
-  border: 3px solid rgb(255, 255, 255);
+  border: 5px solid rgba(255, 255, 255, 0.507);
   color: #f4fffd;
   font-size: 55px;
   font-weight: 800;
