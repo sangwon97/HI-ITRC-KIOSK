@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { searchBooths, categories } from '../../../data/booths';
 import { appendHangulInput, removeLastHangulInput } from '../../../utils/hangulInput';
-import { getCategoryPresentation } from '../../../utils/categoryPresentation';
 import {
   NUMBER_ROW,
   KOREAN_ROWS,
@@ -104,7 +103,6 @@ export default function SearchScreen({ navigate, goBack, goHome, embedded = fals
                 <div className="ss-result-list scrollable">
                   {results.map(b => {
                     const category = cat(b.category);
-                    const categoryPresentation = getCategoryPresentation(category?.color);
                     return (
                       <button
                         key={b.id}
@@ -115,14 +113,7 @@ export default function SearchScreen({ navigate, goBack, goHome, embedded = fals
                           source: 'search',
                         })}
                       >
-                        <div
-                          className="ss-result-cat"
-                          style={{
-                            background: categoryPresentation.solidBackground,
-                            color: categoryPresentation.textColor,
-                            borderColor: categoryPresentation.borderColor,
-                          }}
-                        >
+                        <div className="ss-result-cat" style={{ background: `${category?.color}20`, color: category?.color }}>
                           {category?.icon} {category?.label}
                         </div>
                         <div className="ss-result-info">

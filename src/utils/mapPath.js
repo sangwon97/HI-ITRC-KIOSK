@@ -1,43 +1,24 @@
-// 임시 스폰 위치
-export const ENTRANCE = [8.8, 0, -8.4];
+import { boothPositions } from '../data/boothPositions';
+
+// 입구 위치 (전시장 하단 중앙)
+export const ENTRANCE = [0, 0, -42];
 
 // 복도 X 좌표
-const CX_LEFT   = -9.3; // 좌측 블록 ↔ 중앙 블록 사이
-const CX_CENTER =  8.0; // 중앙 블록 ↔ 우측 블록 사이
-const CX_RIGHT  = 26.0; // 우측 블록 바깥쪽 우회 복도
+const CX_LEFT   = -12.5; // S8/S9/S10 ↔ S1-S4 사이
+const CX_CENTER =  5.0;  // S1-S4 ↔ S5-S7 사이
+const CX_RIGHT  = 22.5;  // S5-S7 우측
 
 // 바닥 수평 복도 Z
-const CZ_BOTTOM = 30.95;
+const CZ_BOTTOM = -37;
 
 const Y = 0.15; // 바닥 위 약간
-const BOOTH_HALF_WIDTH = 1.38;
-const BOOTH_ROUTE_MARGIN = 0.55;
-const BOOTH_FRONT_X_INSET = 0.75;
-
-function getCorridorXForBoothX(bx) {
-  if (bx < -8) {
-    return CX_LEFT;
-  }
-
-  if (bx < 8) {
-    return CX_CENTER;
-  }
-
-  if (bx < 16) {
-    return CX_CENTER;
-  }
-
-  return CX_RIGHT;
-}
 
 /**
  * 입구에서 부스까지 복도를 따라가는 경로 포인트를 반환합니다.
  * @param {string} boothId
- * @param {Record<string, [number, number]>} boothPositions
- * @param {Record<string, [number, number]>} boothFrontPositions
  * @returns {[number,number,number][]|null} [[x,y,z], ...] 배열
  */
-export function computeBoothPath(boothId, boothPositions, boothFrontPositions) {
+export function computeBoothPath(boothId) {
   const pos = boothPositions[boothId];
   if (!pos) return null;
 
@@ -45,56 +26,34 @@ export function computeBoothPath(boothId, boothPositions, boothFrontPositions) {
 
   // 입구 → 하단 복도 진입점
   const path = [
-    [ENTRANCE[0], Y, ENTRANCE[2]],
-    [ENTRANCE[0], Y, CZ_BOTTOM],
+    [0,   Y, -42],
+    [0,   Y, CZ_BOTTOM],
   ];
 
   // bx 기준으로 사용할 세로 복도 결정
-  const corridorX = getCorridorXForBoothX(bx);
-
-  const routePoint = getBoothRoutePoint(boothId, boothPositions, boothFrontPositions);
-  const targetX = routePoint?.[0] ?? bx;
-  const targetZ = routePoint?.[1] ?? bz;
+  let corridorX;
+  if (bx < -5) {
+    // S8/S9/S10 or S1-S4 외곽 좌측 부스 → 왼쪽 복도
+    corridorX = CX_LEFT;
+  } else if (bx < 8) {
+    // S1-S4 중앙 부스 → 오른쪽에서 우회
+    corridorX = CX_CENTER;
+  } else if (bx < 16) {
+    // S5-S7 좌측 부스 → 중앙 복도
+    corridorX = CX_CENTER;
+  } else {
+    // S5-S7 우측 부스 → 우측 복도
+    corridorX = CX_RIGHT;
+  }
 
   // 하단 → 세로 복도 입구
   path.push([corridorX, Y, CZ_BOTTOM]);
   // 세로 복도 따라 부스 Z까지 이동
-  path.push([corridorX, Y, targetZ]);
-  // public/data/booths/BoothFrontPos.csv 기준 전면 좌표를 최종 접근점으로 사용
-  path.push([targetX, Y, targetZ]);
+  path.push([corridorX, Y, bz]);
+  // 부스 쪽으로 꺾기
+  path.push([bx, Y, bz]);
 
   return path;
-}
-
-export function getBoothPoint(boothId, boothPositions) {
-  return boothPositions[boothId] ?? null;
-}
-
-export function getBoothRoutePoint(boothId, boothPositions, boothFrontPositions, extraOffset = 0.9) {
-  const frontPoint = boothFrontPositions[boothId];
-  if (frontPoint) {
-    const centerPoint = boothPositions[boothId];
-    if (!centerPoint) {
-      return frontPoint;
-    }
-
-    const directionToCenter = Math.sign(centerPoint[0] - frontPoint[0]);
-    const adjustedFrontX = frontPoint[0] + directionToCenter * BOOTH_FRONT_X_INSET;
-
-    return [adjustedFrontX, frontPoint[1]];
-  }
-
-  const point = boothPositions[boothId];
-  if (!point) {
-    return null;
-  }
-
-  const [bx, bz] = point;
-  const corridorX = getCorridorXForBoothX(bx);
-  const approachDirection = Math.sign(corridorX - bx) || 1;
-  const routeX = bx + approachDirection * (BOOTH_HALF_WIDTH + BOOTH_ROUTE_MARGIN + extraOffset);
-
-  return [routeX, bz];
 }
 
 /**

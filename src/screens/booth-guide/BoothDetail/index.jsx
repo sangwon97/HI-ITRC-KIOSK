@@ -2,7 +2,6 @@ import { postersByBooth } from '../../../data/posters';
 import { centerData } from '../../../data/centerInfo';
 import { categories } from '../../../data/booths';
 import backIcon from '../../../assets/icons/back.svg';
-import { getCategoryPresentation } from '../../../utils/categoryPresentation';
 import './styles.css';
 
 export default function BoothDetail({ data, navigate, goBack, goHome, embedded = false }) {
@@ -18,7 +17,6 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
   const posters = postersByBooth[booth.id] || [];
   const center = centerData[booth.id];
   const cat = categories.find(c => c.id === booth.category);
-  const categoryPresentation = getCategoryPresentation(cat?.color);
 
   return (
     <div className={`booth-detail ${embedded ? 'booth-detail-embedded' : 'screen-enter'}`}>
@@ -52,15 +50,7 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
       <div className="bd-viewport scrollable">
         <div className="bd-content">
         {/* 부스 정보 히어로 */}
-        <div
-          className="bd-hero"
-          style={{
-            '--cat-color': cat?.color || 'var(--accent)',
-            '--cat-accent-color': categoryPresentation.textColor,
-            '--cat-border-color': categoryPresentation.borderColor,
-            '--cat-bg-color': categoryPresentation.subtleBackground,
-          }}
-        >
+        <div className="bd-hero" style={{ '--cat-color': cat?.color || 'var(--accent)' }}>
           <div className="bd-hero-cat">
             <span>{cat?.icon}</span>
             <span>{cat?.label}</span>
