@@ -893,10 +893,10 @@ export default function MapScene({
       <ambientLight color={0xe8f4ff} intensity={1.8} />
       <directionalLight color={0xffffff} intensity={0.6} position={[-8, 30, 15]} />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
+      {/* <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
         <planeGeometry args={[200, 200]} />
         <meshLambertMaterial color={0xd8e8f4} />
-      </mesh>
+      </mesh> */}
 
       <KioskMapModel />
       <BoothHitAreas onHover={handleHover} onSelect={handleSelect} boothPositions={boothPositions} />
