@@ -563,3 +563,70 @@
 .map3d-panel-btn:active {
   transform: translateY(0);
 }
+
+.map3d-special-label {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+  backdrop-filter: none;
+  pointer-events: none;
+}
+
+.map3d-special-label-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 110px;
+  height: 110px;
+  border-radius: 999px;
+  background: rgba(159, 19, 19, 0.88);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(6px);
+}
+
+.map3d-special-label-caption {
+  padding: 8px 16px;
+  border-radius: 999px;
+  /* background: #101820; */
+  /* border: 2px solid rgba(10, 16, 26, 0.92); */
+  color: #ffffff;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  /* box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16); */
+}
+
+.map3d-special-label--entrance {
+  gap: 0;
+}
+
+.map3d-special-label-entrance-text {
+  padding: 30px 44px;
+  border-radius: 999px;
+  background: rgba(9, 18, 31, 0.6);
+  border: 3px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(8px);
+}
+
+.map3d-special-label-icon {
+  width: 60px;
+  height: 60px;
+  display: block;
+  flex-shrink: 0;
+}
