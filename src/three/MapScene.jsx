@@ -510,7 +510,7 @@ function EntranceMarker() {
         </mesh>
       </group>
       <Html
-        position={[0, 4.0, 0]}
+        position={[0, 5.0, 0]}
         center
         distanceFactor={9}
         sprite

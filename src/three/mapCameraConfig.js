@@ -1,4 +1,4 @@
 export const DEFAULT_MAP_CAMERA = {
-  position: [24, 70, 50],
-  target: [0, 0, 0],
+  position: [50, 60, 50],
+  target: [4, 0, 8],
 };
