@@ -28,7 +28,7 @@
 .home-orb-1 {
   width: 800px;
   height: 800px;
-  background: radial-gradient(circle, #0055cc, transparent 70%);
+  background: radial-gradient(circle, rgba(46, 111, 159, 0.55), transparent 70%);
   top: -400px;
   left: -200px;
 }
@@ -36,7 +36,7 @@
 .home-orb-2 {
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, #00e5a0, transparent 70%);
+  background: radial-gradient(circle, rgba(121, 168, 202, 0.48), transparent 70%);
   bottom: -200px;
   right: -200px;
 }
@@ -63,7 +63,7 @@
 .home-brand-itrc {
   font-size: 1.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #00b4ff, #0066cc);
+  background: linear-gradient(135deg, #79a8ca, #2e6f9f);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -109,7 +109,7 @@
   align-items: center;
   padding: 6px 16px;
   background: var(--accent-glow);
-  border: 1px solid rgba(0, 180, 255, 0.3);
+  border: 1px solid var(--border-glow);
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 700;
@@ -161,7 +161,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, var(--card-accent, #00b4ff) 0%, transparent 60%);
+  background: linear-gradient(135deg, var(--card-accent, #79a8ca) 0%, transparent 60%);
   opacity: 0;
   transition: opacity var(--transition-base);
 }

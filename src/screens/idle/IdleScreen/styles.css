@@ -35,7 +35,7 @@
 .idle-orb-1 {
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, #0055cc, transparent 70%);
+  background: radial-gradient(circle, rgba(46, 111, 159, 0.55), transparent 70%);
   top: -200px;
   left: -100px;
   animation-delay: 0s;
@@ -44,7 +44,7 @@
 .idle-orb-2 {
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, #00e5a0, transparent 70%);
+  background: radial-gradient(circle, rgba(121, 168, 202, 0.48), transparent 70%);
   bottom: -150px;
   right: -100px;
   animation-delay: -3s;
@@ -53,7 +53,7 @@
 .idle-orb-3 {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, #6c63ff, transparent 70%);
+  background: radial-gradient(circle, rgba(92, 143, 184, 0.36), transparent 70%);
   top: 50%;
   right: 20%;
   transform: translateY(-50%);
@@ -71,8 +71,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0, 180, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 180, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(121, 168, 202, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(121, 168, 202, 0.05) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
@@ -94,7 +94,7 @@
 .idle-logo-itrc {
   font-size: 2.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #00b4ff, #0066cc);
+  background: linear-gradient(135deg, #79a8ca, #2e6f9f);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

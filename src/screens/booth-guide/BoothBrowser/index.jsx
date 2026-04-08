@@ -130,10 +130,6 @@ export default function BoothBrowser({ navigate, goHome, embedded = false, data 
                   source: 'booth-browser',
                 })}
               >
-                <div className="bb-booth-list-head">
-                  <div className="bb-booth-location">전시장 {booth.section} 구역</div>
-                </div>
-
                 <div className="bb-booth-info">
                   <span className="bb-booth-name">{booth.name}</span>
                   <span className="bb-booth-univ">{booth.univ}</span>

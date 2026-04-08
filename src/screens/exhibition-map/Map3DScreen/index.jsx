@@ -48,7 +48,19 @@ const NAV_ITEMS = [
   { id: 'map',           label: '전시장 지도', sub: 'Exhibition Map',  icon: mapIcon,      screen: null },
   { id: 'booth-browser', label: '부스 안내',   sub: 'Booth Guide',     icon: aiIcon,       screen: 'booth-browser' },
   { id: 'search',        label: '부스 검색',   sub: 'Search',          icon: searchIcon,   screen: 'search' },
-  { id: 'info',          label: '행사 안내',   sub: 'Event Guide',     icon: documentIcon, screen: 'info' },
+  {
+    id: 'info',
+    label: '행사 안내',
+    sub: 'Event Guide',
+    icon: documentIcon,
+    screen: 'info',
+    children: [
+      { id: 'overview', label: '행사 개요', tab: 'overview' },
+      { id: 'programs', label: '프로그램', tab: 'programs' },
+      { id: 'zones', label: '전시 구역', tab: 'zones' },
+      { id: 'videos', label: '지난 행사 영상', tab: 'videos' },
+    ],
+  },
 ];
 
 const PANEL_TITLES = {
@@ -117,6 +129,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
   const [introSignal, setIntroSignal] = useState(0);
+  const [infoMenuOpen, setInfoMenuOpen] = useState(false);
 
   useEffect(() => {
     let disposed = false;
@@ -173,13 +186,14 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   }, [activePanel, goHome, navigate]);
 
   const cat = selected ? CATEGORY_MAP.get(selected.category) : null;
-  const catColor = selected ? hexStr(CAT_HEX[selected.category]) : '#00b4ff';
+  const catColor = selected ? hexStr(CAT_HEX[selected.category]) : '#79a8ca';
   const categoryPresentation = getCategoryPresentation(catColor);
   const panelTitle = activePanel ? PANEL_TITLES[activePanel] : null;
   const activeViewTitle = panelTitle ?? '전시장 지도';
   const activeViewSubtitle = activePanel ? 'ITRC 2026 Kiosk Content' : 'Exhibition Map';
   const boothPayload = normalizeBoothPayload(data);
   const activeNavScreen = getActiveNavScreen(activePanel);
+  const activeInfoTab = activePanel === 'info' ? (data?.tab ?? 'overview') : null;
   const pathPoints = useMemo(() => {
     if (!selected) {
       return null;
@@ -204,6 +218,15 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
       setIntroSignal((signal) => signal + 1);
     }
   }, [activePanel]);
+
+  useEffect(() => {
+    if (activeNavScreen === 'info') {
+      setInfoMenuOpen(true);
+      return;
+    }
+
+    setInfoMenuOpen(false);
+  }, [activeNavScreen]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -321,7 +344,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     if (activePanel === 'info') {
       return (
         <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>행사 안내 로딩 중...</div>}>
-          <InfoScreen embedded navigate={navigate} goHome={goHome} />
+          <InfoScreen embedded data={data} navigate={navigate} goHome={goHome} />
         </Suspense>
       );
     }
@@ -418,22 +441,63 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
         {/* 네비게이션 */}
         <nav className="map3d-sidebar-nav">
-          {NAV_ITEMS.map(item => (
-            <button
-              key={item.id}
-              className={`map3d-nav-item ${(item.screen ?? 'home') === activeNavScreen ? 'map3d-nav-active' : ''}`}
-              onClick={() => handlePanelNavigate(item.screen)}
-            >
-              <span className="map3d-nav-icon">
-                <img src={item.icon} alt="" />
-              </span>
-              <span className="map3d-nav-text">
-                <span className="map3d-nav-label">{item.label}</span>
-                <span className="map3d-nav-sub">{item.sub}</span>
-              </span>
-            </button>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const isActive = (item.screen ?? 'home') === activeNavScreen;
+            const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+
+            return (
+              <div key={item.id} className={`map3d-nav-group ${isActive ? 'map3d-nav-group-active' : ''}`}>
+                <button
+                  className={`map3d-nav-item ${isActive ? 'map3d-nav-active' : ''}`}
+                  onClick={() => {
+                    if (hasChildren) {
+                      setInfoMenuOpen(true);
+                      if (!isActive) {
+                        navigate('info', { tab: activeInfoTab ?? item.children[0].tab });
+                      }
+                      return;
+                    }
+
+                    handlePanelNavigate(item.screen);
+                  }}
+                >
+                  <span className="map3d-nav-icon">
+                    <img src={item.icon} alt="" />
+                  </span>
+                  <span className="map3d-nav-text">
+                    <span className="map3d-nav-label">{item.label}</span>
+                    <span className="map3d-nav-sub">{item.sub}</span>
+                  </span>
+                </button>
+
+                {hasChildren && infoMenuOpen ? (
+                  <div className="map3d-nav-children">
+                    {item.children.map((child) => {
+                      const isChildActive = isActive && activeInfoTab === child.tab;
+                      return (
+                        <button
+                          key={child.id}
+                          className={`map3d-nav-child ${isChildActive ? 'map3d-nav-child-active' : ''}`}
+                          onClick={() => navigate('info', { tab: child.tab })}
+                        >
+                          <span className="map3d-nav-child-dot" aria-hidden="true" />
+                          <span>{child.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </nav>
+
+        <div className="map3d-sidebar-credits">
+          <div className="map3d-sidebar-credits-title">Platform Credits</div>
+          <div className="map3d-sidebar-credits-text">김진술 교수님</div>
+          <div className="map3d-sidebar-credits-text">플랫폼 개발 오상원 · 이예원</div>
+          <div className="map3d-sidebar-credits-text">3D 모델링 정광무</div>
+        </div>
 
       </aside>
 
@@ -447,7 +511,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             <span className="map3d-header-sep">/</span>
             <div className="map3d-header-meta">
               <span className="map3d-header-main">{activeViewSubtitle}</span>
-              <span className="map3d-header-sub">COEX 서울 · Hall A&amp;B · 4월 22–24일</span>
+              <span className="map3d-header-sub">COEX 서울 · Hall A · 4월 22–24일</span>
             </div>
           </div>
           <div className="map3d-header-right">
