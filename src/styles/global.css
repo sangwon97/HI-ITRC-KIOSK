@@ -119,7 +119,7 @@ body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: var(--accent-dark) transparent;
+  scrollbar-color: rgba(109, 138, 168, 0.38) transparent;
 }
 
 .scrollable::-webkit-scrollbar {
@@ -129,7 +129,7 @@ body {
   background: transparent;
 }
 .scrollable::-webkit-scrollbar-thumb {
-  background: var(--accent-dark);
+  background: rgba(109, 138, 168, 0.38);
   border-radius: var(--radius-full);
 }
 

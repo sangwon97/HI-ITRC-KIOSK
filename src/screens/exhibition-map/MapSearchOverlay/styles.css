@@ -303,7 +303,7 @@
   touch-action: pan-x;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 111, 127, 0.35) transparent;
+  scrollbar-color: rgba(109, 138, 168, 0.34) transparent;
 }
 
 .mso-popular-list::-webkit-scrollbar {
@@ -315,7 +315,7 @@
 }
 
 .mso-popular-list::-webkit-scrollbar-thumb {
-  background: rgba(0, 111, 127, 0.35);
+  background: rgba(109, 138, 168, 0.34);
   border-radius: 999px;
 }
 
