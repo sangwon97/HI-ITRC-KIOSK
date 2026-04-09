@@ -1,6 +1,6 @@
 function normalizeHexColor(color) {
   if (typeof color !== 'string' || color.length === 0) {
-    return '#00b4ff';
+    return '#79a8ca';
   }
 
   return color;

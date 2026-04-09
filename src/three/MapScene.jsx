@@ -3,6 +3,10 @@ import { useFrame } from '@react-three/fiber';
 import { Html, OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
+import genresIcon from '../assets/icons/genres.svg';
+import photoCameraIcon from '../assets/icons/photo_camera.svg';
+import teacupFilledIcon from '../assets/icons/teacup_filled.svg';
+import giftFilledIcon from '../assets/icons/gift_filled.svg';
 
 import { booths, categories } from '../data/booths';
 import { ENTRANCE, getBoothPoint, getBoothRoutePoint } from '../utils/mapPath';
@@ -20,6 +24,11 @@ const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const MAP_MODEL_CACHE = new WeakMap();
 const HIT_MESH_CACHE = new WeakMap();
 const INSTANCE_DUMMY = new THREE.Object3D();
+const SPECIAL_BOOTH_LABELS = [
+  { id: 'photo-booth', boothId: 'S6B4', label: '인생네컷', icon: photoCameraIcon },
+  { id: 'ai-dance', boothId: 'S10B4', label: 'AI 댄스', icon: genresIcon },
+];
+const EXHIBITION_ENTRANCE_POINT = [8.35161, 37.4791];
 
 function extractBoothId(name = '') {
   const match = name.match(BOOTH_NAME_RE);
@@ -299,6 +308,105 @@ function CategoryLabels({ boothPositions }) {
   );
 }
 
+function VenueFeatureLabels({ boothPositions }) {
+  const labels = useMemo(() => {
+    const nextLabels = [];
+
+    SPECIAL_BOOTH_LABELS.forEach((label) => {
+      const point = boothPositions[label.boothId];
+      if (!point) {
+        return;
+      }
+
+      nextLabels.push({
+        ...label,
+        x: point[0],
+        y: 4.35,
+        z: point[1],
+      });
+    });
+
+    const s6b7 = boothPositions.S6B7;
+    const s6b8 = boothPositions.S6B8;
+    if (s6b7 && s6b8) {
+      nextLabels.push({
+        id: 'photo-wall',
+        label: '포토월',
+        icon: photoCameraIcon,
+        x: (s6b7[0] + s6b8[0]) * 0.5,
+        y: 4.2,
+        z: (s6b7[1] + s6b8[1]) * 0.5,
+      });
+    }
+
+    const s9b9 = boothPositions.S9B9;
+    if (s9b9) {
+      nextLabels.push({
+        id: 'catering-zone',
+        label: '케이터링',
+        icon: teacupFilledIcon,
+        x: s9b9[0] - 1.0,
+        y: 4.25,
+        z: s9b9[1] - 6.5,
+      });
+    }
+
+    const photoBooth = boothPositions.S6B4;
+    if (photoBooth) {
+      nextLabels.push({
+        id: 'lucky-draw',
+        label: '럭키드로우',
+        icon: giftFilledIcon,
+        x: photoBooth[0] - 3.5,
+        y: 4.2,
+        z: photoBooth[1],
+      });
+    }
+
+    nextLabels.push({
+      id: 'exhibition-entrance',
+      label: '전시장 입구',
+      icon: null,
+      x: EXHIBITION_ENTRANCE_POINT[0],
+      y: 4.1,
+      z: EXHIBITION_ENTRANCE_POINT[1],
+    });
+
+    return nextLabels;
+  }, [boothPositions]);
+
+  return (
+    <group>
+      {labels.map((label) => (
+        <Html
+          key={label.id}
+          position={[label.x, label.y, label.z]}
+          center
+          distanceFactor={9}
+          sprite
+          transform
+          occlude={false}
+          zIndexRange={[6, 0]}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className={label.icon ? 'map3d-special-label map3d-special-label--feature' : 'map3d-special-label map3d-special-label--entrance'}>
+            {label.icon ? (
+              <>
+                <div className="map3d-special-label-badge">
+                  <img className="map3d-special-label-icon" src={label.icon} alt="" aria-hidden="true" />
+                </div>
+                <div className="map3d-special-label-caption">{label.label}</div>
+              </>
+            ) : (
+              <span className="map3d-special-label-entrance-text">{label.label}</span>
+            )}
+          </div>
+        </Html>
+      ))}
+    </group>
+  );
+}
+
 function HoverHighlight({ booth, boothPositions }) {
   const position = getBoothPosition(booth, boothPositions);
 
@@ -402,7 +510,7 @@ function EntranceMarker() {
         </mesh>
       </group>
       <Html
-        position={[0, 4.0, 0]}
+        position={[0, 5.0, 0]}
         center
         distanceFactor={9}
         sprite
@@ -785,14 +893,15 @@ export default function MapScene({
       <ambientLight color={0xe8f4ff} intensity={1.8} />
       <directionalLight color={0xffffff} intensity={0.6} position={[-8, 30, 15]} />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
+      {/* <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
         <planeGeometry args={[200, 200]} />
         <meshLambertMaterial color={0xd8e8f4} />
-      </mesh>
+      </mesh> */}
 
       <KioskMapModel />
       <BoothHitAreas onHover={handleHover} onSelect={handleSelect} boothPositions={boothPositions} />
       <CategoryLabels boothPositions={boothPositions} />
+      <VenueFeatureLabels boothPositions={boothPositions} />
       <SelectionRing booth={selectedBooth} boothPositions={boothPositions} />
       <EntranceMarker />
       <PathGuide pathPoints={resolvedPathPoints} targetBooth={selectedBooth} boothPositions={boothPositions} />

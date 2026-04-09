@@ -79,14 +79,21 @@ export default function CenterInfo({ data, goBack, goHome, embedded = false }) {
                   <button
                     className="ci-faq-q"
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    aria-expanded={openFaq === i}
                   >
-                    <span className="ci-faq-num">Q{i + 1}</span>
-                    <span className="ci-faq-question">{faq.q}</span>
-                    <span className="ci-faq-chevron">{openFaq === i ? '▲' : '▼'}</span>
+                    <span className="ci-faq-q-main">
+                      <span className="ci-faq-num">Q{i + 1}</span>
+                      <span className="ci-faq-question">{faq.q}</span>
+                    </span>
+                    <span className="ci-faq-chevron" aria-hidden="true">
+                      {openFaq === i ? '▲' : '▼'}
+                    </span>
                   </button>
                   {openFaq === i && (
                     <div className="ci-faq-a">
-                      <span className="ci-faq-a-label">A</span>
+                      <div className="ci-faq-a-badge">
+                        <span className="ci-faq-a-label">A</span>
+                      </div>
                       <p className="ci-faq-answer">{faq.a}</p>
                     </div>
                   )}

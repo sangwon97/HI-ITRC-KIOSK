@@ -57,7 +57,7 @@
 }
 
 .mso-input-filled {
-  border-color: #0097a7;
+  border-color: #79a8ca;
 }
 
 .mso-input-icon {
@@ -116,7 +116,7 @@
 }
 
 .mso-close-btn:hover {
-  color: #006f7f;
+  color: #2e6f9f;
 }
 
 /* 본문 */
@@ -174,7 +174,7 @@
 }
 
 .mso-result-num {
-  color: #0097a7;
+  color: #2e6f9f;
 }
 
 .mso-result-list {
@@ -201,7 +201,7 @@
 
 .mso-result-item:hover {
   background: #eef5fc;
-  border-color: #0097a7;
+  border-color: #79a8ca;
   transform: translateX(4px);
 }
 
@@ -244,7 +244,7 @@
 
 .mso-result-arrow {
   font-size: 0.9rem;
-  color: #0097a7;
+  color: #2e6f9f;
   flex-shrink: 0;
 }
 
@@ -283,11 +283,11 @@
 }
 
 .mso-all-booths-btn:hover {
-  color: #006f7f;
+  color: #2e6f9f;
 }
 
 .mso-all-booths-btn-active {
-  color: #006f7f;
+  color: #2e6f9f;
 }
 
 .mso-popular-list {
@@ -303,7 +303,7 @@
   touch-action: pan-x;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 111, 127, 0.35) transparent;
+  scrollbar-color: rgba(109, 138, 168, 0.34) transparent;
 }
 
 .mso-popular-list::-webkit-scrollbar {
@@ -315,7 +315,7 @@
 }
 
 .mso-popular-list::-webkit-scrollbar-thumb {
-  background: rgba(0, 111, 127, 0.35);
+  background: rgba(109, 138, 168, 0.34);
   border-radius: 999px;
 }
 
@@ -339,7 +339,7 @@
 
 .mso-popular-item:hover {
   background: #eef5fc;
-  border-color: #0097a7;
+  border-color: #79a8ca;
   transform: translateY(-2px);
 }
 
@@ -350,8 +350,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(0, 151, 167, 0.12);
-  color: #006f7f;
+  background: rgba(121, 168, 202, 0.16);
+  color: #2e6f9f;
   font-size: 0.8rem;
   font-weight: 800;
   flex-shrink: 0;
@@ -404,9 +404,9 @@
   min-width: 32px;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(0, 151, 167, 0.1);
+  background: rgba(121, 168, 202, 0.12);
   text-align: center;
-  color: #0097a7;
+  color: #2e6f9f;
   font-size: 0.76rem;
   font-weight: 800;
   flex-shrink: 0;
@@ -458,14 +458,14 @@
 }
 
 .mso-sk-quick-btn:hover {
-  border-color: #0097a7;
-  color: #0097a7;
+  border-color: #79a8ca;
+  color: #2e6f9f;
 }
 
 .mso-sk-quick-active {
-  background: rgba(0, 151, 167, 0.10);
-  border-color: #0097a7;
-  color: #006f7f;
+  background: rgba(121, 168, 202, 0.14);
+  border-color: #79a8ca;
+  color: #2e6f9f;
 }
 
 .mso-sk-layout {
@@ -503,8 +503,8 @@
 
 .mso-sk-key:hover {
   background: #eef5fc;
-  border-color: #0097a7;
-  color: #006f7f;
+  border-color: #79a8ca;
+  color: #2e6f9f;
 }
 
 .mso-sk-key:active {
@@ -516,9 +516,9 @@
 }
 
 .mso-sk-key-mode-active {
-  background: rgba(0, 151, 167, 0.12);
-  border-color: #0097a7;
-  color: #006f7f;
+  background: rgba(121, 168, 202, 0.16);
+  border-color: #79a8ca;
+  color: #2e6f9f;
 }
 
 .mso-sk-key-backspace {

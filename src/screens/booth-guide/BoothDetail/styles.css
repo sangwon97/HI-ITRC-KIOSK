@@ -97,7 +97,7 @@
   gap: 8px;
   overflow: hidden;
   font-size: 1rem;
-  line-height: 1;
+  line-height: 3;
   color: var(--text-muted);
   font-weight: 700;
 }
@@ -105,7 +105,7 @@
 .bd-breadcrumb-trail span {
   flex-shrink: 0;
   font-size: inherit;
-  line-height: 1;
+  line-height: 3;
   white-space: nowrap;
 }
 
@@ -129,6 +129,7 @@
   flex: 1;
   min-height: 0;
   width: 100%;
+  overflow: hidden;
 }
 
 .bd-content {
@@ -139,6 +140,7 @@
   margin: 0 auto;
   width: 100%;
   min-height: 100%;
+  height: 100%;
 }
 
 .booth-detail-embedded .bd-content {
@@ -147,11 +149,19 @@
 
 /* 히어로 */
 .bd-hero {
+  flex-shrink: 0;
+  z-index: 3;
   padding: 32px var(--side-pad) 28px;
-  background: linear-gradient(180deg, var(--bg-card) 0%, transparent 100%);
+  background: rgba(255, 255, 255, 0.96);
   border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
   position: relative;
   overflow: hidden;
+}
+
+.bd-sections {
+  flex: 1;
+  min-height: 0;
 }
 
 .bd-hero::before {
@@ -320,10 +330,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  background: var(--accent-glow);
-  border: 1px solid rgba(0, 180, 255, 0.3);
+  background: rgba(12, 26, 46, 0.04);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  color: var(--accent);
+  color: #24425f;
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
@@ -331,7 +341,7 @@
 }
 
 .bd-center-btn:hover {
-  background: rgba(0, 180, 255, 0.2);
+  background: rgba(12, 26, 46, 0.07);
 }
 
 /* 빈 상태 */

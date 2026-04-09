@@ -49,7 +49,7 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
         </div>
       )}
 
-      <div className="bd-viewport scrollable">
+      <div className="bd-viewport">
         <div className="bd-content">
         {/* 부스 정보 히어로 */}
         <div
@@ -72,72 +72,74 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
           </div>
         </div>
 
-        {/* 포스터 섹션 */}
-        {posters.length > 0 && (
-          <section className="bd-section">
-            <h2 className="bd-section-title">
-              <span>📌</span>
-              <span>연구 포스터</span>
-              <span className="bd-section-count">{posters.length}개</span>
-            </h2>
-            <div className="bd-posters">
-              {posters.map((poster, i) => (
+        <div className="bd-sections scrollable">
+          {/* 포스터 섹션 */}
+          {posters.length > 0 && (
+            <section className="bd-section">
+              <h2 className="bd-section-title">
+                <span>📌</span>
+                <span>연구 포스터</span>
+                <span className="bd-section-count">{posters.length}개</span>
+              </h2>
+              <div className="bd-posters">
+                {posters.map((poster, i) => (
+                  <button
+                    key={poster.id}
+                    className="bd-poster-card"
+                    onClick={() => navigate('poster', {
+                      poster,
+                      booth,
+                      categoryId: boothPayload?.categoryId ?? booth.category,
+                      source: boothPayload?.source ?? 'booth-browser',
+                    })}
+                  >
+                    <div className="bd-poster-num">{String(i + 1).padStart(2, '0')}</div>
+                    <div className="bd-poster-info">
+                      <span className="bd-poster-title">{poster.title}</span>
+                      <span className="bd-poster-preview">
+                        {poster.description.slice(0, 50)}...
+                      </span>
+                    </div>
+                    <span className="bd-poster-arrow">→</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* 연구센터 소개 섹션 */}
+          {center && (
+            <section className="bd-section">
+              <h2 className="bd-section-title">
+                <span>🏫</span>
+                <span>연구센터 소개</span>
+              </h2>
+              <div className="bd-center-intro">
+                <p className="bd-center-text">{center.intro}</p>
                 <button
-                  key={poster.id}
-                  className="bd-poster-card"
-                  onClick={() => navigate('poster', {
-                    poster,
+                  className="bd-center-btn"
+                  onClick={() => navigate('center', {
+                    center,
                     booth,
                     categoryId: boothPayload?.categoryId ?? booth.category,
                     source: boothPayload?.source ?? 'booth-browser',
                   })}
                 >
-                  <div className="bd-poster-num">{String(i + 1).padStart(2, '0')}</div>
-                  <div className="bd-poster-info">
-                    <span className="bd-poster-title">{poster.title}</span>
-                    <span className="bd-poster-preview">
-                      {poster.description.slice(0, 50)}...
-                    </span>
-                  </div>
-                  <span className="bd-poster-arrow">→</span>
+                  <span>자세히 보기</span>
+                  <span>→</span>
                 </button>
-              ))}
-            </div>
-          </section>
-        )}
+              </div>
+            </section>
+          )}
 
-        {/* 연구센터 소개 섹션 */}
-        {center && (
-          <section className="bd-section">
-            <h2 className="bd-section-title">
-              <span>🏫</span>
-              <span>연구센터 소개</span>
-            </h2>
-            <div className="bd-center-intro">
-              <p className="bd-center-text">{center.intro}</p>
-              <button
-                className="bd-center-btn"
-                onClick={() => navigate('center', {
-                  center,
-                  booth,
-                  categoryId: boothPayload?.categoryId ?? booth.category,
-                  source: boothPayload?.source ?? 'booth-browser',
-                })}
-              >
-                <span>자세히 보기</span>
-                <span>→</span>
-              </button>
+          {/* 포스터 없는 경우 안내 */}
+          {posters.length === 0 && !center && (
+            <div className="bd-empty">
+              <span>📭</span>
+              <p>이 부스의 상세 정보를 준비 중입니다.</p>
             </div>
-          </section>
-        )}
-
-        {/* 포스터 없는 경우 안내 */}
-        {posters.length === 0 && !center && (
-          <div className="bd-empty">
-            <span>📭</span>
-            <p>이 부스의 상세 정보를 준비 중입니다.</p>
-          </div>
-        )}
+          )}
+        </div>
         </div>
       </div>
     </div>

@@ -7,19 +7,19 @@ const SLIDES = [
     tag: 'AI 대전환 시대',
     title: '기술주권을 이끄는\n미래인재',
     sub: '전국 38개 대학 · 81개 연구센터',
-    accent: '#00b4ff',
+    accent: '#79a8ca',
   },
   {
     tag: '2026. 04. 22~24',
     title: 'COEX에서\n만나요',
     sub: '국내 최대 ICT 연구성과 전시회',
-    accent: '#00e5a0',
+    accent: '#79a8ca',
   },
   {
     tag: '80+ 전시 부스',
     title: '첨단 ICT 기술의\n모든 것',
     sub: 'AI반도체 · 6G · 양자기술 · 바이오헬스케어',
-    accent: '#a29bfe',
+    accent: '#79a8ca',
   },
 ];
 

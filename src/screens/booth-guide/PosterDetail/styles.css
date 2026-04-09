@@ -94,7 +94,7 @@
   gap: 8px;
   overflow: hidden;
   font-size: 1rem;
-  line-height: 1;
+  line-height: 3;
   color: var(--text-muted);
   font-weight: 700;
 }
@@ -144,7 +144,7 @@
 
 /* 이미지 영역 */
 .pd-image-area {
-  background: #000;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,11 +158,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .pd-image {
-  max-width: 100%;
-  max-height: 100%;
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
@@ -185,7 +187,7 @@
   flex-direction: column;
   padding: 36px var(--side-pad);
   gap: 0;
-  background: var(--bg-dark);
+  background: #ffffff;
 }
 
 .pd-source {
@@ -245,7 +247,7 @@
 .pd-description-label {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--text-primary);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   margin-bottom: 12px;
