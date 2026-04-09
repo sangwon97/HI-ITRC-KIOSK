@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { eventInfo } from '../../../data/eventInfo';
+import ExhibitionZoneMap from '../ExhibitionZoneMap';
 import './styles.css';
 
 const TABS = [
@@ -58,7 +59,10 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
       </div>
 
       {/* 콘텐츠 */}
-      <div className={`is-content ${activeTab === 'videos' ? 'is-content-video' : ''}`} key={activeTab}>
+      <div
+        className={`is-content ${activeTab === 'videos' ? 'is-content-video' : ''} ${activeTab === 'zones' ? 'is-content-zones' : ''}`}
+        key={activeTab}
+      >
         {activeTab === 'overview' && (
           <div className="is-tab-content fade-in">
             <div className="is-hero-banner">
@@ -185,29 +189,8 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
         )}
 
         {activeTab === 'zones' && (
-          <div className="is-tab-content fade-in">
-            <div className="is-zones">
-              {eventInfo.exhibitionZones.map(zone => (
-                <button
-                  key={zone.id}
-                  className="is-zone-card"
-                  onClick={() => navigate('booth-browser')}
-                >
-                  <div className="is-zone-num">{String(zone.id).padStart(2, '0')}</div>
-                  <div className="is-zone-icon">{zone.icon}</div>
-                  <div className="is-zone-info">
-                    <span className="is-zone-label">{zone.label}</span>
-                    <span className="is-zone-desc">{zone.desc}</span>
-                    <div className="is-zone-sections">
-                      {zone.sections.map(s => (
-                        <span key={s} className="is-zone-section-badge">{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <span className="is-zone-arrow">→</span>
-                </button>
-              ))}
-            </div>
+          <div className="is-tab-content is-tab-content-zones fade-in">
+            <ExhibitionZoneMap />
           </div>
         )}
 

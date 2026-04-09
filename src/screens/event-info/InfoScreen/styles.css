@@ -76,11 +76,21 @@
   overflow: hidden;
 }
 
+.is-content-zones {
+  overflow: hidden;
+}
+
 .is-tab-content {
   padding: 24px var(--side-pad);
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.is-tab-content-zones {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .is-tab-content-youtube {
@@ -468,96 +478,132 @@
 }
 
 /* 전시 구역 */
-.is-zones {
+.is-zone-layout {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.is-zone-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.is-zone-category-tabs {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.is-zone-card {
-  display: flex;
+.is-zone-category-tab {
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
-  padding: 18px 24px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  text-align: left;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(12, 26, 46, 0.1);
+  background: rgba(248, 251, 255, 0.92);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.is-zone-card:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-glow);
-  transform: translateX(4px);
+.is-zone-category-tab-active {
+  background: var(--zone-tab-color);
+  color: var(--zone-tab-text);
+  border-color: var(--zone-tab-border);
 }
 
-.is-zone-num {
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: var(--text-muted);
-  min-width: 32px;
-  font-family: monospace;
-  font-variant-numeric: tabular-nums;
+.is-zone-map-board {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: auto;
+  min-height: 0;
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  overflow: hidden;
 }
 
-.is-zone-icon {
-  font-size: 1.75rem;
-  width: 48px;
-  height: 48px;
+.is-zone-map-canvas {
+  position: absolute !important;
+  inset: 0;
+  background: transparent !important;
+}
+
+.is-zone-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 120px;
+}
+
+.is-zone-marker-logo {
+  width: 104px;
+  height: 60px;
+}
+
+.is-zone-marker-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.is-zone-marker-icon-image {
+  filter: drop-shadow(0 1px 2px rgba(12, 26, 46, 0.22));
+}
+
+.is-zone-marker-title {
+  width: 100%;
+  color: rgba(12, 26, 46, 0.9);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.24;
+  letter-spacing: -0.01em;
+  text-align: center;
+  word-break: keep-all;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.92);
+}
+
+.is-zone-entrance {
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: rgba(46, 111, 159, 0.9);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  box-shadow: 0 10px 20px rgba(46, 111, 159, 0.18);
+}
+
+.is-zone-map-feedback {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-}
-
-.is-zone-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.is-zone-label {
-  font-size: 0.95rem;
+  padding: 24px;
+  font-size: 0.92rem;
   font-weight: 700;
-  color: var(--text-primary);
-}
-
-.is-zone-desc {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.is-zone-sections {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-top: 2px;
-}
-
-.is-zone-section-badge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--info-accent);
-  background: var(--info-accent-glow);
-  border: 1px solid var(--info-accent-border);
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-family: monospace;
-  letter-spacing: 0.05em;
-}
-
-.is-zone-arrow {
-  font-size: 1rem;
-  color: var(--text-muted);
-  transition: all var(--transition-base);
-}
-
-.is-zone-card:hover .is-zone-arrow {
-  color: var(--info-accent);
-  transform: translateX(4px);
+  color: var(--text-secondary);
+  z-index: 3;
+  background: rgba(248, 251, 255, 0.7);
+  backdrop-filter: blur(4px);
 }
 
 /* 지난 행사 영상 */
@@ -674,5 +720,10 @@
 
   .is-tab-content-video {
     padding: 20px var(--side-pad);
+  }
+
+  .is-zone-map-board {
+    width: 100%;
+    height: auto;
   }
 }
