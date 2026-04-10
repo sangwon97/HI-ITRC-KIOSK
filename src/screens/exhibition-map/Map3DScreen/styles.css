@@ -355,45 +355,75 @@
 .map3d-header-info {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 
-.map3d-header-title {
-  font-size: 1.08rem;
-  font-weight: 800;
-  color: #0c1a2e;
-  letter-spacing: -0.02em;
-}
-
-.map3d-header-sep {
-  font-size: 1.0rem;
-  color: #b0c4d8;
-  font-weight: 300;
+.map3d-header-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: rgba(46, 111, 159, 0.12);
+  color: #2e6f9f;
+  font-size: 0.96rem;
+  font-weight: 1000;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .map3d-header-meta {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
 }
 
 .map3d-header-main {
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: #3d5a80;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #17324f;
   line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .map3d-header-sub {
-  font-size: 0.72rem;
-  color: #7a98b8;
-  font-weight: 400;
+  font-size: 0.74rem;
+  color: #6e89a6;
+  font-weight: 500;
 }
 
 .map3d-header-right {
   display: flex;
   align-items: flex-end;
+  gap: 14px;
+}
+
+.map3d-header-divider {
+  width: 1px;
+  height: 26px;
+  background: rgba(122, 152, 184, 0.32);
+  align-self: center;
+}
+
+.map3d-header-weather {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  padding-bottom: 4px;
+}
+
+.map3d-header-weather-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.map3d-header-weather-meta {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #4d6786;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .map3d-header-clock {
@@ -545,6 +575,18 @@
   animation: badgeFadeIn 0.3s ease;
 }
 
+.map3d-route-badge-idle {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(0, 80, 140, 0.12);
+  color: rgba(36, 67, 102, 0.78);
+}
+
+.map3d-route-badge-active {
+  background: rgba(0, 84, 140, 0.501);
+  border-color: rgba(0, 160, 220, 0.35);
+  color: #fff;
+}
+
 @keyframes badgeFadeIn {
   from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -580,6 +622,23 @@
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(4px);
   opacity: 0.94;
+}
+
+.map3d-booth-floor-label {
+  width: 124px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--booth-floor-accent, #2e6f9f) 26%, rgba(255, 255, 255, 0.74));
+  background: rgba(255, 255, 255, 0.86);
+  color: #102136;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  text-align: center;
+  word-break: keep-all;
+  box-shadow: 0 6px 18px rgba(12, 26, 46, 0.10);
+  backdrop-filter: blur(4px);
 }
 
 /* ── 선택 부스 패널 ─────────────────────────── */

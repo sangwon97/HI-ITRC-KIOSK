@@ -1,6 +1,6 @@
 import { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, OrbitControls, useGLTF } from '@react-three/drei';
+import { Billboard, Html, OrbitControls, Text, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
 import genresIcon from '../assets/icons/genres.svg';
@@ -13,6 +13,7 @@ import { ENTRANCE, getBoothPoint, getBoothRoutePoint } from '../utils/mapPath';
 import { DEFAULT_MAP_CAMERA } from './mapCameraConfig';
 
 const BOOTH_LOOKUP = new Map(booths.map((booth) => [booth.id, booth]));
+const CATEGORY_LOOKUP = new Map(categories.map((category) => [category.id, category]));
 const BOOTH_NAME_RE = /^Floor_(S\d+B\d+)$/i;
 const DEFAULT_TARGET = new THREE.Vector3(...(DEFAULT_MAP_CAMERA.target ?? [0, 0, 0]));
 const NO_RAYCAST = () => null;
@@ -407,6 +408,105 @@ function VenueFeatureLabels({ boothPositions }) {
   );
 }
 
+function BoothFloorLabels({ boothPositions }) {
+  const labels = useMemo(() => {
+    return booths
+      .map((booth) => {
+        const point = boothPositions[booth.id];
+        if (!point) {
+          return null;
+        }
+
+        const category = CATEGORY_LOOKUP.get(booth.category);
+        return {
+          id: booth.id,
+          title: booth.name,
+          x: point[0],
+          z: point[1],
+          color: category?.color ?? '#2e6f9f',
+        };
+      })
+      .filter(Boolean);
+  }, [boothPositions]);
+
+  return (
+    <group>
+      {labels.map((label) => (
+        <group
+          key={label.id}
+          position={[label.x, 0.12, label.z]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <Html
+            transform
+            occlude={false}
+            zIndexRange={[2, 0]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div
+              className="map3d-booth-floor-label"
+              style={{ '--booth-floor-accent': label.color }}
+            >
+              {label.title}
+            </div>
+          </Html>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function OccludedBoothNameLabels({ boothPositions, visible = true }) {
+  const labels = useMemo(() => {
+    if (!visible) {
+      return [];
+    }
+
+    return booths
+      .map((booth) => {
+        const point = boothPositions[booth.id];
+        if (!point) {
+          return null;
+        }
+
+        return {
+          id: booth.id,
+          title: booth.name,
+          x: point[0],
+          z: point[1],
+        };
+      })
+      .filter(Boolean);
+  }, [boothPositions, visible]);
+
+  if (!visible || labels.length === 0) {
+    return null;
+  }
+
+  return (
+    <group>
+      {labels.map((label) => (
+        <Billboard key={label.id} position={[label.x, 0.54, label.z]} follow>
+          <Text
+            fontSize={0.5}
+            maxWidth={5.2}
+            color="#ffffff"
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.016}
+            outlineColor="#ffffff"
+            depthOffset={-0.2}
+            material-depthTest={true}
+            material-depthWrite={true}
+          >
+            {label.title}
+          </Text>
+        </Billboard>
+      ))}
+    </group>
+  );
+}
+
 function HoverHighlight({ booth, boothPositions }) {
   const position = getBoothPosition(booth, boothPositions);
 
@@ -740,7 +840,7 @@ export function CameraController({ targetBoothPos, boothPositions, introSignal, 
       lerpCamera.current = null;
       isCameraAnimating.current = false;
     }
-  }, [targetBoothPos]);
+  }, [boothPositions, targetBoothPos]);
 
   useEffect(() => {
     if (resetSignal > 0) {
@@ -838,6 +938,7 @@ export default function MapScene({
   controlsRef,
   introSignal,
   resetSignal,
+  showBoothLabels = true,
 }) {
   const handleHover = useCallback((booth) => onHover(booth), [onHover]);
   const handleSelect = useCallback((booth) => onSelect(booth), [onSelect]);
@@ -900,6 +1001,7 @@ export default function MapScene({
 
       <KioskMapModel />
       <BoothHitAreas onHover={handleHover} onSelect={handleSelect} boothPositions={boothPositions} />
+      <OccludedBoothNameLabels boothPositions={boothPositions} visible={showBoothLabels} />
       <CategoryLabels boothPositions={boothPositions} />
       <VenueFeatureLabels boothPositions={boothPositions} />
       <SelectionRing booth={selectedBooth} boothPositions={boothPositions} />

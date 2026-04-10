@@ -72,6 +72,48 @@ const PANEL_TITLES = {
   info: '행사 안내',
 };
 
+const COEX_WEATHER = {
+  latitude: 37.5125,
+  longitude: 127.0589,
+  label: '서울 코엑스',
+};
+const EVENT_START_DATE = new Date('2026-04-22T00:00:00+09:00');
+const EVENT_END_DATE = new Date('2026-04-24T23:59:59+09:00');
+const EVENT_VENUE_LABEL = 'COEX A홀';
+const EVENT_PERIOD_LABEL = '2026.04.22 - 04.24';
+
+function getWeatherPresentation(weatherCode) {
+  if (weatherCode === 0) {
+    return { icon: '☀', label: '맑음' };
+  }
+
+  if ([1, 2, 3].includes(weatherCode)) {
+    return { icon: '⛅', label: '구름 많음' };
+  }
+
+  if ([45, 48].includes(weatherCode)) {
+    return { icon: '🌫', label: '안개' };
+  }
+
+  if ([51, 53, 55, 56, 57].includes(weatherCode)) {
+    return { icon: '🌦', label: '이슬비' };
+  }
+
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(weatherCode)) {
+    return { icon: '🌧', label: '비' };
+  }
+
+  if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) {
+    return { icon: '🌨', label: '눈' };
+  }
+
+  if ([95, 96, 99].includes(weatherCode)) {
+    return { icon: '⛈', label: '뇌우' };
+  }
+
+  return { icon: '☁', label: '흐림' };
+}
+
 function formatDateTimeParts(date) {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
@@ -85,6 +127,38 @@ function formatDateTimeParts(date) {
     dateLabel: `${year}년 ${month}월 ${day}일`,
     meridiem,
     timeLabel: `${displayHour}:${minutes}`,
+  };
+}
+
+function startOfLocalDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function getEventTimeline(date) {
+  const today = startOfLocalDay(date);
+  const startDay = startOfLocalDay(EVENT_START_DATE);
+  const endDay = startOfLocalDay(EVENT_END_DATE);
+  const diffFromStart = Math.round((today - startDay) / 86400000);
+  const diffToStart = Math.ceil((startDay - today) / 86400000);
+  const diffToEnd = Math.ceil((endDay - today) / 86400000);
+
+  if (diffFromStart >= 0 && diffFromStart <= 2) {
+    return {
+      statusLabel: `전시회 ${diffFromStart + 1}일차`,
+      remainingLabel: diffFromStart === 2 ? '오늘 종료' : `종료까지 ${2 - diffFromStart}일`,
+    };
+  }
+
+  if (today < startDay) {
+    return {
+      statusLabel: '전시회 오픈 예정',
+      remainingLabel: `전시회까지 ${diffToStart}일`,
+    };
+  }
+
+  return {
+    statusLabel: '전시회 종료',
+    remainingLabel: `종료 후 ${Math.max(1, -diffToEnd)}일`,
   };
 }
 
@@ -125,6 +199,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   });
   const [navmeshGrid, setNavmeshGrid] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(() => formatDateTimeParts(new Date()));
+  const [weatherInfo, setWeatherInfo] = useState(null);
 
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
@@ -188,9 +263,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const cat = selected ? CATEGORY_MAP.get(selected.category) : null;
   const catColor = selected ? hexStr(CAT_HEX[selected.category]) : '#79a8ca';
   const categoryPresentation = getCategoryPresentation(catColor);
-  const panelTitle = activePanel ? PANEL_TITLES[activePanel] : null;
-  const activeViewTitle = panelTitle ?? '전시장 지도';
-  const activeViewSubtitle = activePanel ? 'ITRC 2026 Kiosk Content' : 'Exhibition Map';
+  const eventTimeline = getEventTimeline(new Date());
   const boothPayload = normalizeBoothPayload(data);
   const activeNavScreen = getActiveNavScreen(activePanel);
   const activeInfoTab = activePanel === 'info' ? (data?.tab ?? 'overview') : null;
@@ -238,6 +311,53 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     return () => {
       window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadWeather = async () => {
+      try {
+        const params = new URLSearchParams({
+          latitude: String(COEX_WEATHER.latitude),
+          longitude: String(COEX_WEATHER.longitude),
+          current: 'temperature_2m,weather_code',
+          timezone: 'Asia/Seoul',
+          forecast_days: '1',
+        });
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error(`Weather request failed: ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const current = payload?.current;
+        if (!current || typeof current.temperature_2m !== 'number') {
+          throw new Error('Weather payload is missing current conditions.');
+        }
+
+        const presentation = getWeatherPresentation(current.weather_code);
+        if (!cancelled) {
+          setWeatherInfo({
+            ...presentation,
+            temperature: Math.round(current.temperature_2m),
+          });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setWeatherInfo(null);
+        }
+        console.error('Failed to load COEX weather.', error);
+      }
+    };
+
+    loadWeather();
+    const weatherIntervalId = window.setInterval(loadWeather, 10 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(weatherIntervalId);
     };
   }, []);
 
@@ -289,12 +409,14 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             </Suspense>
           )}
 
-          {pathPoints && selected && (
-            <div className="map3d-route-badge">
-              <span>📍</span>
-              <span>현재위치 → {selected.name} 경로 안내 중</span>
-            </div>
-          )}
+          <div className={`map3d-route-badge ${selected ? 'map3d-route-badge-active' : 'map3d-route-badge-idle'}`}>
+            <span>{selected ? '📍' : ''}</span>
+            <span>
+              {selected
+                ? `현재위치 → ${selected.name} 경로 안내 중`
+                : '원하는 부스를 클릭하면 해당 부스의 정보와 위치를 안내해드려요'}
+            </span>
+          </div>
 
           {selected && (
             <div
@@ -507,11 +629,12 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
         {/* 상단 헤더 */}
         <div className="map3d-header">
           <div className="map3d-header-info">
-            <span className="map3d-header-title">{activeViewTitle}</span>
-            <span className="map3d-header-sep">/</span>
+            <div className="map3d-header-status-badge">{eventTimeline.statusLabel}</div>
             <div className="map3d-header-meta">
-              <span className="map3d-header-main">{activeViewSubtitle}</span>
-              <span className="map3d-header-sub">COEX 서울 · Hall A · 4월 22–24일</span>
+              <span className="map3d-header-main">ITRC 인재양성대전 2026</span>
+              <span className="map3d-header-sub">
+                {EVENT_VENUE_LABEL} · {EVENT_PERIOD_LABEL} · {eventTimeline.remainingLabel}
+              </span>
             </div>
           </div>
           <div className="map3d-header-right">
@@ -522,6 +645,15 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 <span className="map3d-header-time">{currentDateTime.timeLabel}</span>
               </div>
             </div>
+            {weatherInfo ? (
+              <>
+                <span className="map3d-header-divider" aria-hidden="true" />
+                <div className="map3d-header-weather" aria-label="현재 날씨">
+                  <span className="map3d-header-weather-icon" aria-hidden="true">{weatherInfo.icon}</span>
+                  <span className="map3d-header-weather-meta">{weatherInfo.label} {weatherInfo.temperature}°C</span>
+                </div>
+              </>
+            ) : null}
           </div>
         </div>
 
