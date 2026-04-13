@@ -3,6 +3,7 @@ import { CATEGORY_MAP } from '../../../data/booths';
 import { appendHangulInput, removeLastHangulInput } from '../../../utils/hangulInput';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
 import useBoothSearch from '../../../hooks/useBoothSearch';
+import keyboardIcon from '../../../assets/icons/keyboard_regular.svg';
 import {
   NUMBER_ROW,
   KOREAN_ROWS,
@@ -60,9 +61,7 @@ export default function SearchScreen({ navigate, goBack, goHome, embedded = fals
         {/* 검색 입력 영역 */}
         <div className="ss-input-area">
           <div className={`ss-input-wrap ${query ? 'ss-input-wrap-filled' : ''}`}>
-            <span className="ss-input-icon">
-              <img alt="" src="/src/assets/icons/search.png" />
-            </span>
+
             <span className={`ss-input-text ${query ? '' : 'ss-input-text-placeholder'}`}>
               {query || '검색어를 입력하세요'}
             </span>

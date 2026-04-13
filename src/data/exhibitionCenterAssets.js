@@ -1,4 +1,4 @@
-import { booths } from './booths';
+import { booths, resolveBoothCategory } from './booths';
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}data/exhibition-centers/`;
 const MANIFEST_URL = `${ASSET_BASE}center_assets_manifest.json`;
@@ -205,7 +205,7 @@ export async function loadExhibitionCenterEntries() {
 
           return {
             boothId: booth.id,
-            categoryId: CATEGORY_LABEL_TO_ID[item.category] ?? booth.category,
+            categoryId: resolveBoothCategory(booth) ?? CATEGORY_LABEL_TO_ID[item.category] ?? booth.category,
             title: buildDisplayTitle(item, booth),
             university: booth.univ,
             logoSrc: `${ASSET_BASE}${item.image_file}`,
