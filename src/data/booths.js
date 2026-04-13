@@ -97,8 +97,23 @@ export const categories = [
 
 export const CATEGORY_MAP = new Map(categories.map((category) => [category.id, category]));
 
+export const EXHIBITION_CATEGORY_OVERRIDES = new Map([
+  ['S1B2', 'ai_bigdata'],
+  ['S1B3', 'ai_bigdata'],
+  ['S1B6', 'ai_bigdata'],
+  ['S1B7', 'ai_bigdata'],
+]);
+
+export function resolveBoothCategory(booth) {
+  if (!booth) {
+    return null;
+  }
+
+  return EXHIBITION_CATEGORY_OVERRIDES.get(booth.id) ?? booth.category;
+}
+
 export function getBoothsByCategory(categoryId) {
-  return booths.filter(b => b.category === categoryId);
+  return booths.filter((booth) => resolveBoothCategory(booth) === categoryId);
 }
 
 export function getBoothById(id) {

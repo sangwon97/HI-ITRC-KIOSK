@@ -2,11 +2,8 @@ import { useEffect, useRef, useState, useCallback, useMemo, Suspense, lazy } fro
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 
-import aiIcon from '../../../assets/icons/ai.png';
-import documentIcon from '../../../assets/icons/document.png';
-import mapIcon from '../../../assets/icons/map.png';
-import searchIcon from '../../../assets/icons/search.png';
 import itrcLogo from '../../../assets/icons/ITRC_logo.jpg';
+import searchIcon from '../../../assets/icons/search.png';
 import { categories, CATEGORY_MAP } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
 import { loadNavmeshGrid } from '../../../data/navmeshGrid';
@@ -45,14 +42,13 @@ function hexStr(v) {
 }
 
 const NAV_ITEMS = [
-  { id: 'map',           label: '전시장 지도', sub: 'Exhibition Map',  icon: mapIcon,      screen: null },
-  { id: 'booth-browser', label: '부스 안내',   sub: 'Booth Guide',     icon: aiIcon,       screen: 'booth-browser' },
-  { id: 'search',        label: '부스 검색',   sub: 'Search',          icon: searchIcon,   screen: 'search' },
+  { id: 'map',           label: '전시장 지도', sub: 'Exhibition Map',  screen: null },
+  { id: 'booth-browser', label: '부스 안내',   sub: 'Booth Guide',     screen: 'booth-browser' },
+  { id: 'search',        label: '부스 검색',   sub: 'Search',          screen: 'search' },
   {
     id: 'info',
     label: '행사 안내',
     sub: 'Event Guide',
-    icon: documentIcon,
     screen: 'info',
     children: [
       { id: 'overview', label: '행사 개요', tab: 'overview' },
@@ -554,12 +550,12 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
           </div>
         </div>
 
-        <p className="map3d-sidebar-desc">
+        {/* <p className="map3d-sidebar-desc">
           AI·ICT 연구 성과를 한자리에서 만날 수 있는 곳,
           ITRC 인재양성대전입니다.
-        </p>
+        </p> */}
 
-        <div className="map3d-sidebar-divider" />
+        {/* <div className="map3d-sidebar-divider" /> */}
 
         {/* 네비게이션 */}
         <nav className="map3d-sidebar-nav">
@@ -583,9 +579,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                     handlePanelNavigate(item.screen);
                   }}
                 >
-                  <span className="map3d-nav-icon">
-                    <img src={item.icon} alt="" />
-                  </span>
                   <span className="map3d-nav-text">
                     <span className="map3d-nav-label">{item.label}</span>
                     <span className="map3d-nav-sub">{item.sub}</span>

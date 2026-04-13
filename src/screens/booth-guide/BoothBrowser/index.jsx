@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { booths, categories, getBoothsByCategory } from '../../../data/booths';
+import { loadExhibitionCenterEntries } from '../../../data/exhibitionCenterAssets';
 import backIcon from '../../../assets/icons/back.svg';
 import './styles.css';
 
@@ -16,6 +17,7 @@ function formatDateTime(date) {
 export default function BoothBrowser({ navigate, goHome, embedded = false, data = null }) {
   const [activeCategory, setActiveCategory] = useState(data?.activeCategory ?? null);
   const [currentDateTime, setCurrentDateTime] = useState('');
+  const [boothLogoMap, setBoothLogoMap] = useState(() => new Map());
 
   const displayBooths = (activeCategory
     ? getBoothsByCategory(activeCategory)
@@ -38,6 +40,28 @@ export default function BoothBrowser({ navigate, goHome, embedded = false, data 
 
     return () => {
       window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadExhibitionCenterEntries()
+      .then((entries) => {
+        if (cancelled) {
+          return;
+        }
+
+        setBoothLogoMap(new Map(entries.map((entry) => [entry.boothId, entry.logoSrc])));
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBoothLogoMap(new Map());
+        }
+      });
+
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -130,6 +154,18 @@ export default function BoothBrowser({ navigate, goHome, embedded = false, data 
                   source: 'booth-browser',
                 })}
               >
+                <div className="bb-booth-logo-shell">
+                  {boothLogoMap.get(booth.id) ? (
+                    <img
+                      className="bb-booth-logo"
+                      src={boothLogoMap.get(booth.id)}
+                      alt={`${booth.name} 로고`}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="bb-booth-logo-fallback">{booth.univ.slice(0, 2)}</div>
+                  )}
+                </div>
                 <div className="bb-booth-info">
                   <span className="bb-booth-name">{booth.name}</span>
                   <span className="bb-booth-univ">{booth.univ}</span>

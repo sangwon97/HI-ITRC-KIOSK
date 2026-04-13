@@ -3,12 +3,13 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { loadExhibitionCenterEntries } from '../../data/exhibitionCenterAssets';
-import { categories } from '../../data/booths';
+import { booths, categories, resolveBoothCategory } from '../../data/booths';
 
 const BOOTH_NAME_RE = /^Floor_(S\d+B\d+)$/i;
 const CATEGORY_ALL_ID = 'all';
 const MAP_ROTATION_Y = Math.PI * 0.5;
 const EXHIBITION_ENTRANCE_POINT = [8.35161, 37.4791];
+const CATEGORY_COLOR_BY_ID = new Map(categories.map((category) => [category.id, category.color]));
 
 function extractBoothId(name = '') {
   const match = name.match(BOOTH_NAME_RE);
@@ -81,7 +82,7 @@ function TopDownMapCamera({ bounds }) {
       currentBoundsRef.current = { ...bounds };
     }
 
-    const alpha = 1 - Math.exp(-delta * 6.5);
+    const alpha = 1 - Math.exp(-delta * 4.5);
     currentBoundsRef.current.minX += (bounds.minX - currentBoundsRef.current.minX) * alpha;
     currentBoundsRef.current.maxX += (bounds.maxX - currentBoundsRef.current.maxX) * alpha;
     currentBoundsRef.current.minZ += (bounds.minZ - currentBoundsRef.current.minZ) * alpha;
@@ -136,7 +137,40 @@ function FlatMapModel({ cameraBounds }) {
   );
 }
 
-function BoothLogoMarkers({ markers }) {
+function FloorCategoryOverlay({ categoryZones, selectedCategoryId }) {
+  return (
+    <group>
+      {categoryZones.map((zone) => {
+        const isSelected = selectedCategoryId !== CATEGORY_ALL_ID && selectedCategoryId === zone.categoryId;
+        const isDimmed = selectedCategoryId !== CATEGORY_ALL_ID && !isSelected;
+        const opacity = isSelected ? 0.34 : isDimmed ? 0.1 : 0.18;
+
+        return (
+          <mesh
+            key={zone.categoryId}
+            position={[zone.centerX, 0.05, zone.centerZ]}
+            rotation={[-Math.PI * 0.5, 0, 0]}
+            renderOrder={2}
+          >
+            <planeGeometry args={[zone.width, zone.depth]} />
+            <meshBasicMaterial
+              color={zone.color}
+              transparent
+              opacity={opacity}
+              depthWrite={false}
+              polygonOffset
+              polygonOffsetFactor={-2}
+              polygonOffsetUnits={-2}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
+function BoothLogoMarkers({ markers, activeMarkerId, onSelectMarker }) {
   return (
     <group>
       {markers.map((marker) => (
@@ -149,19 +183,28 @@ function BoothLogoMarkers({ markers }) {
           distanceFactor={24}
           occlude={false}
           zIndexRange={[6, 0]}
-          style={{ pointerEvents: 'none' }}
+          style={{
+            pointerEvents: 'auto',
+            zIndex: marker.id === activeMarkerId ? 4 : 1,
+          }}
         >
-          <div className="is-zone-marker">
-            <div className="is-zone-marker-logo">
+          <button
+            type="button"
+            className={`is-zone-marker ${marker.id === activeMarkerId ? 'is-zone-marker-active' : ''}`}
+            onClick={() => onSelectMarker(marker.id === activeMarkerId ? null : marker)}
+          >
+            <div className={`is-zone-marker-logo ${marker.id === activeMarkerId ? 'is-zone-marker-logo-active' : ''}`}>
               <img
                 src={marker.logoSrc ?? marker.iconSrc}
                 alt={`${marker.title} 로고`}
                 loading="lazy"
                 className={marker.iconSrc ? 'is-zone-marker-icon-image' : undefined}
               />
+              <div className="is-zone-marker-logo-overlay">
+                <div className="is-zone-marker-logo-title">{marker.title}</div>
+              </div>
             </div>
-            <div className="is-zone-marker-title">{marker.title}</div>
-          </div>
+          </button>
         </Html>
       ))}
     </group>
@@ -193,6 +236,7 @@ export default function ExhibitionZoneMap() {
   const [entries, setEntries] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(CATEGORY_ALL_ID);
   const [pendingCategoryId, setPendingCategoryId] = useState(null);
+  const [activeMarker, setActiveMarker] = useState(null);
   const transitionTimerRef = useRef(null);
 
   const boothDots = useMemo(() => {
@@ -243,7 +287,6 @@ export default function ExhibitionZoneMap() {
 
   const markers = useMemo(() => {
     const entryMap = new Map(entries.map((entry) => [entry.boothId, entry]));
-
     return boothDots
       .map((dot) => {
         const entry = entryMap.get(dot.id);
@@ -261,6 +304,40 @@ export default function ExhibitionZoneMap() {
       })
       .filter(Boolean);
   }, [boothDots, entries]);
+
+  const categoryZones = useMemo(() => {
+    const boothCategoryById = new Map(
+      booths.map((booth) => [booth.id, resolveBoothCategory(booth) ?? booth.category]),
+    );
+    const grouped = boothDots.reduce((map, dot) => {
+      const categoryId = boothCategoryById.get(dot.id);
+      if (!categoryId) {
+        return map;
+      }
+
+      const current = map.get(categoryId) ?? [];
+      current.push(dot.position);
+      map.set(categoryId, current);
+      return map;
+    }, new Map());
+
+    return [...grouped.entries()].map(([categoryId, points]) => {
+      const bounds = buildBoundsFromPoints(points);
+      const minWidth = categoryId === 'ict_industry' ? 12 : 10;
+      const minDepth = categoryId === 'ict_industry' ? 20 : 14;
+      const width = Math.max(bounds.maxX - bounds.minX + 7.2, minWidth);
+      const depth = Math.max(bounds.maxZ - bounds.minZ + 7.2, minDepth);
+
+      return {
+        categoryId,
+        centerX: (bounds.minX + bounds.maxX) * 0.5,
+        centerZ: (bounds.minZ + bounds.maxZ) * 0.5,
+        width,
+        depth,
+        color: CATEGORY_COLOR_BY_ID.get(categoryId) ?? '#d9dee8',
+      };
+    });
+  }, [boothDots]);
 
   const mapBounds = useMemo(() => {
     const clone = mapScene.clone(true);
@@ -341,6 +418,17 @@ export default function ExhibitionZoneMap() {
     return markers.filter((marker) => marker.categoryId === selectedCategoryId);
   }, [markers, selectedCategoryId]);
 
+  useEffect(() => {
+    if (!activeMarker) {
+      return;
+    }
+
+    const stillVisible = visibleMarkers.some((marker) => marker.id === activeMarker.id);
+    if (!stillVisible) {
+      setActiveMarker(null);
+    }
+  }, [activeMarker, visibleMarkers]);
+
   const cameraBounds = useMemo(() => {
     if (!visibleMarkers.length) {
       return mapBounds;
@@ -417,13 +505,22 @@ export default function ExhibitionZoneMap() {
         </div>
 
         <div className="is-zone-map-board" style={mapBoardStyle}>
+          <div className="is-zone-map-hint">로고를 클릭하면 센터명을 볼 수 있어요</div>
           <Canvas orthographic dpr={[1, 1.5]} className="is-zone-map-canvas" gl={{ alpha: true }}>
             <Suspense fallback={null}>
               <ambientLight intensity={1.25} />
               <directionalLight position={[30, 80, 20]} intensity={1.35} />
               <directionalLight position={[-28, 64, -20]} intensity={0.45} />
               <FlatMapModel cameraBounds={cameraBounds} />
-              <BoothLogoMarkers markers={visibleMarkers} />
+              <FloorCategoryOverlay
+                categoryZones={categoryZones}
+                selectedCategoryId={selectedCategoryId}
+              />
+              <BoothLogoMarkers
+                markers={visibleMarkers}
+                activeMarkerId={activeMarker?.id ?? null}
+                onSelectMarker={setActiveMarker}
+              />
               <EntranceMarker />
             </Suspense>
           </Canvas>
