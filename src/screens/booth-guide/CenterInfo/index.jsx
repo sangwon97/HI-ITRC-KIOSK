@@ -8,6 +8,8 @@ export default function CenterInfo({ data, goBack, goHome, embedded = false }) {
   const { center, booth } = data;
   const [openFaq, setOpenFaq] = useState(null);
   const category = categories.find((item) => item.id === (data.categoryId ?? booth?.category));
+  const displayName = booth?.name ?? center.name;
+  const displayUniv = booth?.univ ?? center.univ;
 
   return (
     <div className={`center-info ${embedded ? 'center-info-embedded' : 'screen-enter'}`}>
@@ -32,7 +34,7 @@ export default function CenterInfo({ data, goBack, goHome, embedded = false }) {
               <span className="ci-breadcrumb-sep">›</span>
               <span>{category?.label}</span>
               <span className="ci-breadcrumb-sep">›</span>
-              <span className="ci-breadcrumb-current">{center.name}</span>
+              <span className="ci-breadcrumb-current">{displayName}</span>
             </div>
           </div>
         </div>
@@ -44,10 +46,10 @@ export default function CenterInfo({ data, goBack, goHome, embedded = false }) {
         <div className="ci-hero">
           <div className="ci-hero-icon">🏫</div>
           <div className="ci-hero-text">
-            <h1 className="ci-hero-name">{center.name}</h1>
+            <h1 className="ci-hero-name">{displayName}</h1>
             <div className="ci-hero-univ">
               <span>🎓</span>
-              <span>{center.univ}</span>
+              <span>{displayUniv}</span>
             </div>
           </div>
         </div>
