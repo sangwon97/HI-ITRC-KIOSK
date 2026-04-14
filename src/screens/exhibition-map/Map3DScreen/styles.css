@@ -238,11 +238,6 @@
   transition: color 160ms ease, font-weight 160ms ease;
 }
 
-.map3d-nav-child:not(.map3d-nav-child-active):hover {
-  background: rgba(46, 111, 159, 0.10);
-  color: #305777;
-}
-
 .map3d-nav-child-active {
   background: transparent;
   color: #163a5d;
