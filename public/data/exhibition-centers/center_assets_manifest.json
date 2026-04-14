@@ -53,161 +53,161 @@
     "id": "94330_722175598",
     "center_name": "동국대학교 Knowledge Science 연구센터",
     "university": "동국대학교",
-    "image_file": "04-next-ai-bigdata/94330_722175598.jpg"
+    "image_file": "02-next-ai-bigdata/94330_722175598.jpg"
   },
   {
     "category": "차세대 AI·빅데이터",
     "id": "94338_722175598",
     "center_name": "고려대학교 범용 인공지능 연구센터",
     "university": "고려대학교",
-    "image_file": "04-next-ai-bigdata/94338_722175598.png"
+    "image_file": "02-next-ai-bigdata/94338_722175598.png"
   },
   {
     "category": "차세대 AI·빅데이터",
     "id": "13437_722177284",
     "center_name": "성균관대학교 Open-ended Alignment 인공지능 연구센터",
     "university": "성균관대학교",
-    "image_file": "04-next-ai-bigdata/13437_722177284.jpg"
+    "image_file": "02-next-ai-bigdata/13437_722177284.jpg"
   },
   {
     "category": "차세대 AI·빅데이터",
     "id": "13454_722177284",
     "center_name": "경희대학교 AI-LIVE 연구센터",
     "university": "경희대학교",
-    "image_file": "04-next-ai-bigdata/13454_722177284.png"
+    "image_file": "02-next-ai-bigdata/13454_722177284.png"
   },
   {
     "category": "차세대 AI·빅데이터",
     "id": "94359_722175598",
     "center_name": "부산대학교 Digital-X AIoT 연구센터",
     "university": "부산대학교",
-    "image_file": "04-next-ai-bigdata/94359_722175598.png"
+    "image_file": "02-next-ai-bigdata/94359_722175598.png"
   },
   {
     "category": "차세대 AI·빅데이터",
     "id": "9448_722175598",
     "center_name": "고려대학교 ICT명품인재양성사업단",
     "university": "고려대학교",
-    "image_file": "04-next-ai-bigdata/9448_722175598.png"
+    "image_file": "02-next-ai-bigdata/9448_722175598.png"
   },
   {
     "category": "차세대 AI·빅데이터",
     "id": "94415_722175598",
     "center_name": "POSTECH 인간 인지-지능 증강 연구센터",
     "university": "POSTECH",
-    "image_file": "04-next-ai-bigdata/94415_722175598.png"
+    "image_file": "02-next-ai-bigdata/94415_722175598.png"
   },
   {
     "category": "첨단 바이오·헬스케어",
     "id": "133532_722177284",
     "center_name": "전남대학교 초광역 연합 의료 AI 연구센터",
     "university": "전남대학교",
-    "image_file": "02-bio-healthcare/133532_722177284.png"
+    "image_file": "03-bio-healthcare/133532_722177284.png"
   },
   {
     "category": "첨단 바이오·헬스케어",
     "id": "133537_722177284",
     "center_name": "고려대학교 스마트시티 지능형 헬스케어 연구센터",
     "university": "고려대학교",
-    "image_file": "02-bio-healthcare/133537_722177284.png"
+    "image_file": "03-bio-healthcare/133537_722177284.png"
   },
   {
     "category": "첨단 바이오·헬스케어",
     "id": "133542_722177284",
     "center_name": "아주대학교 지능형 의료 영상 진단 솔루션 연구센터",
     "university": "아주대학교",
-    "image_file": "02-bio-healthcare/133542_722177284.png"
+    "image_file": "03-bio-healthcare/133542_722177284.png"
   },
   {
     "category": "첨단 바이오·헬스케어",
     "id": "133546_722177284",
     "center_name": "KAIST 일상-항시적 건강관리 Earable-IoT 연구센터",
     "university": "KAIST",
-    "image_file": "02-bio-healthcare/133546_722177284.png"
+    "image_file": "03-bio-healthcare/133546_722177284.png"
   },
   {
     "category": "첨단 바이오·헬스케어",
     "id": "133551_722177284",
     "center_name": "UNIST 5T-SPACE 연구센터",
     "university": "UNIST",
-    "image_file": "02-bio-healthcare/133551_722177284.png"
+    "image_file": "03-bio-healthcare/133551_722177284.png"
   },
   {
     "category": "첨단 바이오·헬스케어",
     "id": "133557_722177284",
     "center_name": "성균관대학교 ICT명품인재양성사업단",
     "university": "성균관대학교",
-    "image_file": "02-bio-healthcare/133557_722177284.png"
+    "image_file": "03-bio-healthcare/133557_722177284.png"
   },
   {
     "category": "첨단 바이오·헬스케어",
     "id": "13362_722177284",
     "center_name": "강원대학교 강원지능화혁신센터",
     "university": "강원대학교",
-    "image_file": "02-bio-healthcare/13362_722177284.png"
+    "image_file": "03-bio-healthcare/13362_722177284.png"
   },
   {
     "category": "클라우드·보안·블록체인",
     "id": "142342_722177284",
     "center_name": "KAIST 빅데이터 엣지 클라우드 서비스 연구센터",
     "university": "KAIST",
-    "image_file": "03-cloud-security-blockchain/142342_722177284.png"
+    "image_file": "04-cloud-security-blockchain/142342_722177284.png"
   },
   {
     "category": "클라우드·보안·블록체인",
     "id": "142348_722177284",
     "center_name": "고려대학교 엣지클라우드 데이터보안 연구센터",
     "university": "고려대학교",
-    "image_file": "03-cloud-security-blockchain/142348_722177284.png"
+    "image_file": "04-cloud-security-blockchain/142348_722177284.png"
   },
   {
     "category": "클라우드·보안·블록체인",
     "id": "142353_722177284",
     "center_name": "부산대학교 제로트러스트 클라우드 보안 연구센터",
     "university": "부산대학교",
-    "image_file": "03-cloud-security-blockchain/142353_722177284.png"
+    "image_file": "04-cloud-security-blockchain/142353_722177284.png"
   },
   {
     "category": "클라우드·보안·블록체인",
     "id": "142358_722177284",
     "center_name": "경희대학교 클라우드 컨티뉴엄 연구센터",
     "university": "경희대학교",
-    "image_file": "03-cloud-security-blockchain/142358_722177284.png"
+    "image_file": "04-cloud-security-blockchain/142358_722177284.png"
   },
   {
     "category": "클라우드·보안·블록체인",
     "id": "14244_722177284",
     "center_name": "부산대학교 블록체인플랫폼 연구센터",
     "university": "부산대학교",
-    "image_file": "03-cloud-security-blockchain/14244_722177284.png"
+    "image_file": "04-cloud-security-blockchain/14244_722177284.png"
   },
   {
     "category": "클라우드·보안·블록체인",
     "id": "14249_722177284",
     "center_name": "GIST 블록체인지능융합센터",
     "university": "GIST",
-    "image_file": "03-cloud-security-blockchain/14249_722177284.png"
+    "image_file": "04-cloud-security-blockchain/14249_722177284.png"
   },
   {
     "category": "클라우드·보안·블록체인",
     "id": "142415_722177284",
     "center_name": "중앙대학교 데이터 프라이버시 연구센터",
     "university": "중앙대학교",
-    "image_file": "03-cloud-security-blockchain/142415_722177284.png"
+    "image_file": "04-cloud-security-blockchain/142415_722177284.png"
   },
   {
     "category": "클라우드·보안·블록체인",
     "id": "142429_722177284",
     "center_name": "성균관대학교 딥페이크 연구센터",
     "university": "성균관대학교",
-    "image_file": "03-cloud-security-blockchain/142429_722177284.png"
+    "image_file": "04-cloud-security-blockchain/142429_722177284.png"
   },
   {
     "category": "클라우드·보안·블록체인",
     "id": "142436_722177284",
     "center_name": "서강대학교 웹3.0 기술 연구센터",
     "university": "서강대학교",
-    "image_file": "03-cloud-security-blockchain/142436_722177284.png"
+    "image_file": "04-cloud-security-blockchain/142436_722177284.png"
   },
   {
     "category": "AI 플랫폼·서비스",
@@ -270,112 +270,112 @@
     "id": "101947_936024807",
     "center_name": "아주대학교 VR/AR 기반의 지능형 라이프컨설턴트 연구센터",
     "university": "아주대학교",
-    "image_file": "07-immersive-sw-content/101947_936024807.png"
+    "image_file": "06-immersive-sw-content/101947_936024807.png"
   },
   {
     "category": "실감형 SW·콘텐츠",
     "id": "101955_936024807",
     "center_name": "이화여자대학교 시뮬레이션 기반 융복합 콘텐츠 연구센터",
     "university": "이화여자대학교",
-    "image_file": "07-immersive-sw-content/101955_936024807.png"
+    "image_file": "06-immersive-sw-content/101955_936024807.png"
   },
   {
     "category": "실감형 SW·콘텐츠",
     "id": "10202_936024807",
     "center_name": "세종대학교 메타버스 자율트윈 연구센터",
     "university": "세종대학교",
-    "image_file": "07-immersive-sw-content/10202_936024807.png"
+    "image_file": "06-immersive-sw-content/10202_936024807.png"
   },
   {
     "category": "실감형 SW·콘텐츠",
     "id": "102012_936024807",
     "center_name": "세종대학교 초실감 XR 연구센터",
     "university": "세종대학교",
-    "image_file": "07-immersive-sw-content/102012_936024807.png"
+    "image_file": "06-immersive-sw-content/102012_936024807.png"
   },
   {
     "category": "실감형 SW·콘텐츠",
     "id": "102023_936024807",
     "center_name": "광운대학교 실감콘텐츠 단말 기술 연구센터",
     "university": "광운대학교",
-    "image_file": "07-immersive-sw-content/102023_936024807.png"
+    "image_file": "06-immersive-sw-content/102023_936024807.png"
   },
   {
     "category": "실감형 SW·콘텐츠",
     "id": "102034_936024807",
     "center_name": "고려대학교 스마트미디어 서비스 연구센터",
     "university": "고려대학교",
-    "image_file": "07-immersive-sw-content/102034_936024807.png"
+    "image_file": "06-immersive-sw-content/102034_936024807.png"
   },
   {
     "category": "실감형 SW·콘텐츠",
     "id": "102042_936024807",
     "center_name": "KAIST XR 워크스테이션 HCI 기술 연구센터",
     "university": "KAIST",
-    "image_file": "07-immersive-sw-content/102042_936024807.png"
+    "image_file": "06-immersive-sw-content/102042_936024807.png"
   },
   {
     "category": "차세대 통신·위성",
     "id": "105158_936024807",
     "center_name": "경희대학교 6H 차세대 이동통신기술 연구센터",
     "university": "경희대학교",
-    "image_file": "06-next-comm-satellite/105158_936024807.png"
+    "image_file": "07-next-comm-satellite/105158_936024807.png"
   },
   {
     "category": "차세대 통신·위성",
     "id": "10527_936024807",
     "center_name": "광운대학교 초공간 과업지향통신 연구센터",
     "university": "광운대학교",
-    "image_file": "06-next-comm-satellite/10527_936024807.png"
+    "image_file": "07-next-comm-satellite/10527_936024807.png"
   },
   {
     "category": "차세대 통신·위성",
     "id": "105214_936024807",
     "center_name": "한밭대학교 6G 무선통신 글로컬 연구센터",
     "university": "한밭대학교",
-    "image_file": "06-next-comm-satellite/105214_936024807.png"
+    "image_file": "07-next-comm-satellite/105214_936024807.png"
   },
   {
     "category": "차세대 통신·위성",
     "id": "105222_936024807",
     "center_name": "충남대학교 VIACOMM 연구센터",
     "university": "충남대학교",
-    "image_file": "06-next-comm-satellite/105222_936024807.png"
+    "image_file": "07-next-comm-satellite/105222_936024807.png"
   },
   {
     "category": "차세대 통신·위성",
     "id": "105229_936024807",
     "center_name": "KAIST 초지능 통신/컴퓨팅 융합 연구센터",
     "university": "KAIST",
-    "image_file": "06-next-comm-satellite/105229_936024807.png"
+    "image_file": "07-next-comm-satellite/105229_936024807.png"
   },
   {
     "category": "차세대 통신·위성",
     "id": "105239_936024807",
     "center_name": "중앙대학교 5G & 6G 차세대 통신 네트워크 연구센터",
     "university": "중앙대학교",
-    "image_file": "06-next-comm-satellite/105239_936024807.png"
+    "image_file": "07-next-comm-satellite/105239_936024807.png"
   },
   {
     "category": "차세대 통신·위성",
     "id": "105247_936024807",
     "center_name": "인천대학교 NS-위성 RTDC 기술 연구센터",
     "university": "인천대학교",
-    "image_file": "06-next-comm-satellite/105247_936024807.png"
+    "image_file": "07-next-comm-satellite/105247_936024807.png"
   },
   {
     "category": "차세대 통신·위성",
     "id": "105256_936024807",
     "center_name": "국립창원대학교 위성영상분석ICT 연구센터",
     "university": "국립창원대학교",
-    "image_file": "06-next-comm-satellite/105256_936024807.png"
+    "image_file": "07-next-comm-satellite/105256_936024807.png"
   },
   {
     "category": "차세대 통신·위성",
     "id": "10534_936024807",
     "center_name": "고려대학교 탄소중립 미래자율통신 연구센터",
     "university": "고려대학교",
-    "image_file": "06-next-comm-satellite/10534_936024807.png"
+    "image_file": "07-next-comm-satellite/10534_936024807.png"
   },
   {
     "category": "첨단 로봇·모빌리티",

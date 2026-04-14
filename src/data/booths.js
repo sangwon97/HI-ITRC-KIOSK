@@ -97,6 +97,36 @@ export const categories = [
 
 export const CATEGORY_MAP = new Map(categories.map((category) => [category.id, category]));
 
+export const BOOTH_BROWSER_CATEGORY_ORDER = [
+  'ai_semiconductor',
+  'ai_bigdata',
+  'bio_healthcare',
+  'cloud_security',
+  'ai_platform',
+  'immersive_sw',
+  'next_gen_comm',
+  'robotics_mobility',
+  'quantum',
+  'ict_industry',
+];
+
+const BOOTH_BROWSER_UNIVERSITY_ORDER = {
+  ai_semiconductor: ['KAIST', '인하대학교', '서울과학기술대학교', '광운대학교', '서강대학교', '세종대학교', '금오공과대학교'],
+  ai_bigdata: ['동국대학교', '고려대학교', '성균관대학교', '경희대학교', '부산대학교', '고려대학교', 'POSTECH'],
+  bio_healthcare: ['전남대학교', '고려대학교', '아주대학교', 'KAIST', 'UNIST', '성균관대학교', '강원대학교'],
+  cloud_security: ['KAIST', '고려대학교', '부산대학교', '경희대학교', '부산대학교', 'GIST', '중앙대학교', '성균관대학교', '서강대학교'],
+  ai_platform: ['동의대학교', '배재대학교', '전남대학교', '인하대학교', '호서대학교', '경남대학교', '전북대학교', '중앙대학교'],
+  immersive_sw: ['아주대학교', '이화여자대학교', '세종대학교', '세종대학교', '광운대학교', '고려대학교', 'KAIST'],
+  next_gen_comm: ['경희대학교', '광운대학교', '한밭대학교', '충남대학교', 'KAIST', '중앙대학교', '인천대학교', '국립창원대학교', '고려대학교'],
+  robotics_mobility: ['금오공과대학교', '단국대학교', '세종대학교', '서울대학교', '경북대학교', '충북대학교', 'KAIST'],
+  quantum: ['세종대학교', '고려대학교', 'POSTECH', '부산대학교', 'UNIST', '충북대학교', 'UNIST'],
+  ict_industry: ['중앙대학교', '경북대학교', '경북대학교', '공주대학교', '순천대학교', '금오공과대학교', '순천대학교', '금오공과대학교', '한국공학대학교', '숭실대학교', '가천대학교'],
+};
+
+export const BOOTH_BROWSER_CATEGORIES = BOOTH_BROWSER_CATEGORY_ORDER
+  .map((categoryId) => CATEGORY_MAP.get(categoryId))
+  .filter(Boolean);
+
 export const EXHIBITION_CATEGORY_OVERRIDES = new Map([
   ['S1B2', 'ai_bigdata'],
   ['S1B3', 'ai_bigdata'],
@@ -113,7 +143,28 @@ export function resolveBoothCategory(booth) {
 }
 
 export function getBoothsByCategory(categoryId) {
-  return booths.filter((booth) => resolveBoothCategory(booth) === categoryId);
+  const categoryBooths = booths.filter((booth) => resolveBoothCategory(booth) === categoryId);
+  const orderedUniversities = BOOTH_BROWSER_UNIVERSITY_ORDER[categoryId] ?? [];
+
+  if (!orderedUniversities.length) {
+    return categoryBooths;
+  }
+
+  const remaining = categoryBooths.map((booth, index) => ({ booth, index }));
+  const ordered = [];
+
+  orderedUniversities.forEach((university) => {
+    const normalizedUniversity = normalizeSearchText(university).replace(/\s+/g, '');
+    const matchIndex = remaining.findIndex(
+      (candidate) => normalizeSearchText(candidate.booth.univ).replace(/\s+/g, '') === normalizedUniversity,
+    );
+
+    if (matchIndex !== -1) {
+      ordered.push(remaining.splice(matchIndex, 1)[0]);
+    }
+  });
+
+  return ordered.concat(remaining).map((entry) => entry.booth);
 }
 
 export function getBoothById(id) {
