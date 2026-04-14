@@ -52,12 +52,17 @@
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
-  transition: all var(--transition-base);
+  transition: none;
   white-space: nowrap;
 }
 
-.is-tab:hover {
+.is-tab:not(.is-tab-active):hover,
+.is-tab:not(.is-tab-active):focus-visible {
   color: var(--text-secondary);
+  background: transparent;
+  border-bottom-color: transparent;
+  outline: none;
+  box-shadow: none;
 }
 
 .is-tab-active {
@@ -214,7 +219,7 @@
   align-items: center;
   gap: 10px;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 16px;
 }
@@ -523,9 +528,9 @@
   border-radius: 18px;
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: #67839d;
   font-size: 0.86rem;
-  font-weight: 800;
+  font-weight: 700;
   text-align: left;
   white-space: normal;
   line-height: 1.35;
@@ -535,22 +540,13 @@
 .is-zone-category-tab-active {
   background: transparent;
   color: var(--zone-tab-active-color, var(--zone-tab-color));
-}
-
-.is-zone-category-tab-active::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  left: 0;
-  width: 3px;
-  height: calc(100% - 20px);
-  border-radius: 999px;
-  background: var(--zone-tab-active-color, var(--zone-tab-color));
+  font-weight: 900;
 }
 
 .is-zone-category-tab-label {
   flex: 1;
   min-width: 0;
+  color: inherit;
 }
 
 .is-zone-category-tab-count {
@@ -564,13 +560,15 @@
   background: transparent;
   color: inherit;
   font-size: 0.78rem;
-  font-weight: 900;
+  font-weight: 700
   flex-shrink: 0;
+  opacity: 1;
 }
 
 .is-zone-category-tab-active .is-zone-category-tab-count {
   background: transparent;
   color: inherit;
+  opacity: 1;
 }
 
 .is-zone-map-board {
@@ -727,16 +725,16 @@
 }
 
 .is-zone-detail-university {
-  color: #2e6f9f;
+  color: #0c1a2e;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 .is-zone-detail-title {
   color: #0c1a2e;
   font-size: clamp(0.96rem, 1.35vw, 1.08rem);
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.03em;
   white-space: nowrap;
