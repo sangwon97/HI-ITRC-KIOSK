@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { booths, categories, getBoothsByCategory } from '../../../data/booths';
+import { booths, categories, getBoothsByCategory, BOOTH_BROWSER_CATEGORIES } from '../../../data/booths';
 import { loadExhibitionCenterEntries } from '../../../data/exhibitionCenterAssets';
 import backIcon from '../../../assets/icons/back.svg';
 import './styles.css';
@@ -19,10 +19,11 @@ export default function BoothBrowser({ navigate, goHome, embedded = false, data 
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [boothLogoMap, setBoothLogoMap] = useState(() => new Map());
 
-  const displayBooths = (activeCategory
+  const displayBooths = activeCategory
     ? getBoothsByCategory(activeCategory)
-    : booths
-  ).slice().sort((a, b) => a.id.localeCompare(b.id, 'ko'));
+    : booths.slice().sort((a, b) => a.id.localeCompare(b.id, 'ko'));
+
+  const displayCategories = BOOTH_BROWSER_CATEGORIES.length ? BOOTH_BROWSER_CATEGORIES : categories;
 
   const activeCat = categories.find((category) => category.id === activeCategory);
 
@@ -117,7 +118,7 @@ export default function BoothBrowser({ navigate, goHome, embedded = false, data 
           </div>
 
           <div className="bb-category-grid scrollable">
-            {categories.map(cat => {
+            {displayCategories.map(cat => {
               const count = getBoothsByCategory(cat.id).length;
 
               return (

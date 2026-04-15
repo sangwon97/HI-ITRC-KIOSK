@@ -202,14 +202,6 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
                   <h2 className="is-video-title">{LAST_EVENT_VIDEO.title}</h2>
                   <p className="is-video-desc">{LAST_EVENT_VIDEO.description}</p>
                 </div>
-                <a
-                  className="is-video-link"
-                  href={LAST_EVENT_VIDEO.watchUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  유튜브에서 보기
-                </a>
               </div>
 
               <div className="is-video-frame-wrap">

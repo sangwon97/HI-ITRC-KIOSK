@@ -8,7 +8,6 @@ import { booths, categories, resolveBoothCategory } from '../../data/booths';
 const BOOTH_NAME_RE = /^Floor_(S\d+B\d+)$/i;
 const CATEGORY_ALL_ID = 'all';
 const MAP_ROTATION_Y = Math.PI * 0.5;
-const EXHIBITION_ENTRANCE_POINT = [8.35161, 37.4791];
 const CATEGORY_COLOR_BY_ID = new Map(categories.map((category) => [category.id, category.color]));
 
 function extractBoothId(name = '') {
@@ -57,6 +56,51 @@ function normalizeBounds(bounds, minSpan = 14) {
     minZ: centerZ - normalizedDepth * 0.5,
     maxZ: centerZ + normalizedDepth * 0.5,
   };
+}
+
+function boundsOverlap(a, b) {
+  return (
+    a.minX < b.maxX
+    && a.maxX > b.minX
+    && a.minZ < b.maxZ
+    && a.maxZ > b.minZ
+  );
+}
+
+function resolveZoneBoundsOverlap(rawZones) {
+  return rawZones.reduce((resolved, zone) => {
+    const nextBounds = { ...zone.bounds };
+    const minWidth = zone.minWidth;
+    const minDepth = zone.minDepth;
+
+    for (const existing of resolved) {
+      let guard = 0;
+      while (boundsOverlap(nextBounds, existing.bounds) && guard < 10) {
+        const overlapX = Math.min(nextBounds.maxX, existing.bounds.maxX) - Math.max(nextBounds.minX, existing.bounds.minX);
+        const overlapZ = Math.min(nextBounds.maxZ, existing.bounds.maxZ) - Math.max(nextBounds.minZ, existing.bounds.minZ);
+        const currentWidth = nextBounds.maxX - nextBounds.minX;
+        const currentDepth = nextBounds.maxZ - nextBounds.minZ;
+
+        if (overlapX <= overlapZ && currentWidth - overlapX - 0.4 >= minWidth) {
+          nextBounds.minX += overlapX * 0.5 + 0.2;
+          nextBounds.maxX -= overlapX * 0.5 + 0.2;
+        } else if (currentDepth - overlapZ - 0.4 >= minDepth) {
+          nextBounds.minZ += overlapZ * 0.5 + 0.2;
+          nextBounds.maxZ -= overlapZ * 0.5 + 0.2;
+        } else {
+          break;
+        }
+
+        guard += 1;
+      }
+    }
+
+    resolved.push({
+      ...zone,
+      bounds: nextBounds,
+    });
+    return resolved;
+  }, []);
 }
 
 function TopDownMapCamera({ bounds }) {
@@ -195,14 +239,10 @@ function BoothLogoMarkers({ markers, activeMarkerId, onSelectMarker }) {
           >
             <div className={`is-zone-marker-logo ${marker.id === activeMarkerId ? 'is-zone-marker-logo-active' : ''}`}>
               <img
-                src={marker.logoSrc ?? marker.iconSrc}
+                src={marker.logoSrc}
                 alt={`${marker.title} 로고`}
                 loading="lazy"
-                className={marker.iconSrc ? 'is-zone-marker-icon-image' : undefined}
               />
-              <div className="is-zone-marker-logo-overlay">
-                <div className="is-zone-marker-logo-title">{marker.title}</div>
-              </div>
             </div>
           </button>
         </Html>
@@ -211,22 +251,29 @@ function BoothLogoMarkers({ markers, activeMarkerId, onSelectMarker }) {
   );
 }
 
-function EntranceMarker() {
-  const position = rotateXZ(EXHIBITION_ENTRANCE_POINT);
+function ActiveMarkerCard({ marker, onClose }) {
+  if (!marker) {
+    return null;
+  }
 
   return (
-    <Html
-      position={[position[0], 0.2, position[1]]}
-      center
-      transform
-      sprite
-      distanceFactor={22}
-      occlude={false}
-      zIndexRange={[7, 0]}
-      style={{ pointerEvents: 'none' }}
-    >
-      <div className="is-zone-entrance">전시장 입구</div>
-    </Html>
+    <div className="is-zone-detail-card">
+      <button
+        type="button"
+        className="is-zone-detail-close"
+        onClick={onClose}
+        aria-label="센터 정보 닫기"
+      >
+        ×
+      </button>
+      <div className="is-zone-detail-logo">
+        <img src={marker.logoSrc} alt={`${marker.title} 로고`} loading="lazy" />
+      </div>
+      <div className="is-zone-detail-copy">
+        <div className="is-zone-detail-university">{marker.university}</div>
+        <div className="is-zone-detail-title">{marker.title}</div>
+      </div>
+    </div>
   );
 }
 
@@ -235,9 +282,7 @@ export default function ExhibitionZoneMap() {
   const { scene: boothAreaScene } = useGLTF('/models/KioskBoothArea.glb');
   const [entries, setEntries] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(CATEGORY_ALL_ID);
-  const [pendingCategoryId, setPendingCategoryId] = useState(null);
   const [activeMarker, setActiveMarker] = useState(null);
-  const transitionTimerRef = useRef(null);
 
   const boothDots = useMemo(() => {
     const clone = boothAreaScene.clone(true);
@@ -298,6 +343,7 @@ export default function ExhibitionZoneMap() {
           id: dot.id,
           position: dot.position,
           title: entry.title,
+          university: entry.university,
           logoSrc: entry.logoSrc,
           categoryId: entry.categoryId,
         };
@@ -321,22 +367,30 @@ export default function ExhibitionZoneMap() {
       return map;
     }, new Map());
 
-    return [...grouped.entries()].map(([categoryId, points]) => {
+    const rawZones = [...grouped.entries()].map(([categoryId, points]) => {
       const bounds = buildBoundsFromPoints(points);
-      const minWidth = categoryId === 'ict_industry' ? 12 : 10;
-      const minDepth = categoryId === 'ict_industry' ? 20 : 14;
-      const width = Math.max(bounds.maxX - bounds.minX + 7.2, minWidth);
-      const depth = Math.max(bounds.maxZ - bounds.minZ + 7.2, minDepth);
+      const minWidth = categoryId === 'ict_industry' ? 10 : 8;
+      const minDepth = categoryId === 'ict_industry' ? 16 : 10;
+      const expandedBounds = normalizeBounds(expandBounds(bounds, 1.8), Math.min(minWidth, minDepth));
 
       return {
         categoryId,
-        centerX: (bounds.minX + bounds.maxX) * 0.5,
-        centerZ: (bounds.minZ + bounds.maxZ) * 0.5,
-        width,
-        depth,
+        bounds: expandedBounds,
+        minWidth,
+        minDepth,
         color: CATEGORY_COLOR_BY_ID.get(categoryId) ?? '#d9dee8',
       };
     });
+
+    return resolveZoneBoundsOverlap(rawZones).map((zone) => ({
+      categoryId: zone.categoryId,
+      centerX: (zone.bounds.minX + zone.bounds.maxX) * 0.5,
+      centerZ: (zone.bounds.minZ + zone.bounds.maxZ) * 0.5,
+      width: zone.bounds.maxX - zone.bounds.minX,
+      depth: zone.bounds.maxZ - zone.bounds.minZ,
+      bounds: zone.bounds,
+      color: zone.color,
+    }));
   }, [boothDots]);
 
   const mapBounds = useMemo(() => {
@@ -391,25 +445,6 @@ export default function ExhibitionZoneMap() {
     });
   }, [categoryTabs]);
 
-  useEffect(() => {
-    if (selectedCategoryId !== CATEGORY_ALL_ID || !pendingCategoryId) {
-      return undefined;
-    }
-
-    transitionTimerRef.current = window.setTimeout(() => {
-      setSelectedCategoryId(pendingCategoryId);
-      setPendingCategoryId(null);
-      transitionTimerRef.current = null;
-    }, 320);
-
-    return () => {
-      if (transitionTimerRef.current) {
-        window.clearTimeout(transitionTimerRef.current);
-        transitionTimerRef.current = null;
-      }
-    };
-  }, [pendingCategoryId, selectedCategoryId]);
-
   const visibleMarkers = useMemo(() => {
     if (selectedCategoryId === CATEGORY_ALL_ID) {
       return markers;
@@ -430,6 +465,25 @@ export default function ExhibitionZoneMap() {
   }, [activeMarker, visibleMarkers]);
 
   const cameraBounds = useMemo(() => {
+    if (activeMarker) {
+      const activeZone = categoryZones.find((zone) => zone.categoryId === activeMarker.categoryId);
+      if (activeZone) {
+        return normalizeBounds(expandBounds(activeZone.bounds, 3.6), 18);
+      }
+
+      return normalizeBounds(
+        buildBoundsFromPoints([activeMarker.position], 8.4),
+        14,
+      );
+    }
+
+    if (selectedCategoryId !== CATEGORY_ALL_ID) {
+      const selectedZone = categoryZones.find((zone) => zone.categoryId === selectedCategoryId);
+      if (selectedZone) {
+        return normalizeBounds(expandBounds(selectedZone.bounds, 3.6), 18);
+      }
+    }
+
     if (!visibleMarkers.length) {
       return mapBounds;
     }
@@ -438,32 +492,25 @@ export default function ExhibitionZoneMap() {
       expandBounds(buildBoundsFromPoints(visibleMarkers.map((marker) => marker.position)), 3.2),
       16,
     );
-  }, [mapBounds, selectedCategoryId, visibleMarkers]);
+  }, [activeMarker, categoryZones, mapBounds, selectedCategoryId, visibleMarkers]);
 
   const handleSelectCategory = (nextCategoryId) => {
-    if (transitionTimerRef.current) {
-      window.clearTimeout(transitionTimerRef.current);
-      transitionTimerRef.current = null;
-    }
-
     if (nextCategoryId === selectedCategoryId && nextCategoryId !== CATEGORY_ALL_ID) {
-      setPendingCategoryId(null);
       setSelectedCategoryId(CATEGORY_ALL_ID);
       return;
     }
-
-    if (
-      selectedCategoryId !== CATEGORY_ALL_ID
-      && nextCategoryId !== CATEGORY_ALL_ID
-      && nextCategoryId !== selectedCategoryId
-    ) {
-      setPendingCategoryId(nextCategoryId);
-      setSelectedCategoryId(CATEGORY_ALL_ID);
-      return;
-    }
-
-    setPendingCategoryId(null);
     setSelectedCategoryId(nextCategoryId);
+  };
+
+  const handleSelectMarker = (nextMarker) => {
+    setActiveMarker(nextMarker);
+
+    if (nextMarker?.categoryId) {
+      setSelectedCategoryId(nextMarker.categoryId);
+      return;
+    }
+
+    setSelectedCategoryId(CATEGORY_ALL_ID);
   };
 
   const mapBoardStyle = useMemo(() => {
@@ -481,7 +528,7 @@ export default function ExhibitionZoneMap() {
 
   return (
     <div className="is-zone-layout">
-      <section className="is-zone-stage">
+      <aside className="is-zone-category-panel">
         <div className="is-zone-category-tabs">
           {categoryTabs.map((tab) => {
             const whiteCategory = tab.color.toLowerCase() === '#ffffff';
@@ -492,20 +539,22 @@ export default function ExhibitionZoneMap() {
                 className={`is-zone-category-tab ${selectedCategoryId === tab.id ? 'is-zone-category-tab-active' : ''}`}
                 style={{
                   '--zone-tab-color': tab.color,
-                  '--zone-tab-text': whiteCategory ? '#101820' : '#ffffff',
-                  '--zone-tab-border': whiteCategory ? 'rgba(16, 24, 32, 0.18)' : 'transparent',
+                  '--zone-tab-active-color': whiteCategory ? '#101820' : tab.color,
                 }}
                 onClick={() => handleSelectCategory(tab.id)}
               >
-                <span>{tab.label}</span>
-                <span>{tab.count}</span>
+                <span className="is-zone-category-tab-label">{tab.label}</span>
+                <span className="is-zone-category-tab-count">{tab.count}</span>
               </button>
             );
           })}
         </div>
+      </aside>
 
+      <section className="is-zone-stage">
         <div className="is-zone-map-board" style={mapBoardStyle}>
           <div className="is-zone-map-hint">로고를 클릭하면 센터명을 볼 수 있어요</div>
+          <ActiveMarkerCard marker={activeMarker} onClose={() => handleSelectMarker(null)} />
           <Canvas orthographic dpr={[1, 1.5]} className="is-zone-map-canvas" gl={{ alpha: true }}>
             <Suspense fallback={null}>
               <ambientLight intensity={1.25} />
@@ -519,9 +568,8 @@ export default function ExhibitionZoneMap() {
               <BoothLogoMarkers
                 markers={visibleMarkers}
                 activeMarkerId={activeMarker?.id ?? null}
-                onSelectMarker={setActiveMarker}
+                onSelectMarker={handleSelectMarker}
               />
-              <EntranceMarker />
             </Suspense>
           </Canvas>
         </div>

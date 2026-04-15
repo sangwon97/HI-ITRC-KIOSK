@@ -17,6 +17,34 @@ const CATEGORY_LABEL_TO_ID = {
   'ICT 산업융합': 'ict_industry',
 };
 
+const CATEGORY_DISPLAY_ORDER = [
+  'ai_semiconductor',
+  'ai_bigdata',
+  'bio_healthcare',
+  'cloud_security',
+  'ai_platform',
+  'immersive_sw',
+  'next_gen_comm',
+  'robotics_mobility',
+  'quantum',
+  'ict_industry',
+  'special_exhibition',
+];
+
+const UNIVERSITY_ORDER_BY_CATEGORY = {
+  ai_semiconductor: ['KAIST', '인하대학교', '서울과학기술대학교', '광운대학교', '서강대학교', '세종대학교', '금오공과대학교'],
+  ai_bigdata: ['동국대학교', '고려대학교', '성균관대학교', '경희대학교', '부산대학교', '고려대학교', 'POSTECH'],
+  bio_healthcare: ['전남대학교', '고려대학교', '아주대학교', 'KAIST', 'UNIST', '성균관대학교', '강원대학교'],
+  cloud_security: ['KAIST', '고려대학교', '부산대학교', '경희대학교', '부산대학교', 'GIST', '중앙대학교', '성균관대학교', '서강대학교'],
+  ai_platform: ['동의대학교', '배재대학교', '전남대학교', '인하대학교', '호서대학교', '경남대학교', '전북대학교', '중앙대학교'],
+  immersive_sw: ['아주대학교', '이화여자대학교', '세종대학교', '세종대학교', '광운대학교', '고려대학교', 'KAIST'],
+  next_gen_comm: ['경희대학교', '광운대학교', '한밭대학교', '충남대학교', 'KAIST', '중앙대학교', '인천대학교', '국립창원대학교', '고려대학교'],
+  robotics_mobility: ['금오공과대학교', '단국대학교', '세종대학교', '서울대학교', '경북대학교', '충북대학교', 'KAIST'],
+  quantum: ['세종대학교', '고려대학교', 'POSTECH', '부산대학교', 'UNIST', '충북대학교', 'UNIST'],
+  ict_industry: ['중앙대학교', '경북대학교', '경북대학교', '공주대학교', '순천대학교', '금오공과대학교', '순천대학교', '금오공과대학교', '한국공학대학교', '숭실대학교', '가천대학교'],
+  special_exhibition: ['숭실대학교', 'KAIST'],
+};
+
 const UNIVERSITY_ALIASES = {
   '한국과학기술원': 'KAIST',
   '광주과학기술원': 'GIST',
@@ -62,6 +90,12 @@ function normalizeText(value = '') {
 function normalizeUniversityName(value = '') {
   const alias = UNIVERSITY_ALIASES[value] ?? value;
   return normalizeText(alias);
+}
+
+function normalizeUniversityForSort(value = '') {
+  return normalizeUniversityName(value)
+    .replace(normalizeText('세종캠퍼스'), '')
+    .replace(normalizeText('국립'), '');
 }
 
 function stripUniversityPrefix(value = '') {
@@ -121,20 +155,41 @@ function normalizeCenterName(value = '') {
 }
 
 function buildDisplayTitle(item, booth) {
-  const overriddenTitle = DISPLAY_TITLE_OVERRIDES.get(booth.id);
-  if (overriddenTitle) {
-    return overriddenTitle;
-  }
-
-  const strippedTitle = stripUniversityPrefix(item.center_name).trim();
-  if (strippedTitle) {
-    return strippedTitle;
-  }
-
   return booth.name;
 }
 
-function sortEntriesByBoothId(a, b) {
+function getCategorySortIndex(categoryId = '') {
+  const index = CATEGORY_DISPLAY_ORDER.indexOf(categoryId);
+  return index === -1 ? CATEGORY_DISPLAY_ORDER.length : index;
+}
+
+function getUniversitySortIndex(categoryId, university = '') {
+  const orderedUniversities = UNIVERSITY_ORDER_BY_CATEGORY[categoryId] ?? [];
+  const normalizedUniversity = normalizeUniversityForSort(university);
+
+  const index = orderedUniversities.findIndex(
+    (candidate) => normalizeUniversityForSort(candidate) === normalizedUniversity,
+  );
+
+  return index === -1 ? orderedUniversities.length : index;
+}
+
+function sortEntries(a, b) {
+  const categoryIndexDiff = getCategorySortIndex(a.categoryId) - getCategorySortIndex(b.categoryId);
+  if (categoryIndexDiff !== 0) {
+    return categoryIndexDiff;
+  }
+
+  const universityIndexDiff = getUniversitySortIndex(a.categoryId, a.university) - getUniversitySortIndex(b.categoryId, b.university);
+  if (universityIndexDiff !== 0) {
+    return universityIndexDiff;
+  }
+
+  const manifestIndexDiff = (a._manifestIndex ?? 0) - (b._manifestIndex ?? 0);
+  if (manifestIndexDiff !== 0) {
+    return manifestIndexDiff;
+  }
+
   return a.boothId.localeCompare(b.boothId, 'ko', { numeric: true });
 }
 
@@ -197,7 +252,7 @@ export async function loadExhibitionCenterEntries() {
 
       const entries = manifest
         .filter((item) => item.category !== SPECIAL_CATEGORY_LABEL)
-        .map((item) => {
+        .map((item, manifestIndex) => {
           const booth = getBoothMatch(item, boothIndexByUniversity, boothIndex);
           if (!booth) {
             return null;
@@ -209,10 +264,11 @@ export async function loadExhibitionCenterEntries() {
             title: buildDisplayTitle(item, booth),
             university: booth.univ,
             logoSrc: `${ASSET_BASE}${item.image_file}`,
+            _manifestIndex: manifestIndex,
           };
         })
         .filter(Boolean)
-        .sort(sortEntriesByBoothId);
+        .sort(sortEntries);
 
       return entries;
     });

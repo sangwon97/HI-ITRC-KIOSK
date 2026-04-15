@@ -52,12 +52,17 @@
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
-  transition: all var(--transition-base);
+  transition: none;
   white-space: nowrap;
 }
 
-.is-tab:hover {
+.is-tab:not(.is-tab-active):hover,
+.is-tab:not(.is-tab-active):focus-visible {
   color: var(--text-secondary);
+  background: transparent;
+  border-bottom-color: transparent;
+  outline: none;
+  box-shadow: none;
 }
 
 .is-tab-active {
@@ -214,7 +219,7 @@
   align-items: center;
   gap: 10px;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 16px;
 }
@@ -480,16 +485,23 @@
 /* 전시 구역 */
 .is-zone-layout {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: stretch;
+  gap: 22px;
   flex: 1;
   min-height: 0;
 }
 
-.is-zone-stage {
+.is-zone-category-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  width: 248px;
+  min-width: 248px;
+  padding: 10px 0 0;
+  flex-shrink: 0;
+}
+
+.is-zone-stage {
+  display: flex;
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -497,29 +509,66 @@
 
 .is-zone-category-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .is-zone-category-tab {
-  display: inline-flex;
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(12, 26, 46, 0.1);
-  background: rgba(248, 251, 255, 0.92);
-  color: var(--text-secondary);
-  font-size: 0.78rem;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px 0 18px;
+  border-radius: 18px;
+  border: none;
+  background: transparent;
+  color: #67839d;
+  font-size: 0.86rem;
   font-weight: 700;
-  white-space: nowrap;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.35;
+  transition: color 180ms ease;
 }
 
 .is-zone-category-tab-active {
-  background: var(--zone-tab-color);
-  color: var(--zone-tab-text);
-  border-color: var(--zone-tab-border);
+  background: transparent;
+  color: var(--zone-tab-active-color, var(--zone-tab-color));
+  font-weight: 900;
+}
+
+.is-zone-category-tab-label {
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+}
+
+.is-zone-category-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 7;
+  flex-shrink: 0;
+  opacity: 1;
+}
+
+.is-zone-category-tab-active .is-zone-category-tab-count {
+  background: transparent;
+  color: inherit;
+  opacity: 1;
 }
 
 .is-zone-map-board {
@@ -576,7 +625,7 @@
 }
 
 .is-zone-marker-active {
-  transform: translateY(-18px);
+  transform: translateY(-12px);
 }
 
 .is-zone-marker-logo {
@@ -584,59 +633,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 96px;
-  height: 62px;
+  width: 82px;
+  height: 44px;
   padding: 5px 8px;
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 8px 18px rgba(12, 26, 46, 0.12);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(12, 26, 46, 0.06);
   box-sizing: border-box;
   overflow: hidden;
 }
 
 .is-zone-marker-logo img {
   display: block;
-  width: 82%;
-  height: 82%;
+  width: 88%;
+  height: 88%;
   object-fit: contain;
 }
 
-.is-zone-marker-icon-image {
-  filter: drop-shadow(0 1px 2px rgba(12, 26, 46, 0.22));
-}
-
-.is-zone-marker-logo-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 12px;
-  background: rgba(5, 10, 18, 0.84);
-  opacity: 0;
-  transition: opacity 180ms ease;
-}
-
-.is-zone-marker-logo-active .is-zone-marker-logo-overlay {
-  opacity: 1;
-}
-
 .is-zone-marker-logo-active {
-  box-shadow: 0 18px 28px rgba(12, 26, 46, 0.2);
-}
-
-.is-zone-marker-logo-title {
-  color: #ffffff;
-  font-size: 0.68rem;
-  font-weight: 800;
-  line-height: 1.22;
-  letter-spacing: -0.03em;
-  text-align: center;
-  white-space: normal;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-  max-width: 100%;
-  text-wrap: balance;
+  filter: drop-shadow(0 10px 16px rgba(12, 26, 46, 0.14));
 }
 
 .is-zone-marker-title {
@@ -651,16 +666,89 @@
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.92);
 }
 
-.is-zone-entrance {
-  padding: 9px 18px;
+.is-zone-detail-card {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: max-content;
+  max-width: calc(100% - 48px);
+  min-height: 90px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(12, 26, 46, 0.08);
+  box-shadow: 0 20px 40px rgba(12, 26, 46, 0.14);
+  backdrop-filter: blur(14px);
+  animation: isZoneDetailSlideIn 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.is-zone-detail-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: none;
   border-radius: 999px;
-  background: rgba(46, 111, 159, 0.9);
-  color: #ffffff;
+  background: rgba(12, 26, 46, 0.06);
+  color: rgba(12, 26, 46, 0.78);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.is-zone-detail-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 132px;
+  min-width: 132px;
+  height: 74px;
+}
+
+.is-zone-detail-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.is-zone-detail-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: max-content;
+  padding-right: 24px;
+}
+
+.is-zone-detail-university {
+  color: #0c1a2e;
   font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.is-zone-detail-title {
+  color: #0c1a2e;
+  font-size: clamp(0.96rem, 1.35vw, 1.08rem);
   font-weight: 800;
-  letter-spacing: -0.02em;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
   white-space: nowrap;
-  box-shadow: 0 10px 20px rgba(46, 111, 159, 0.18);
+}
+
+@keyframes isZoneDetailSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(22px) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
 }
 
 .is-zone-map-feedback {
@@ -720,25 +808,6 @@
   font-size: 0.95rem;
   color: var(--text-secondary);
   line-height: 1.7;
-}
-
-.is-video-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: rgba(46, 111, 159, 0.08);
-  border: none;
-  color: var(--info-accent);
-  font-size: 0.88rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all var(--transition-base);
-}
-
-.is-video-link:hover {
-  background: rgba(46, 111, 159, 0.14);
 }
 
 .is-video-frame-wrap {
