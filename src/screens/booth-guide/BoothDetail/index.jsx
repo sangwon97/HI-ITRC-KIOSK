@@ -1,5 +1,6 @@
-import { postersByBooth } from '../../../data/posters';
-import { centerData } from '../../../data/centerInfo';
+import { useEffect, useState } from 'react';
+import { loadBoothPosters } from '../../../data/posters';
+import { loadBoothCenter } from '../../../data/centerInfo';
 import { categories } from '../../../data/booths';
 import backIcon from '../../../assets/icons/back.svg';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
@@ -12,13 +13,67 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
       ? { booth: data, categoryId: data.category ?? null, source: null }
       : null;
   const booth = boothPayload?.booth;
+  const [posters, setPosters] = useState(null);
+  const [center, setCenter] = useState(undefined);
+  const resolvedPosters = posters ?? [];
+
+  useEffect(() => {
+    if (!booth?.id) {
+      setPosters([]);
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    setPosters(null);
+    loadBoothPosters(booth.id)
+      .then((items) => {
+        if (!isCancelled) {
+          setPosters(items);
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setPosters([]);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [booth?.id]);
+
+  useEffect(() => {
+    if (!booth?.id) {
+      setCenter(null);
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    setCenter(undefined);
+    loadBoothCenter(booth.id)
+      .then((item) => {
+        if (!isCancelled) {
+          setCenter(item);
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setCenter(null);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [booth?.id]);
 
   if (!booth) return null;
-
-  const posters = postersByBooth[booth.id] || [];
-  const center = centerData[booth.id];
   const cat = categories.find(c => c.id === booth.category);
   const categoryPresentation = getCategoryPresentation(cat?.color);
+  const isSingleSpecialPoster = booth.category === 'special_exhibition' && resolvedPosters.length === 1;
+  const singleSpecialPoster = isSingleSpecialPoster ? resolvedPosters[0] : null;
 
   return (
     <div className={`booth-detail ${embedded ? 'booth-detail-embedded' : 'screen-enter'}`}>
@@ -74,15 +129,15 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
 
         <div className="bd-sections scrollable">
           {/* 포스터 섹션 */}
-          {posters.length > 0 && (
+          {resolvedPosters.length > 0 && !isSingleSpecialPoster && (
             <section className="bd-section">
               <h2 className="bd-section-title">
                 <span>📌</span>
                 <span>연구 포스터</span>
-                <span className="bd-section-count">{posters.length}개</span>
+                <span className="bd-section-count">{resolvedPosters.length}개</span>
               </h2>
               <div className="bd-posters">
-                {posters.map((poster, i) => (
+                {resolvedPosters.map((poster, i) => (
                   <button
                     key={poster.id}
                     className="bd-poster-card"
@@ -103,6 +158,38 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
                     <span className="bd-poster-arrow">→</span>
                   </button>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {singleSpecialPoster && (
+            <section className="bd-section">
+              <h2 className="bd-section-title">
+                <span>📌</span>
+                <span>연구 포스터</span>
+              </h2>
+              <div className="bd-single-poster">
+                <div className="bd-single-poster-title">{singleSpecialPoster.title}</div>
+                <div className="bd-single-poster-image-shell">
+                  <img
+                    src={singleSpecialPoster.image}
+                    alt={singleSpecialPoster.title}
+                    className="bd-single-poster-image"
+                  />
+                </div>
+                <p className="bd-single-poster-description">{singleSpecialPoster.description}</p>
+              </div>
+            </section>
+          )}
+
+          {posters === null && (
+            <section className="bd-section">
+              <h2 className="bd-section-title">
+                <span>📌</span>
+                <span>연구 포스터</span>
+              </h2>
+              <div className="bd-center-intro">
+                <p className="bd-center-text">연구 포스터 정보를 불러오고 있습니다.</p>
               </div>
             </section>
           )}
@@ -132,8 +219,20 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
             </section>
           )}
 
+          {center === undefined && (
+            <section className="bd-section">
+              <h2 className="bd-section-title">
+                <span>🏫</span>
+                <span>연구센터 소개</span>
+              </h2>
+              <div className="bd-center-intro">
+                <p className="bd-center-text">연구센터 소개 정보를 불러오고 있습니다.</p>
+              </div>
+            </section>
+          )}
+
           {/* 포스터 없는 경우 안내 */}
-          {posters.length === 0 && !center && (
+          {posters !== null && center !== undefined && resolvedPosters.length === 0 && !center && (
             <div className="bd-empty">
               <span>📭</span>
               <p>이 부스의 상세 정보를 준비 중입니다.</p>

@@ -4,12 +4,6 @@ import * as THREE from 'three';
 
 import itrcLogo from '../../../assets/icons/ITRC_logo.jpg';
 import searchIcon from '../../../assets/icons/keyboard_keys.svg';
-import photoCameraIcon from '../../../assets/icons/photo_camera.svg';
-import splitScreenPortraitIcon from '../../../assets/icons/splitscreen_portrait.svg';
-import genresIcon from '../../../assets/icons/genres.svg';
-import teacupFilledIcon from '../../../assets/icons/teacup_filled.svg';
-import giftFilledIcon from '../../../assets/icons/gift_filled.svg';
-import wcIcon from '../../../assets/icons/wc.svg';
 import { categories, CATEGORY_MAP } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
 import {
@@ -34,15 +28,20 @@ const InfoScreen = lazy(() => import('../../event-info/InfoScreen'));
 
 const CAT_HEX = Object.fromEntries(categories.map((category) => [category.id, category.color]));
 const NOOP = () => {};
-const LOADING_FALLBACK_STYLE = {
-  position: 'absolute',
-  inset: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: 'var(--text-muted)',
-  fontSize: '1rem',
-};
+
+function MapLoadingOverlay() {
+  return (
+    <div className="map3d-loading-overlay" aria-live="polite" aria-busy="true">
+      <div className="map3d-loading-card" aria-hidden="true">
+        <div className="map3d-loading-dots" aria-hidden="true">
+          <span className="map3d-loading-dot" />
+          <span className="map3d-loading-dot" />
+          <span className="map3d-loading-dot" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function hexStr(v) {
   if (typeof v === 'string') {
@@ -65,7 +64,6 @@ const NAV_ITEMS = [
       { id: 'overview', label: '행사 개요', tab: 'overview' },
       { id: 'programs', label: '프로그램', tab: 'programs' },
       { id: 'zones', label: '전시 구역', tab: 'zones' },
-      { id: 'videos', label: '지난 행사 영상', tab: 'videos' },
     ],
   },
 ];
@@ -88,14 +86,6 @@ const EVENT_START_DATE = new Date('2026-04-22T00:00:00+09:00');
 const EVENT_END_DATE = new Date('2026-04-24T23:59:59+09:00');
 const EVENT_VENUE_LABEL = 'COEX A홀';
 const EVENT_PERIOD_LABEL = '2026.04.22 - 04.24';
-const FEATURE_LEGEND_ITEMS = [
-  { id: 'life4cut', label: '인생네컷', icon: splitScreenPortraitIcon },
-  { id: 'ai-dance', label: 'AI 댄스', icon: genresIcon },
-  { id: 'photo-zone', label: '포토존', icon: photoCameraIcon },
-  { id: 'catering', label: '케이터링', icon: teacupFilledIcon },
-  { id: 'lucky-draw', label: '럭키드로우', icon: giftFilledIcon },
-  { id: 'toilet', label: '화장실', icon: wcIcon },
-];
 
 function getWeatherPresentation(weatherCode) {
   if (weatherCode === 0) {
@@ -222,6 +212,8 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const [introSignal, setIntroSignal] = useState(0);
   const [infoMenuOpen, setInfoMenuOpen] = useState(false);
   const [pendingMapIntro, setPendingMapIntro] = useState(false);
+  const [isMapSceneReady, setIsMapSceneReady] = useState(false);
+  const showBoothLabels = true;
 
   useEffect(() => {
     let disposed = false;
@@ -316,12 +308,15 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
       setShowMapSearch(false);
       setResetSignal((signal) => signal + 1);
       setPendingMapIntro(true);
+      setIsMapSceneReady(false);
     }
 
     return undefined;
   }, [activePanel]);
 
   const handleSceneReady = useCallback(() => {
+    setIsMapSceneReady(true);
+
     setPendingMapIntro((current) => {
       if (!current) {
         return current;
@@ -405,6 +400,9 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     if (!activePanel) {
       return (
         <div className="map3d-canvas-wrapper">
+          {!isMapSceneReady && (
+            <MapLoadingOverlay />
+          )}
           <Canvas
             style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
             camera={{ position: DEFAULT_MAP_CAMERA.position, fov: 38, near: 0.5, far: 400 }}
@@ -427,6 +425,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 controlsRef={controlsRef}
                 introSignal={introSignal}
                 resetSignal={resetSignal}
+                showBoothLabels={showBoothLabels}
                 kioskInfoPositions={kioskInfoPositions}
                 currentKioskId={CURRENT_KIOSK_INFO_ID}
                 routeStartPoint={currentRouteStart}
@@ -439,13 +438,15 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             드래그: 회전 &middot; 우클릭/두 손가락: 이동 &middot; 스크롤/핀치: 줌 &middot; 부스 클릭: 상세
           </div>
 
-          <button className="map3d-map-search-btn" onClick={() => setShowMapSearch(true)}>
-            <img src={searchIcon} alt="" className="map3d-map-search-btn-icon" color='#2e6f9f'/>
-            검색
-          </button>
+          <div className="map3d-map-controls">
+            <button className="map3d-map-search-btn" onClick={() => setShowMapSearch(true)}>
+              <img src={searchIcon} alt="" className="map3d-map-search-btn-icon" color='#2e6f9f'/>
+              검색
+            </button>
+          </div>
 
           {showMapSearch && (
-            <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>검색 화면 로딩 중...</div>}>
+            <Suspense fallback={<MapLoadingOverlay />}>
               <MapSearchOverlay
                 onClose={() => setShowMapSearch(false)}
                 onSelect={(booth) => { handleSelect(booth); setShowMapSearch(false); }}
@@ -460,17 +461,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 ? `현재위치 → ${selected.name} 경로 안내 중`
                 : '원하는 부스를 클릭하면 해당 부스의 정보와 위치를 안내해드려요'}
             </span>
-          </div>
-
-          <div className="map3d-feature-legend" aria-label="특수 부스 안내">
-            {FEATURE_LEGEND_ITEMS.map((item) => (
-              <div key={item.id} className="map3d-feature-legend-item">
-                <span className="map3d-feature-legend-icon-shell">
-                  <img src={item.icon} alt="" className="map3d-feature-legend-icon" aria-hidden="true" />
-                </span>
-                <span className="map3d-feature-legend-label">{item.label}</span>
-              </div>
-            ))}
           </div>
 
           {selected && (
@@ -504,7 +494,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'booth-browser') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>부스 안내 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <BoothBrowser embedded data={data} navigate={navigate} goHome={goHome} />
         </Suspense>
       );
@@ -512,7 +502,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'search') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>검색 화면 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <SearchScreen embedded navigate={navigate} goHome={goHome} />
         </Suspense>
       );
@@ -520,7 +510,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'info') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>행사 안내 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <InfoScreen embedded data={data} navigate={navigate} goHome={goHome} />
         </Suspense>
       );
@@ -545,7 +535,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
       };
 
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>부스 상세 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <BoothDetail
             embedded
             data={boothPayload}
@@ -559,7 +549,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'center') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>센터 정보 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <CenterInfo
             embedded
             data={data}
@@ -576,7 +566,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'poster') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>포스터 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <PosterDetail
             embedded
             data={data}

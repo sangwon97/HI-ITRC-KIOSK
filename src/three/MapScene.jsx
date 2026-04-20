@@ -1,6 +1,6 @@
 import { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import { useFrame, useLoader, useThree } from '@react-three/fiber';
-import { Billboard, Html, OrbitControls, Text, useGLTF } from '@react-three/drei';
+import { Html, OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
@@ -48,12 +48,47 @@ const SECTION_ID_BY_CATEGORY = {
 };
 const SPECIAL_EXHIBITION_COLOR = '#8d96a0';
 const FEATURE_LABELS = [
-  { id: 'photo-booth', positionId: 'Life4Cut', label: '인생네컷', icon: splitScreenPortraitIcon },
-  { id: 'ai-dance', positionId: 'New_Dance', label: 'AI 댄스', icon: genresIcon },
-  { id: 'photo-wall', positionId: 'Photo_Zone', label: '포토존', icon: photoCameraIcon },
-  { id: 'catering-zone', positionId: 'Coffee_Catering', label: '케이터링', icon: teacupFilledIcon },
-  { id: 'lucky-draw', positionId: 'Lucky_Draw', label: '럭키드로우', icon: giftFilledIcon },
-  { id: 'itrc-booth', positionId: 'ITRC_Booth', label: 'ITRC 홍보관', icon: null },
+  {
+    id: 'photo-booth',
+    positionId: 'Life4Cut',
+    label: '인생네컷',
+    icon: photoCameraIcon,
+    interactive: true,
+    description: '현장에서 기념 사진을 남길 수 있는 포토 이벤트 부스입니다.',
+  },
+  {
+    id: 'ai-dance',
+    positionId: 'New_Dance',
+    label: 'AI 댄스',
+    icon: genresIcon,
+    interactive: true,
+    description: 'AI와 함께 움직임을 체험하는 참여형 댄스 이벤트 부스입니다.',
+  },
+  {
+    id: 'photo-wall',
+    positionId: 'Photo_Zone',
+    label: '포토존',
+    icon: photoCameraIcon,
+    interactive: true,
+    description: '행사 방문을 기념할 수 있는 촬영 포인트입니다.',
+  },
+  {
+    id: 'catering-zone',
+    positionId: 'Coffee_Catering',
+    label: '케이터링',
+    icon: teacupFilledIcon,
+    interactive: true,
+    description: '관람 중 잠시 쉬어갈 수 있는 케이터링 공간입니다.',
+  },
+  {
+    id: 'lucky-draw',
+    positionId: 'Lucky_Draw',
+    label: '럭키드로우',
+    icon: giftFilledIcon,
+    interactive: true,
+    description: '현장 참여를 통해 경품 이벤트를 즐길 수 있는 부스입니다.',
+  },
+  { id: 'itrc-booth', positionId: 'ITRC_Booth', label: 'ITRC 산학협력관', icon: null },
   { id: 'toilet-1', positionId: 'Toilet1', label: '화장실', icon: wcIcon },
   { id: 'toilet-2', positionId: 'Toilet2', label: '화장실', icon: wcIcon },
   { id: 'exit', positionId: 'Exit', label: '전시장 출구', icon: null },
@@ -356,31 +391,62 @@ function VenueFeatureLabels({ kioskInfoPositions, currentKioskId }) {
 
   return (
     <group>
-      {labels.map((label) => (
-        <Html
-          key={label.id}
-          position={[label.x, label.y, label.z]}
-          center
-          distanceFactor={9}
-          sprite
-          transform
-          occlude={false}
-          zIndexRange={[6, 0]}
-          style={{ pointerEvents: 'none' }}
-        >
-          <div className={label.icon ? 'map3d-special-label map3d-special-label--feature map3d-special-label--icon-only' : 'map3d-special-label map3d-special-label--entrance'}>
-            {label.icon ? (
-              <>
-                <div className="map3d-special-label-badge">
-                  <img className="map3d-special-label-icon" src={label.icon} alt="" aria-hidden="true" />
-                </div>
-              </>
-            ) : (
-              <span className="map3d-special-label-entrance-text">{label.label}</span>
-            )}
-          </div>
-        </Html>
-      ))}
+      {labels.map((label) => {
+        const isItrcBooth = label.id === 'itrc-booth';
+        return (
+          <Html
+            key={label.id}
+            position={[label.x, label.y, label.z]}
+            center
+            distanceFactor={9}
+            sprite
+            transform
+            occlude
+            zIndexRange={[6, 0]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div
+              className={
+                isItrcBooth
+                  ? 'map3d-category-label map3d-category-label--itrc-booth'
+                  : label.icon
+                  ? 'map3d-special-label map3d-special-label--feature'
+                  : `map3d-special-label map3d-special-label--entrance ${
+                    label.id === 'entrance' || label.id === 'exit' ? 'map3d-special-label--venue-gate' : ''
+                  }`
+              }
+              style={
+                isItrcBooth
+                  ? {
+                      '--cat-bg': '#b8dea1',
+                      '--cat-text': '#ffffff',
+                      '--cat-border': 'rgba(74, 124, 74, 0.22)',
+                    }
+                  : undefined
+              }
+            >
+              {isItrcBooth ? (
+                label.label
+              ) : label.icon ? (
+                <>
+                  <div className="map3d-special-label-badge">
+                    <img className="map3d-special-label-icon" src={label.icon} alt="" aria-hidden="true" />
+                  </div>
+                  <span className="map3d-special-label-caption">{label.label}</span>
+                </>
+              ) : (
+                <span
+                  className={`map3d-special-label-entrance-text ${
+                    label.id === 'entrance' || label.id === 'exit' ? 'map3d-special-label-venue-gate-text' : ''
+                  }`}
+                >
+                  {label.label}
+                </span>
+              )}
+            </div>
+          </Html>
+        );
+      })}
     </group>
   );
 }
@@ -463,22 +529,19 @@ function OccludedBoothNameLabels({ boothPositions, visible = true }) {
   return (
     <group>
       {labels.map((label) => (
-        <Billboard key={label.id} position={[label.x, 0.54, label.z]} follow>
-          <Text
-            fontSize={0.5}
-            maxWidth={5.2}
-            color="#ffffff"
-            anchorX="center"
-            anchorY="middle"
-            outlineWidth={0.016}
-            outlineColor="#ffffff"
-            depthOffset={-0.2}
-            material-depthTest={true}
-            material-depthWrite={true}
-          >
-            {label.title}
-          </Text>
-        </Billboard>
+        <Html
+          key={label.id}
+          position={[label.x, 2.4, label.z]}
+          center
+          distanceFactor={10}
+          sprite
+          transform
+          occlude
+          zIndexRange={[4, 0]}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="map3d-booth-name-label">{label.title}</div>
+        </Html>
       ))}
     </group>
   );
@@ -506,32 +569,37 @@ function HoverHighlight({ booth, boothPositions }) {
 }
 
 function SelectionRing({ booth, boothPositions }) {
-  const ringRef = useRef();
+  const highlightRef = useRef();
   const pulse = useRef(0);
   const position = getBoothPosition(booth, boothPositions);
 
   useFrame((_, delta) => {
-    if (!ringRef.current) {
+    if (!highlightRef.current) {
       return;
     }
 
     pulse.current += delta * 3;
-    ringRef.current.material.opacity = booth
-      ? 0.5 + 0.35 * Math.sin(pulse.current)
-      : Math.max(0, ringRef.current.material.opacity - 0.05);
+    const mesh = highlightRef.current;
+    const pulseValue = 0.5 + 0.5 * Math.sin(pulse.current);
+    mesh.material.opacity = booth
+      ? 0.28 + 0.22 * pulseValue
+      : Math.max(0, mesh.material.opacity - 0.05);
+    const scaleX = booth ? 1.02 + 0.08 * pulseValue : 1;
+    const scaleY = booth ? 1.01 + 0.05 * pulseValue : 1;
+    mesh.scale.set(scaleX, scaleY, 1);
   });
 
   return (
     <mesh
-      ref={ringRef}
+      ref={highlightRef}
       raycast={NO_RAYCAST}
-      position={position ? [position[0], 0.08, position[1]] : [0, -999, 0]}
+      position={position ? [position[0], 0.055, position[1]] : [0, -999, 0]}
       rotation={[-Math.PI / 2, 0, 0]}
       renderOrder={18}
     >
-      <ringGeometry args={[1.4, 2.1, 32]} />
+      <planeGeometry args={[3.2, 5.8]} />
       <meshBasicMaterial
-        color={0xffffff}
+        color={0xffd84d}
         transparent
         opacity={0}
         side={THREE.DoubleSide}
@@ -710,9 +778,9 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
         <mesh key={segment.key} raycast={NO_RAYCAST} position={segment.position} renderOrder={6}>
           <boxGeometry args={segment.size} />
           <meshBasicMaterial
-            color={0x00b4ff}
+            color={0xffd84d}
             transparent
-            opacity={0.24}
+            opacity={0.34}
             depthWrite={false}
             side={THREE.DoubleSide}
           />
@@ -723,6 +791,20 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
         <>
           <mesh
             raycast={NO_RAYCAST}
+            position={[targetPoint2D[0], 0.031, targetPoint2D[1]]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            renderOrder={13}
+          >
+            <circleGeometry args={[0.23, 24]} />
+            <meshBasicMaterial
+              color={0xf4b400}
+              transparent
+              opacity={0.95}
+              depthWrite={false}
+            />
+          </mesh>
+          <mesh
+            raycast={NO_RAYCAST}
             position={[targetPoint2D[0], 0.03, targetPoint2D[1]]}
             rotation={[-Math.PI / 2, 0, 0]}
             renderOrder={13}
@@ -731,23 +813,9 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
             <meshBasicMaterial
               color={0xffffff}
               transparent
-              opacity={0.92}
+              opacity={0.9}
               depthWrite={false}
               side={THREE.DoubleSide}
-            />
-          </mesh>
-          <mesh
-            raycast={NO_RAYCAST}
-            position={[targetPoint2D[0], 0.031, targetPoint2D[1]]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            renderOrder={13}
-          >
-            <circleGeometry args={[0.23, 24]} />
-            <meshBasicMaterial
-              color={0x00b4ff}
-              transparent
-              opacity={0.95}
-              depthWrite={false}
             />
           </mesh>
         </>
@@ -926,30 +994,51 @@ function MapEnvironment() {
 }
 
 function SceneReadyNotifier({ onReady }) {
+  const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
+
   useEffect(() => {
     if (typeof onReady !== 'function') {
       return undefined;
     }
 
     let cancelled = false;
+    let firstFrameId = 0;
     let secondFrameId = 0;
+    let thirdFrameId = 0;
 
-    const firstFrameId = window.requestAnimationFrame(() => {
-      secondFrameId = window.requestAnimationFrame(() => {
-        if (!cancelled) {
-          onReady();
+    const prepareScene = async () => {
+      try {
+        if (typeof gl.compileAsync === 'function') {
+          await gl.compileAsync(scene, camera);
+        } else if (typeof gl.compile === 'function') {
+          gl.compile(scene, camera);
         }
+      } catch {
+        // Rendering warmup is best-effort only.
+      }
+
+      firstFrameId = window.requestAnimationFrame(() => {
+        secondFrameId = window.requestAnimationFrame(() => {
+          thirdFrameId = window.requestAnimationFrame(() => {
+            if (!cancelled) {
+              onReady();
+            }
+          });
+        });
       });
-    });
+    };
+
+    prepareScene();
 
     return () => {
       cancelled = true;
       window.cancelAnimationFrame(firstFrameId);
-      if (secondFrameId) {
-        window.cancelAnimationFrame(secondFrameId);
-      }
+      window.cancelAnimationFrame(secondFrameId);
+      window.cancelAnimationFrame(thirdFrameId);
     };
-  }, [onReady]);
+  }, [camera, gl, onReady, scene]);
 
   return null;
 }
@@ -1037,7 +1126,10 @@ export default function MapScene({
       <BoothHitAreas onHover={handleHover} onSelect={handleSelect} boothPositions={boothPositions} />
       <OccludedBoothNameLabels boothPositions={boothPositions} visible={showBoothLabels} />
       <CategoryLabels kioskInfoPositions={kioskInfoPositions} />
-      <VenueFeatureLabels kioskInfoPositions={kioskInfoPositions} currentKioskId={currentKioskId} />
+      <VenueFeatureLabels
+        kioskInfoPositions={kioskInfoPositions}
+        currentKioskId={currentKioskId}
+      />
       <SelectionRing booth={selectedBooth} boothPositions={boothPositions} />
       <CurrentLocationMarker routeStartPoint={routeStartPoint} />
       <PathGuide pathPoints={resolvedPathPoints} targetBooth={selectedBooth} boothPositions={boothPositions} />

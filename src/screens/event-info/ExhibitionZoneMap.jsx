@@ -18,6 +18,20 @@ const MAP_ROTATION_Y = Math.PI * 0.5;
 const CATEGORY_COLOR_BY_ID = new Map(categories.map((category) => [category.id, category.color]));
 const SPECIAL_EXHIBITION_COLOR = '#8d96a0';
 
+function ZoneLoadingOverlay() {
+  return (
+    <div className="is-zone-loading-overlay" aria-live="polite" aria-busy="true">
+      <div className="is-zone-loading-card" aria-hidden="true">
+        <div className="is-zone-loading-dots" aria-hidden="true">
+          <span className="is-zone-loading-dot" />
+          <span className="is-zone-loading-dot" />
+          <span className="is-zone-loading-dot" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function extractBoothId(name = '') {
   const match = name.match(BOOTH_NAME_RE);
   return match?.[1]?.toUpperCase() ?? null;
@@ -288,6 +302,7 @@ export default function ExhibitionZoneMap() {
   const [kioskInfoPositions, setKioskInfoPositions] = useState({});
   const [selectedCategoryId, setSelectedCategoryId] = useState(CATEGORY_ALL_ID);
   const [activeMarker, setActiveMarker] = useState(null);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const displayScenes = useMemo(() => getScenesFromGltfResult(displayModelResult), [displayModelResult]);
 
   const boothDots = useMemo(() => {
@@ -329,11 +344,13 @@ export default function ExhibitionZoneMap() {
 
         setEntries(nextEntries);
         setKioskInfoPositions(nextKioskInfoPositions);
+        setIsDataLoading(false);
       })
       .catch(() => {
         if (!cancelled) {
           setEntries([]);
           setKioskInfoPositions({});
+          setIsDataLoading(false);
         }
       });
 
@@ -533,12 +550,15 @@ export default function ExhibitionZoneMap() {
     };
   }, [cameraBounds]);
 
+  const isZoneLoading = isDataLoading || !cameraBounds;
+
   return (
     <div className="is-zone-layout">
       <aside className="is-zone-category-panel">
         <div className="is-zone-category-tabs">
           {categoryTabs.map((tab) => {
             const whiteCategory = tab.color.toLowerCase() === '#ffffff';
+            const specialExhibitionCategory = tab.id === 'special_exhibition';
             return (
               <button
                 key={tab.id}
@@ -546,7 +566,7 @@ export default function ExhibitionZoneMap() {
                 className={`is-zone-category-tab ${selectedCategoryId === tab.id ? 'is-zone-category-tab-active' : ''}`}
                 style={{
                   '--zone-tab-color': tab.color,
-                  '--zone-tab-active-color': whiteCategory ? '#101820' : tab.color,
+                  '--zone-tab-active-color': whiteCategory || specialExhibitionCategory ? '#101820' : tab.color,
                 }}
                 onClick={() => handleSelectCategory(tab.id)}
               >
@@ -560,6 +580,7 @@ export default function ExhibitionZoneMap() {
 
       <section className="is-zone-stage">
         <div className="is-zone-map-board" style={mapBoardStyle}>
+          {isZoneLoading ? <ZoneLoadingOverlay /> : null}
           <div className="is-zone-map-hint">로고를 클릭하면 센터명을 볼 수 있어요</div>
           <ActiveMarkerCard marker={activeMarker} onClose={() => handleSelectMarker(null)} />
           <Canvas orthographic dpr={[1, 1.5]} className="is-zone-map-canvas" gl={{ alpha: true }}>
@@ -568,10 +589,6 @@ export default function ExhibitionZoneMap() {
               <directionalLight position={[30, 80, 20]} intensity={1.35} />
               <directionalLight position={[-28, 64, -20]} intensity={0.45} />
               <FlatMapModel cameraBounds={cameraBounds} />
-              <FloorCategoryOverlay
-                categoryZones={categoryZones}
-                selectedCategoryId={selectedCategoryId}
-              />
               <BoothLogoMarkers
                 markers={visibleMarkers}
                 activeMarkerId={activeMarker?.id ?? null}
