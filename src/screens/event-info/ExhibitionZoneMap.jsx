@@ -3,12 +3,20 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { loadExhibitionCenterEntries } from '../../data/exhibitionCenterAssets';
-import { booths, categories, resolveBoothCategory } from '../../data/booths';
+import { categories } from '../../data/booths';
+import { loadKioskInfoPositions } from '../../data/kioskInfoPositionCsv';
+import {
+  buildDisplayModelBounds,
+  cloneSceneForDisplay,
+  getScenesFromGltfResult,
+  KIOSK_DISPLAY_MODEL_PATHS,
+} from '../../three/kioskDisplayModels';
 
-const BOOTH_NAME_RE = /^Floor_(S\d+B\d+)$/i;
+const BOOTH_NAME_RE = /^Floor_((?:S\d+B\d+)|(?:Special\d+))$/i;
 const CATEGORY_ALL_ID = 'all';
 const MAP_ROTATION_Y = Math.PI * 0.5;
 const CATEGORY_COLOR_BY_ID = new Map(categories.map((category) => [category.id, category.color]));
+const SPECIAL_EXHIBITION_COLOR = '#8d96a0';
 
 function extractBoothId(name = '') {
   const match = name.match(BOOTH_NAME_RE);
@@ -156,27 +164,23 @@ function TopDownMapCamera({ bounds }) {
 }
 
 function FlatMapModel({ cameraBounds }) {
-  const { scene } = useGLTF('/models/Map_Kiosk.glb');
+  const gltfResult = useGLTF(KIOSK_DISPLAY_MODEL_PATHS);
 
-  const model = useMemo(() => {
-    const clone = scene.clone(true);
-    clone.traverse((node) => {
-      if (!node.isMesh) {
-        return;
-      }
-
-      node.raycast = () => null;
-      if (node.material?.clone) {
-        node.material = node.material.clone();
-      }
-    });
-    return clone;
-  }, [scene]);
+  const models = useMemo(() => getScenesFromGltfResult(gltfResult).map((scene) => (
+    cloneSceneForDisplay(scene, {
+      cloneMaterials: true,
+      raycast: () => null,
+    })
+  )), [gltfResult]);
 
   return (
     <>
       <TopDownMapCamera bounds={cameraBounds} />
-      <primitive object={model} rotation={[0, MAP_ROTATION_Y, 0]} />
+      <group rotation={[0, MAP_ROTATION_Y, 0]}>
+        {models.map((model, index) => (
+          <primitive key={`${model.uuid}-${index}`} object={model} />
+        ))}
+      </group>
     </>
   );
 }
@@ -278,11 +282,13 @@ function ActiveMarkerCard({ marker, onClose }) {
 }
 
 export default function ExhibitionZoneMap() {
-  const { scene: mapScene } = useGLTF('/models/Map_Kiosk.glb');
+  const displayModelResult = useGLTF(KIOSK_DISPLAY_MODEL_PATHS);
   const { scene: boothAreaScene } = useGLTF('/models/KioskBoothArea.glb');
   const [entries, setEntries] = useState([]);
+  const [kioskInfoPositions, setKioskInfoPositions] = useState({});
   const [selectedCategoryId, setSelectedCategoryId] = useState(CATEGORY_ALL_ID);
   const [activeMarker, setActiveMarker] = useState(null);
+  const displayScenes = useMemo(() => getScenesFromGltfResult(displayModelResult), [displayModelResult]);
 
   const boothDots = useMemo(() => {
     const clone = boothAreaScene.clone(true);
@@ -315,15 +321,21 @@ export default function ExhibitionZoneMap() {
   useEffect(() => {
     let cancelled = false;
 
-    loadExhibitionCenterEntries().then((nextEntries) => {
-      if (!cancelled) {
+    Promise.all([loadExhibitionCenterEntries(), loadKioskInfoPositions()])
+      .then(([nextEntries, nextKioskInfoPositions]) => {
+        if (cancelled) {
+          return;
+        }
+
         setEntries(nextEntries);
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setEntries([]);
-      }
-    });
+        setKioskInfoPositions(nextKioskInfoPositions);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setEntries([]);
+          setKioskInfoPositions({});
+        }
+      });
 
     return () => {
       cancelled = true;
@@ -352,17 +364,14 @@ export default function ExhibitionZoneMap() {
   }, [boothDots, entries]);
 
   const categoryZones = useMemo(() => {
-    const boothCategoryById = new Map(
-      booths.map((booth) => [booth.id, resolveBoothCategory(booth) ?? booth.category]),
-    );
-    const grouped = boothDots.reduce((map, dot) => {
-      const categoryId = boothCategoryById.get(dot.id);
+    const grouped = markers.reduce((map, marker) => {
+      const categoryId = marker.categoryId;
       if (!categoryId) {
         return map;
       }
 
       const current = map.get(categoryId) ?? [];
-      current.push(dot.position);
+      current.push(marker.position);
       map.set(categoryId, current);
       return map;
     }, new Map());
@@ -378,7 +387,9 @@ export default function ExhibitionZoneMap() {
         bounds: expandedBounds,
         minWidth,
         minDepth,
-        color: CATEGORY_COLOR_BY_ID.get(categoryId) ?? '#d9dee8',
+        color: categoryId === 'special_exhibition'
+          ? SPECIAL_EXHIBITION_COLOR
+          : (CATEGORY_COLOR_BY_ID.get(categoryId) ?? '#d9dee8'),
       };
     });
 
@@ -391,14 +402,10 @@ export default function ExhibitionZoneMap() {
       bounds: zone.bounds,
       color: zone.color,
     }));
-  }, [boothDots]);
+  }, [markers]);
 
   const mapBounds = useMemo(() => {
-    const clone = mapScene.clone(true);
-    clone.rotation.y = MAP_ROTATION_Y;
-    clone.updateMatrixWorld(true);
-
-    const box = new THREE.Box3().setFromObject(clone);
+    const box = buildDisplayModelBounds(displayScenes, { rotationY: MAP_ROTATION_Y });
     if (!Number.isFinite(box.min.x) || !Number.isFinite(box.max.x)) {
       return boothDots.length
         ? buildBoundsFromPoints(boothDots.map((dot) => dot.position), 2)
@@ -411,7 +418,7 @@ export default function ExhibitionZoneMap() {
       minZ: box.min.z,
       maxZ: box.max.z,
     };
-  }, [boothDots, mapScene]);
+  }, [boothDots, displayScenes]);
 
   const categoryTabs = useMemo(() => {
     const counts = markers.reduce((map, marker) => {
@@ -426,7 +433,7 @@ export default function ExhibitionZoneMap() {
         .map((category) => ({
           id: category.id,
           label: category.label,
-          color: category.color,
+          color: category.id === 'special_exhibition' ? SPECIAL_EXHIBITION_COLOR : category.color,
           count: counts.get(category.id) ?? 0,
         })),
     ];
@@ -578,5 +585,7 @@ export default function ExhibitionZoneMap() {
   );
 }
 
-useGLTF.preload('/models/Map_Kiosk.glb');
+KIOSK_DISPLAY_MODEL_PATHS.forEach((path) => {
+  useGLTF.preload(path);
+});
 useGLTF.preload('/models/KioskBoothArea.glb');
