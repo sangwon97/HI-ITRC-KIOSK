@@ -3,9 +3,20 @@ import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 
 import itrcLogo from '../../../assets/icons/ITRC_logo.jpg';
-import searchIcon from '../../../assets/icons/search.png';
+import searchIcon from '../../../assets/icons/keyboard_keys.svg';
+import photoCameraIcon from '../../../assets/icons/photo_camera.svg';
+import splitScreenPortraitIcon from '../../../assets/icons/splitscreen_portrait.svg';
+import genresIcon from '../../../assets/icons/genres.svg';
+import teacupFilledIcon from '../../../assets/icons/teacup_filled.svg';
+import giftFilledIcon from '../../../assets/icons/gift_filled.svg';
+import wcIcon from '../../../assets/icons/wc.svg';
 import { categories, CATEGORY_MAP } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
+import {
+  CURRENT_KIOSK_INFO_ID,
+  getCurrentKioskRouteStart,
+  loadKioskInfoPositions,
+} from '../../../data/kioskInfoPositionCsv';
 import { loadNavmeshGrid } from '../../../data/navmeshGrid';
 import MapScene from '../../../three/MapScene';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
@@ -77,6 +88,14 @@ const EVENT_START_DATE = new Date('2026-04-22T00:00:00+09:00');
 const EVENT_END_DATE = new Date('2026-04-24T23:59:59+09:00');
 const EVENT_VENUE_LABEL = 'COEX A홀';
 const EVENT_PERIOD_LABEL = '2026.04.22 - 04.24';
+const FEATURE_LEGEND_ITEMS = [
+  { id: 'life4cut', label: '인생네컷', icon: splitScreenPortraitIcon },
+  { id: 'ai-dance', label: 'AI 댄스', icon: genresIcon },
+  { id: 'photo-zone', label: '포토존', icon: photoCameraIcon },
+  { id: 'catering', label: '케이터링', icon: teacupFilledIcon },
+  { id: 'lucky-draw', label: '럭키드로우', icon: giftFilledIcon },
+  { id: 'toilet', label: '화장실', icon: wcIcon },
+];
 
 function getWeatherPresentation(weatherCode) {
   if (weatherCode === 0) {
@@ -193,6 +212,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     boothPositions: {},
     boothFrontPositions: {},
   });
+  const [kioskInfoPositions, setKioskInfoPositions] = useState({});
   const [navmeshGrid, setNavmeshGrid] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(() => formatDateTimeParts(new Date()));
   const [weatherInfo, setWeatherInfo] = useState(null);
@@ -201,17 +221,20 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const [resetSignal, setResetSignal] = useState(0);
   const [introSignal, setIntroSignal] = useState(0);
   const [infoMenuOpen, setInfoMenuOpen] = useState(false);
+  const [pendingMapIntro, setPendingMapIntro] = useState(false);
 
   useEffect(() => {
     let disposed = false;
 
     Promise.all([
       loadBoothPositionMaps(),
+      loadKioskInfoPositions(),
       loadNavmeshGrid(),
     ])
-      .then(([maps, loadedNavmeshGrid]) => {
+      .then(([maps, loadedKioskInfoPositions, loadedNavmeshGrid]) => {
         if (!disposed) {
           setBoothPositionMaps(maps);
+          setKioskInfoPositions(loadedKioskInfoPositions);
           setNavmeshGrid(loadedNavmeshGrid);
         }
       })
@@ -263,6 +286,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const boothPayload = normalizeBoothPayload(data);
   const activeNavScreen = getActiveNavScreen(activePanel);
   const activeInfoTab = activePanel === 'info' ? (data?.tab ?? 'overview') : null;
+  const currentRouteStart = useMemo(
+    () => getCurrentKioskRouteStart(kioskInfoPositions, CURRENT_KIOSK_INFO_ID),
+    [kioskInfoPositions],
+  );
   const pathPoints = useMemo(() => {
     if (!selected) {
       return null;
@@ -272,8 +299,9 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
       selected.id,
       boothPositionMaps.boothPositions,
       boothPositionMaps.boothFrontPositions,
+      currentRouteStart ?? undefined,
     );
-  }, [boothPositionMaps, selected]);
+  }, [boothPositionMaps, currentRouteStart, selected]);
 
   useEffect(() => {
     if (activePanel) {
@@ -284,9 +312,25 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
   useEffect(() => {
     if (!activePanel) {
-      setIntroSignal((signal) => signal + 1);
+      setSelected(null);
+      setShowMapSearch(false);
+      setResetSignal((signal) => signal + 1);
+      setPendingMapIntro(true);
     }
+
+    return undefined;
   }, [activePanel]);
+
+  const handleSceneReady = useCallback(() => {
+    setPendingMapIntro((current) => {
+      if (!current) {
+        return current;
+      }
+
+      setIntroSignal((signal) => signal + 1);
+      return false;
+    });
+  }, []);
 
   useEffect(() => {
     if (activeNavScreen === 'info') {
@@ -368,7 +412,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             dpr={[1, 1.5]}
             frameloop="always"
             onCreated={({ gl }) => {
-              gl.setClearColor(new THREE.Color(0xeef5fc));
+              gl.setClearColor(new THREE.Color(0xdadada));
             }}
           >
             <Suspense fallback={null}>
@@ -383,6 +427,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 controlsRef={controlsRef}
                 introSignal={introSignal}
                 resetSignal={resetSignal}
+                kioskInfoPositions={kioskInfoPositions}
+                currentKioskId={CURRENT_KIOSK_INFO_ID}
+                routeStartPoint={currentRouteStart}
+                onSceneReady={handleSceneReady}
               />
             </Suspense>
           </Canvas>
@@ -392,7 +440,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
           </div>
 
           <button className="map3d-map-search-btn" onClick={() => setShowMapSearch(true)}>
-            <img src={searchIcon} alt="" className="map3d-map-search-btn-icon" />
+            <img src={searchIcon} alt="" className="map3d-map-search-btn-icon" color='#2e6f9f'/>
             검색
           </button>
 
@@ -412,6 +460,17 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 ? `현재위치 → ${selected.name} 경로 안내 중`
                 : '원하는 부스를 클릭하면 해당 부스의 정보와 위치를 안내해드려요'}
             </span>
+          </div>
+
+          <div className="map3d-feature-legend" aria-label="특수 부스 안내">
+            {FEATURE_LEGEND_ITEMS.map((item) => (
+              <div key={item.id} className="map3d-feature-legend-item">
+                <span className="map3d-feature-legend-icon-shell">
+                  <img src={item.icon} alt="" className="map3d-feature-legend-icon" aria-hidden="true" />
+                </span>
+                <span className="map3d-feature-legend-label">{item.label}</span>
+              </div>
+            ))}
           </div>
 
           {selected && (

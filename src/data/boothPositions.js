@@ -94,7 +94,7 @@ const legacyBoothPositions = {
 };
 
 // KioskBoothArea.glb 메쉬 중심 좌표
-// 새 3D 전시장 지도(Map_Kiosk.glb)와 클릭 판정 영역(KioskBoothArea.glb)을 맞추기 위해 사용합니다.
+// 새 전시장 표시 모델 묶음과 클릭 판정 영역(KioskBoothArea.glb)을 맞추기 위해 사용합니다.
 const kioskBoothPositions = {
   S1B1:  [-13.3247,  26.6410],
   S1B2:  [-13.3247,  21.1467],
@@ -186,6 +186,8 @@ const kioskBoothPositions = {
   S10B6: [ 11.8356, -11.5182],
   S10B7: [ 21.3672, -17.1138],
   S10B8: [ 21.3672, -11.5141],
+  SPECIAL1: [12.6085, -0.6241],
+  SPECIAL2: [20.5509, -0.6241],
 };
 
 export const boothPositions = {
