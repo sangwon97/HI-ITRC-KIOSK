@@ -1,20 +1,28 @@
 import { useRef, useEffect, useMemo, useState, useCallback } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useLoader, useThree } from '@react-three/fiber';
 import { Billboard, Html, OrbitControls, Text, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { compressPath, findNearestWalkable, findPath, worldToCell } from '../utils/navmeshPath';
 import genresIcon from '../assets/icons/genres.svg';
 import photoCameraIcon from '../assets/icons/photo_camera.svg';
+import splitScreenPortraitIcon from '../assets/icons/splitscreen_portrait.svg';
 import teacupFilledIcon from '../assets/icons/teacup_filled.svg';
 import giftFilledIcon from '../assets/icons/gift_filled.svg';
+import wcIcon from '../assets/icons/wc.svg';
 
 import { booths, categories } from '../data/booths';
 import { ENTRANCE, getBoothPoint, getBoothRoutePoint } from '../utils/mapPath';
 import { DEFAULT_MAP_CAMERA } from './mapCameraConfig';
+import {
+  getScenesFromGltfResult,
+  KIOSK_DISPLAY_MODEL_PATHS,
+} from './kioskDisplayModels';
 
 const BOOTH_LOOKUP = new Map(booths.map((booth) => [booth.id, booth]));
 const CATEGORY_LOOKUP = new Map(categories.map((category) => [category.id, category]));
-const BOOTH_NAME_RE = /^Floor_(S\d+B\d+)$/i;
+const EXR_ENV_URL = `${import.meta.env.BASE_URL}textures_background.exr`;
+const BOOTH_NAME_RE = /^Floor_((?:S\d+B\d+)|(?:Special\d+))$/i;
 const DEFAULT_TARGET = new THREE.Vector3(...(DEFAULT_MAP_CAMERA.target ?? [0, 0, 0]));
 const NO_RAYCAST = () => null;
 const INTRO_DURATION = 1.45;
@@ -25,11 +33,32 @@ const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const MAP_MODEL_CACHE = new WeakMap();
 const HIT_MESH_CACHE = new WeakMap();
 const INSTANCE_DUMMY = new THREE.Object3D();
-const SPECIAL_BOOTH_LABELS = [
-  { id: 'photo-booth', boothId: 'S6B4', label: '인생네컷', icon: photoCameraIcon },
-  { id: 'ai-dance', boothId: 'S10B4', label: 'AI 댄스', icon: genresIcon },
+const SECTION_ID_BY_CATEGORY = {
+  ai_bigdata: 'Section1',
+  next_gen_comm: 'Section2',
+  bio_healthcare: 'Section3',
+  cloud_security: 'Section4',
+  immersive_sw: 'Section5',
+  quantum: 'Section6',
+  ai_semiconductor: 'Section7',
+  ai_platform: 'Section8',
+  ict_industry: 'Section9',
+  robotics_mobility: 'Section10',
+  special_exhibition: 'Section_Special',
+};
+const SPECIAL_EXHIBITION_COLOR = '#8d96a0';
+const FEATURE_LABELS = [
+  { id: 'photo-booth', positionId: 'Life4Cut', label: '인생네컷', icon: splitScreenPortraitIcon },
+  { id: 'ai-dance', positionId: 'New_Dance', label: 'AI 댄스', icon: genresIcon },
+  { id: 'photo-wall', positionId: 'Photo_Zone', label: '포토존', icon: photoCameraIcon },
+  { id: 'catering-zone', positionId: 'Coffee_Catering', label: '케이터링', icon: teacupFilledIcon },
+  { id: 'lucky-draw', positionId: 'Lucky_Draw', label: '럭키드로우', icon: giftFilledIcon },
+  { id: 'itrc-booth', positionId: 'ITRC_Booth', label: 'ITRC 홍보관', icon: null },
+  { id: 'toilet-1', positionId: 'Toilet1', label: '화장실', icon: wcIcon },
+  { id: 'toilet-2', positionId: 'Toilet2', label: '화장실', icon: wcIcon },
+  { id: 'exit', positionId: 'Exit', label: '전시장 출구', icon: null },
+  { id: 'exhibition-entrance', positionId: 'Entrance', label: '전시장 입구', icon: null },
 ];
-const EXHIBITION_ENTRANCE_POINT = [8.35161, 37.4791];
 
 function extractBoothId(name = '') {
   const match = name.match(BOOTH_NAME_RE);
@@ -87,8 +116,9 @@ function buildIntroCameraPosition() {
 }
 
 function KioskMapModel() {
-  const { scene } = useGLTF('/models/Map_Kiosk.glb');
-  const model = useMemo(() => {
+  const gltfResult = useGLTF(KIOSK_DISPLAY_MODEL_PATHS);
+  const scenes = useMemo(() => getScenesFromGltfResult(gltfResult), [gltfResult]);
+  const models = useMemo(() => scenes.map((scene) => {
     const cachedModel = MAP_MODEL_CACHE.get(scene);
     if (cachedModel) {
       return cachedModel;
@@ -102,8 +132,15 @@ function KioskMapModel() {
 
     MAP_MODEL_CACHE.set(scene, scene);
     return scene;
-  }, [scene]);
-  return <primitive object={model} />;
+  }), [scenes]);
+
+  return (
+    <group>
+      {models.map((model, index) => (
+        <primitive key={`${model.uuid}-${index}`} object={model} />
+      ))}
+    </group>
+  );
 }
 
 function BoothHitAreas({ onHover, onSelect, boothPositions }) {
@@ -244,37 +281,25 @@ function BoothHitAreas({ onHover, onSelect, boothPositions }) {
   );
 }
 
-function CategoryLabels({ boothPositions }) {
+function CategoryLabels({ kioskInfoPositions }) {
   const labels = useMemo(() => {
     return categories
       .map((category) => {
-        const categoryBooths = booths.filter((booth) => booth.category === category.id);
-        const points = categoryBooths
-          .map((booth) => boothPositions[booth.id])
-          .filter(Boolean);
-
-        if (points.length === 0) {
+        const point = kioskInfoPositions?.[SECTION_ID_BY_CATEGORY[category.id]];
+        if (!point) {
           return null;
         }
-
-        const sum = points.reduce(
-          (accumulator, point) => ({
-            x: accumulator.x + point[0],
-            z: accumulator.z + point[1],
-          }),
-          { x: 0, z: 0 },
-        );
 
         return {
           id: category.id,
           label: category.label,
-          color: category.color,
-          x: sum.x / points.length,
-          z: sum.z / points.length,
+          color: category.id === 'special_exhibition' ? SPECIAL_EXHIBITION_COLOR : category.color,
+          x: point[0],
+          z: point[1],
         };
       })
       .filter(Boolean);
-  }, [boothPositions]);
+  }, [kioskInfoPositions]);
 
   return (
     <group>
@@ -309,72 +334,25 @@ function CategoryLabels({ boothPositions }) {
   );
 }
 
-function VenueFeatureLabels({ boothPositions }) {
+function VenueFeatureLabels({ kioskInfoPositions, currentKioskId }) {
   const labels = useMemo(() => {
-    const nextLabels = [];
-
-    SPECIAL_BOOTH_LABELS.forEach((label) => {
-      const point = boothPositions[label.boothId];
+    const nextLabels = FEATURE_LABELS.reduce((accumulator, feature) => {
+      const point = kioskInfoPositions?.[feature.positionId];
       if (!point) {
-        return;
+        return accumulator;
       }
 
-      nextLabels.push({
-        ...label,
+      accumulator.push({
+        ...feature,
         x: point[0],
-        y: 4.35,
+        y: 4.25,
         z: point[1],
       });
-    });
-
-    const s6b7 = boothPositions.S6B7;
-    const s6b8 = boothPositions.S6B8;
-    if (s6b7 && s6b8) {
-      nextLabels.push({
-        id: 'photo-wall',
-        label: '포토월',
-        icon: photoCameraIcon,
-        x: (s6b7[0] + s6b8[0]) * 0.5,
-        y: 4.2,
-        z: (s6b7[1] + s6b8[1]) * 0.5,
-      });
-    }
-
-    const s9b9 = boothPositions.S9B9;
-    if (s9b9) {
-      nextLabels.push({
-        id: 'catering-zone',
-        label: '케이터링',
-        icon: teacupFilledIcon,
-        x: s9b9[0] - 1.0,
-        y: 4.25,
-        z: s9b9[1] - 6.5,
-      });
-    }
-
-    const photoBooth = boothPositions.S6B4;
-    if (photoBooth) {
-      nextLabels.push({
-        id: 'lucky-draw',
-        label: '럭키드로우',
-        icon: giftFilledIcon,
-        x: photoBooth[0] - 3.5,
-        y: 4.2,
-        z: photoBooth[1],
-      });
-    }
-
-    nextLabels.push({
-      id: 'exhibition-entrance',
-      label: '전시장 입구',
-      icon: null,
-      x: EXHIBITION_ENTRANCE_POINT[0],
-      y: 4.1,
-      z: EXHIBITION_ENTRANCE_POINT[1],
-    });
+      return accumulator;
+    }, []);
 
     return nextLabels;
-  }, [boothPositions]);
+  }, [currentKioskId, kioskInfoPositions]);
 
   return (
     <group>
@@ -390,13 +368,12 @@ function VenueFeatureLabels({ boothPositions }) {
           zIndexRange={[6, 0]}
           style={{ pointerEvents: 'none' }}
         >
-          <div className={label.icon ? 'map3d-special-label map3d-special-label--feature' : 'map3d-special-label map3d-special-label--entrance'}>
+          <div className={label.icon ? 'map3d-special-label map3d-special-label--feature map3d-special-label--icon-only' : 'map3d-special-label map3d-special-label--entrance'}>
             {label.icon ? (
               <>
                 <div className="map3d-special-label-badge">
                   <img className="map3d-special-label-icon" src={label.icon} alt="" aria-hidden="true" />
                 </div>
-                <div className="map3d-special-label-caption">{label.label}</div>
               </>
             ) : (
               <span className="map3d-special-label-entrance-text">{label.label}</span>
@@ -564,7 +541,7 @@ function SelectionRing({ booth, boothPositions }) {
   );
 }
 
-function EntranceMarker() {
+function CurrentLocationMarker({ routeStartPoint }) {
   const outerRef = useRef();
   const innerRef = useRef();
   const arrowRef = useRef();
@@ -586,22 +563,22 @@ function EntranceMarker() {
   });
 
   return (
-    <group position={[ENTRANCE[0], 0.05, ENTRANCE[2]]}>
+    <group position={routeStartPoint ? [routeStartPoint[0], 0.05, routeStartPoint[2]] : [0, -999, 0]}>
       <mesh ref={outerRef} raycast={NO_RAYCAST} rotation={[-Math.PI / 2, 0, 0]} renderOrder={18}>
         <ringGeometry args={[1.5, 2.2, 32]} />
-        <meshBasicMaterial color={0x00ffaa} transparent opacity={0.4} side={THREE.DoubleSide} depthWrite={false} />
+        <meshBasicMaterial color={0xc21875} transparent opacity={0.52} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
       <mesh ref={innerRef} raycast={NO_RAYCAST} rotation={[-Math.PI / 2, 0, 0]} renderOrder={19}>
         <circleGeometry args={[0.7, 32]} />
-        <meshBasicMaterial color={0x00ffaa} transparent opacity={0.9} depthWrite={false} />
+        <meshBasicMaterial color={0xe83d97} transparent opacity={0.96} depthWrite={false} />
       </mesh>
       <group ref={arrowRef} position={[0, 1.08, 0]} renderOrder={19}>
         <mesh raycast={NO_RAYCAST} rotation={[Math.PI, 0, 0]}>
           <coneGeometry args={[0.44, 0.86, 24]} />
           <meshStandardMaterial
-            color={0x7affdb}
-            emissive={0x00ffaa}
-            emissiveIntensity={0.62}
+            color={0xff6ab9}
+            emissive={0xe83d97}
+            emissiveIntensity={0.78}
             metalness={0.12}
             roughness={0.24}
             transparent
@@ -927,6 +904,56 @@ export function CameraController({ targetBoothPos, boothPositions, introSignal, 
   );
 }
 
+function MapEnvironment() {
+  const scene = useThree((state) => state.scene);
+  const exrTexture = useLoader(EXRLoader, EXR_ENV_URL);
+
+  useEffect(() => {
+    const previousBackground = scene.background;
+    const previousEnvironment = scene.environment;
+
+    exrTexture.mapping = THREE.EquirectangularReflectionMapping;
+    scene.background = new THREE.Color(0xdadada);
+    scene.environment = exrTexture;
+
+    return () => {
+      scene.background = previousBackground;
+      scene.environment = previousEnvironment;
+    };
+  }, [exrTexture, scene]);
+
+  return null;
+}
+
+function SceneReadyNotifier({ onReady }) {
+  useEffect(() => {
+    if (typeof onReady !== 'function') {
+      return undefined;
+    }
+
+    let cancelled = false;
+    let secondFrameId = 0;
+
+    const firstFrameId = window.requestAnimationFrame(() => {
+      secondFrameId = window.requestAnimationFrame(() => {
+        if (!cancelled) {
+          onReady();
+        }
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(firstFrameId);
+      if (secondFrameId) {
+        window.cancelAnimationFrame(secondFrameId);
+      }
+    };
+  }, [onReady]);
+
+  return null;
+}
+
 export default function MapScene({
   onSelect,
   onHover,
@@ -939,6 +966,10 @@ export default function MapScene({
   introSignal,
   resetSignal,
   showBoothLabels = true,
+  kioskInfoPositions = {},
+  currentKioskId = null,
+  routeStartPoint = null,
+  onSceneReady = null,
 }) {
   const handleHover = useCallback((booth) => onHover(booth), [onHover]);
   const handleSelect = useCallback((booth) => onSelect(booth), [onSelect]);
@@ -960,8 +991,9 @@ export default function MapScene({
       return pathPoints;
     }
 
+    const startPoint = routeStartPoint ?? ENTRANCE;
     const startCell = findNearestWalkable(
-      worldToCell(ENTRANCE[0], ENTRANCE[2], navmeshGrid),
+      worldToCell(startPoint[0], startPoint[2], navmeshGrid),
       navmeshGrid,
     );
     const goalCell = findNearestWalkable(
@@ -987,12 +1019,14 @@ export default function MapScene({
     const resolvedPath = distanceToCenter > 0.05 ? [...basePath, boothCenterPoint] : basePath;
     resolvedPathCache.set(selectedBooth.id, resolvedPath);
     return resolvedPath;
-  }, [boothFrontPositions, boothPositions, navmeshGrid, pathPoints, resolvedPathCache, selectedBooth]);
+  }, [boothFrontPositions, boothPositions, navmeshGrid, pathPoints, resolvedPathCache, routeStartPoint, selectedBooth]);
 
   return (
     <>
-      <ambientLight color={0xe8f4ff} intensity={1.8} />
-      <directionalLight color={0xffffff} intensity={0.6} position={[-8, 30, 15]} />
+      <SceneReadyNotifier onReady={onSceneReady} />
+      <MapEnvironment />
+      <hemisphereLight args={[0xffffff, 0xaaaaaa, 0.8]} />
+      <directionalLight color={0xffffff} intensity={1.5} position={[20, 40, 20]} />
 
       {/* <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
         <planeGeometry args={[200, 200]} />
@@ -1002,10 +1036,10 @@ export default function MapScene({
       <KioskMapModel />
       <BoothHitAreas onHover={handleHover} onSelect={handleSelect} boothPositions={boothPositions} />
       <OccludedBoothNameLabels boothPositions={boothPositions} visible={showBoothLabels} />
-      <CategoryLabels boothPositions={boothPositions} />
-      <VenueFeatureLabels boothPositions={boothPositions} />
+      <CategoryLabels kioskInfoPositions={kioskInfoPositions} />
+      <VenueFeatureLabels kioskInfoPositions={kioskInfoPositions} currentKioskId={currentKioskId} />
       <SelectionRing booth={selectedBooth} boothPositions={boothPositions} />
-      <EntranceMarker />
+      <CurrentLocationMarker routeStartPoint={routeStartPoint} />
       <PathGuide pathPoints={resolvedPathPoints} targetBooth={selectedBooth} boothPositions={boothPositions} />
 
       <CameraController
@@ -1019,5 +1053,7 @@ export default function MapScene({
   );
 }
 
-useGLTF.preload('/models/Map_Kiosk.glb');
+KIOSK_DISPLAY_MODEL_PATHS.forEach((path) => {
+  useGLTF.preload(path);
+});
 useGLTF.preload('/models/KioskBoothArea.glb');

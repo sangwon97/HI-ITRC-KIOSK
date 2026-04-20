@@ -37,7 +37,7 @@ function getCorridorXForBoothX(bx) {
  * @param {Record<string, [number, number]>} boothFrontPositions
  * @returns {[number,number,number][]|null} [[x,y,z], ...] 배열
  */
-export function computeBoothPath(boothId, boothPositions, boothFrontPositions) {
+export function computeBoothPath(boothId, boothPositions, boothFrontPositions, startPoint = ENTRANCE) {
   const pos = boothPositions[boothId];
   if (!pos) return null;
 
@@ -45,8 +45,8 @@ export function computeBoothPath(boothId, boothPositions, boothFrontPositions) {
 
   // 입구 → 하단 복도 진입점
   const path = [
-    [ENTRANCE[0], Y, ENTRANCE[2]],
-    [ENTRANCE[0], Y, CZ_BOTTOM],
+    [startPoint[0], Y, startPoint[2]],
+    [startPoint[0], Y, CZ_BOTTOM],
   ];
 
   // bx 기준으로 사용할 세로 복도 결정

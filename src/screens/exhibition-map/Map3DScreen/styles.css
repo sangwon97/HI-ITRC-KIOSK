@@ -467,7 +467,7 @@
   border-radius: 999px;
   color: #2e6f9f;
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.18s ease;
   white-space: nowrap;
@@ -476,17 +476,13 @@
   box-shadow: 0 8px 20px rgba(0, 40, 100, 0.08);
 }
 
-.map3d-map-search-btn:hover {
-  background: rgba(121, 168, 202, 0.12);
-  border-color: rgba(121, 168, 202, 0.5);
-  transform: translateY(-1px);
-}
-
 .map3d-map-search-btn-icon {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 18px;
   object-fit: contain;
   opacity: 0.75;
+  justify-content: center;
+  align-items: center;
 }
 
 /* ── 캔버스 래퍼 ─────────────────────────────── */
@@ -552,6 +548,54 @@
   background: rgba(0, 84, 140, 0.501);
   border-color: rgba(0, 160, 220, 0.35);
   color: #fff;
+}
+
+.map3d-feature-legend {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(46, 111, 159, 0.12);
+  box-shadow: 0 12px 28px rgba(12, 26, 46, 0.14);
+  backdrop-filter: blur(14px);
+  z-index: 16;
+  pointer-events: none;
+}
+
+.map3d-feature-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.map3d-feature-legend-icon-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(159, 19, 19, 0.88);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+}
+
+.map3d-feature-legend-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.map3d-feature-legend-label {
+  color: #163a5d;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 @keyframes badgeFadeIn {
@@ -725,6 +769,10 @@
   box-shadow: none;
   backdrop-filter: none;
   pointer-events: none;
+}
+
+.map3d-special-label--icon-only {
+  gap: 0;
 }
 
 .map3d-special-label-badge {
