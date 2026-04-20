@@ -155,7 +155,12 @@ function normalizeCenterName(value = '') {
 }
 
 function buildDisplayTitle(item, booth) {
-  return booth.name;
+  if (booth?.name) {
+    return booth.name;
+  }
+
+  const strippedTitle = stripUniversityPrefix(item?.center_name ?? '').trim();
+  return strippedTitle || item?.center_name || '';
 }
 
 function getCategorySortIndex(categoryId = '') {
@@ -251,20 +256,22 @@ export async function loadExhibitionCenterEntries() {
       }, new Map());
 
       const entries = manifest
-        .filter((item) => item.category !== SPECIAL_CATEGORY_LABEL)
         .map((item, manifestIndex) => {
           const booth = getBoothMatch(item, boothIndexByUniversity, boothIndex);
-          if (!booth) {
+          if (!booth && item.category !== SPECIAL_CATEGORY_LABEL) {
             return null;
           }
 
           return {
-            boothId: booth.id,
-            categoryId: resolveBoothCategory(booth) ?? CATEGORY_LABEL_TO_ID[item.category] ?? booth.category,
+            boothId: booth?.id ?? `SPECIAL_${manifestIndex + 1}`,
+            categoryId: booth
+              ? (resolveBoothCategory(booth) ?? CATEGORY_LABEL_TO_ID[item.category] ?? booth.category)
+              : 'special_exhibition',
             title: buildDisplayTitle(item, booth),
-            university: booth.univ,
+            university: booth?.univ ?? item.university,
             logoSrc: `${ASSET_BASE}${item.image_file}`,
             _manifestIndex: manifestIndex,
+            isSpecial: item.category === SPECIAL_CATEGORY_LABEL,
           };
         })
         .filter(Boolean)

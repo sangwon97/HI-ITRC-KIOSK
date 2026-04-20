@@ -41,7 +41,7 @@ export const booths = [
   { id: 'S6B1', section: 'S6', booth: 'B1', name: '초신뢰양자인터넷 연구센터', univ: '고려대학교', category: 'quantum' },
   { id: 'S6B2', section: 'S6', booth: 'B2', name: '양자기술플랫폼 연구센터', univ: '충북대학교', category: 'quantum' },
   { id: 'S6B3', section: 'S6', booth: 'B3', name: '하이퍼-컴포저블 데이터센터 연구센터', univ: 'UNIST', category: 'quantum' },
-  // { id: 'S6B4', section: 'S6', booth: 'B4', name: '인생네컷', univ: '인생네컷', category: 'quantum' },
+  { id: 'SPECIAL1', section: 'SPECIAL', booth: 'B1', name: 'AI보안 센터', univ: '숭실대학교', category: 'special_exhibition' },
   { id: 'S6B5', section: 'S6', booth: 'B5', name: '양자정보과학기술 연구센터', univ: '세종대학교', category: 'quantum' },
   { id: 'S6B6', section: 'S6', booth: 'B6', name: '양자센서 인력양성센터', univ: '부산대학교', category: 'quantum' },
   { id: 'S6B7', section: 'S6', booth: 'B7', name: '양자센싱 융합기술 연구센터', univ: 'UNIST', category: 'quantum' },
@@ -75,7 +75,7 @@ export const booths = [
   { id: 'S10B1', section: 'S10', booth: 'B1', name: 'UAM-eVTOL 융합 연구센터', univ: '세종대학교', category: 'robotics_mobility' },
   { id: 'S10B2', section: 'S10', booth: 'B2', name: '데이터 기반 지능형 모빌리티 연구센터', univ: '경북대학교', category: 'robotics_mobility' },
   { id: 'S10B3', section: 'S10', booth: 'B3', name: '초연결 기반 협력형 무인자율이동체 연구센터', univ: '금오공과대학교', category: 'robotics_mobility' },
-  // { id: 'S10B4', section: 'S10', booth: 'B4', name: 'AI 댄스', univ: 'AI 댄스', category: 'robotics_mobility' },
+  { id: 'SPECIAL2', section: 'SPECIAL', booth: 'B2', name: '국방 지능형 군집체계 연구센터', univ: 'KAIST', category: 'special_exhibition' },
   { id: 'S10B5', section: 'S10', booth: 'B5', name: '지능통감융합 연구센터', univ: 'KAIST', category: 'robotics_mobility' },
   { id: 'S10B6', section: 'S10', booth: 'B6', name: '배리어프리 ICT기술 연구센터', univ: '단국대학교', category: 'robotics_mobility' },
   { id: 'S10B7', section: 'S10', booth: 'B7', name: '3차원 모빌리티 통신 센터', univ: '서울대학교', category: 'robotics_mobility' },
@@ -93,6 +93,7 @@ export const categories = [
   { id: 'ai_platform', label: '인공지능 플랫폼·서비스', icon: '⚡', color: '#fec716' },
   { id: 'ict_industry', label: 'ICT 산업융합', icon: '🏭', color: '#ffffff' },
   { id: 'robotics_mobility', label: '첨단 로봇·모빌리티', icon: '🤖', color: '#5e2f90' },
+  { id: 'special_exhibition', label: '특별전시관', icon: '⭐', color: '#8d96a0' },
 ];
 
 export const CATEGORY_MAP = new Map(categories.map((category) => [category.id, category]));
@@ -108,6 +109,7 @@ export const BOOTH_BROWSER_CATEGORY_ORDER = [
   'robotics_mobility',
   'quantum',
   'ict_industry',
+  'special_exhibition',
 ];
 
 const BOOTH_BROWSER_UNIVERSITY_ORDER = {
@@ -121,6 +123,7 @@ const BOOTH_BROWSER_UNIVERSITY_ORDER = {
   robotics_mobility: ['금오공과대학교', '단국대학교', '세종대학교', '서울대학교', '경북대학교', '충북대학교', 'KAIST'],
   quantum: ['세종대학교', '고려대학교', 'POSTECH', '부산대학교', 'UNIST', '충북대학교', 'UNIST'],
   ict_industry: ['중앙대학교', '경북대학교', '경북대학교', '공주대학교', '순천대학교', '금오공과대학교', '순천대학교', '금오공과대학교', '한국공학대학교', '숭실대학교', '가천대학교'],
+  special_exhibition: ['숭실대학교', 'KAIST'],
 };
 
 export const BOOTH_BROWSER_CATEGORIES = BOOTH_BROWSER_CATEGORY_ORDER

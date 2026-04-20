@@ -347,6 +347,8 @@
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1.4;
+  overflow-wrap: break-word;
+  word-break: keep-all;
 }
 
 .bb-booth-univ {

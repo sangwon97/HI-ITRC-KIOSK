@@ -8,7 +8,7 @@ import {
   QUICK_KEYWORDS,
   QUICK_UNIVERSITIES,
 } from '../../../data/keyboard';
-import searchIcon from '../../../assets/icons/search.png';
+import searchIcon from '../../../assets/icons/keyboard_keys.svg';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
 import useBoothSearch from '../../../hooks/useBoothSearch';
 import './styles.css';
@@ -111,7 +111,6 @@ export default function MapSearchOverlay({ onClose, onSelect }) {
         {/* 헤더 */}
         <div className="mso-header">
           <div className={`mso-input-wrap ${query ? 'mso-input-filled' : ''}`}>
-            <img src={searchIcon} alt="" className="mso-input-icon" />
             <span className={`mso-input-text ${query ? '' : 'mso-input-placeholder'}`}>
               {query || '센터명 또는 대학명으로 검색'}
             </span>
@@ -141,7 +140,6 @@ export default function MapSearchOverlay({ onClose, onSelect }) {
               </div>
             ) : results.length === 0 ? (
               <div className="mso-empty">
-                <span>😔</span>
                 <p>"{query}"에 대한<br />검색 결과가 없습니다.</p>
               </div>
             ) : (

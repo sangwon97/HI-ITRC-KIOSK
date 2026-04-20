@@ -3,9 +3,15 @@ import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 
 import itrcLogo from '../../../assets/icons/ITRC_logo.jpg';
-import searchIcon from '../../../assets/icons/search.png';
+import searchIcon from '../../../assets/icons/keyboard_keys.svg';
 import { categories, CATEGORY_MAP } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
+import {
+  CURRENT_KIOSK_INFO_ID,
+  getCurrentKioskRouteStart,
+  loadKioskInfoPositions,
+} from '../../../data/kioskInfoPositionCsv';
+import labLogo from '../../../assets/Hi.png';
 import { loadNavmeshGrid } from '../../../data/navmeshGrid';
 import MapScene from '../../../three/MapScene';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
@@ -23,15 +29,20 @@ const InfoScreen = lazy(() => import('../../event-info/InfoScreen'));
 
 const CAT_HEX = Object.fromEntries(categories.map((category) => [category.id, category.color]));
 const NOOP = () => {};
-const LOADING_FALLBACK_STYLE = {
-  position: 'absolute',
-  inset: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: 'var(--text-muted)',
-  fontSize: '1rem',
-};
+
+function MapLoadingOverlay() {
+  return (
+    <div className="map3d-loading-overlay" aria-live="polite" aria-busy="true">
+      <div className="map3d-loading-card" aria-hidden="true">
+        <div className="map3d-loading-dots" aria-hidden="true">
+          <span className="map3d-loading-dot" />
+          <span className="map3d-loading-dot" />
+          <span className="map3d-loading-dot" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function hexStr(v) {
   if (typeof v === 'string') {
@@ -54,7 +65,6 @@ const NAV_ITEMS = [
       { id: 'overview', label: '행사 개요', tab: 'overview' },
       { id: 'programs', label: '프로그램', tab: 'programs' },
       { id: 'zones', label: '전시 구역', tab: 'zones' },
-      { id: 'videos', label: '지난 행사 영상', tab: 'videos' },
     ],
   },
 ];
@@ -193,6 +203,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     boothPositions: {},
     boothFrontPositions: {},
   });
+  const [kioskInfoPositions, setKioskInfoPositions] = useState({});
   const [navmeshGrid, setNavmeshGrid] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState(() => formatDateTimeParts(new Date()));
   const [weatherInfo, setWeatherInfo] = useState(null);
@@ -201,17 +212,22 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const [resetSignal, setResetSignal] = useState(0);
   const [introSignal, setIntroSignal] = useState(0);
   const [infoMenuOpen, setInfoMenuOpen] = useState(false);
+  const [pendingMapIntro, setPendingMapIntro] = useState(false);
+  const [isMapSceneReady, setIsMapSceneReady] = useState(false);
+  const showBoothLabels = true;
 
   useEffect(() => {
     let disposed = false;
 
     Promise.all([
       loadBoothPositionMaps(),
+      loadKioskInfoPositions(),
       loadNavmeshGrid(),
     ])
-      .then(([maps, loadedNavmeshGrid]) => {
+      .then(([maps, loadedKioskInfoPositions, loadedNavmeshGrid]) => {
         if (!disposed) {
           setBoothPositionMaps(maps);
+          setKioskInfoPositions(loadedKioskInfoPositions);
           setNavmeshGrid(loadedNavmeshGrid);
         }
       })
@@ -263,6 +279,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const boothPayload = normalizeBoothPayload(data);
   const activeNavScreen = getActiveNavScreen(activePanel);
   const activeInfoTab = activePanel === 'info' ? (data?.tab ?? 'overview') : null;
+  const currentRouteStart = useMemo(
+    () => getCurrentKioskRouteStart(kioskInfoPositions, CURRENT_KIOSK_INFO_ID),
+    [kioskInfoPositions],
+  );
   const pathPoints = useMemo(() => {
     if (!selected) {
       return null;
@@ -272,8 +292,9 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
       selected.id,
       boothPositionMaps.boothPositions,
       boothPositionMaps.boothFrontPositions,
+      currentRouteStart ?? undefined,
     );
-  }, [boothPositionMaps, selected]);
+  }, [boothPositionMaps, currentRouteStart, selected]);
 
   useEffect(() => {
     if (activePanel) {
@@ -284,9 +305,28 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
   useEffect(() => {
     if (!activePanel) {
-      setIntroSignal((signal) => signal + 1);
+      setSelected(null);
+      setShowMapSearch(false);
+      setResetSignal((signal) => signal + 1);
+      setPendingMapIntro(true);
+      setIsMapSceneReady(false);
     }
+
+    return undefined;
   }, [activePanel]);
+
+  const handleSceneReady = useCallback(() => {
+    setIsMapSceneReady(true);
+
+    setPendingMapIntro((current) => {
+      if (!current) {
+        return current;
+      }
+
+      setIntroSignal((signal) => signal + 1);
+      return false;
+    });
+  }, []);
 
   useEffect(() => {
     if (activeNavScreen === 'info') {
@@ -361,6 +401,9 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     if (!activePanel) {
       return (
         <div className="map3d-canvas-wrapper">
+          {!isMapSceneReady && (
+            <MapLoadingOverlay />
+          )}
           <Canvas
             style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
             camera={{ position: DEFAULT_MAP_CAMERA.position, fov: 38, near: 0.5, far: 400 }}
@@ -368,7 +411,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             dpr={[1, 1.5]}
             frameloop="always"
             onCreated={({ gl }) => {
-              gl.setClearColor(new THREE.Color(0xeef5fc));
+              gl.setClearColor(new THREE.Color(0xdadada));
             }}
           >
             <Suspense fallback={null}>
@@ -383,6 +426,11 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 controlsRef={controlsRef}
                 introSignal={introSignal}
                 resetSignal={resetSignal}
+                showBoothLabels={showBoothLabels}
+                kioskInfoPositions={kioskInfoPositions}
+                currentKioskId={CURRENT_KIOSK_INFO_ID}
+                routeStartPoint={currentRouteStart}
+                onSceneReady={handleSceneReady}
               />
             </Suspense>
           </Canvas>
@@ -391,13 +439,15 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             드래그: 회전 &middot; 우클릭/두 손가락: 이동 &middot; 스크롤/핀치: 줌 &middot; 부스 클릭: 상세
           </div>
 
-          <button className="map3d-map-search-btn" onClick={() => setShowMapSearch(true)}>
-            <img src={searchIcon} alt="" className="map3d-map-search-btn-icon" />
-            검색
-          </button>
+          <div className="map3d-map-controls">
+            <button className="map3d-map-search-btn" onClick={() => setShowMapSearch(true)}>
+              <img src={searchIcon} alt="" className="map3d-map-search-btn-icon" color='#2e6f9f'/>
+              검색
+            </button>
+          </div>
 
           {showMapSearch && (
-            <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>검색 화면 로딩 중...</div>}>
+            <Suspense fallback={<MapLoadingOverlay />}>
               <MapSearchOverlay
                 onClose={() => setShowMapSearch(false)}
                 onSelect={(booth) => { handleSelect(booth); setShowMapSearch(false); }}
@@ -445,7 +495,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'booth-browser') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>부스 안내 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <BoothBrowser embedded data={data} navigate={navigate} goHome={goHome} />
         </Suspense>
       );
@@ -453,7 +503,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'search') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>검색 화면 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <SearchScreen embedded navigate={navigate} goHome={goHome} />
         </Suspense>
       );
@@ -461,7 +511,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'info') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>행사 안내 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <InfoScreen embedded data={data} navigate={navigate} goHome={goHome} />
         </Suspense>
       );
@@ -486,7 +536,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
       };
 
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>부스 상세 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <BoothDetail
             embedded
             data={boothPayload}
@@ -500,7 +550,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'center') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>센터 정보 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <CenterInfo
             embedded
             data={data}
@@ -517,7 +567,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'poster') {
       return (
-        <Suspense fallback={<div style={LOADING_FALLBACK_STYLE}>포스터 로딩 중...</div>}>
+        <Suspense fallback={<MapLoadingOverlay />}>
           <PosterDetail
             embedded
             data={data}
@@ -608,10 +658,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
         </nav>
 
         <div className="map3d-sidebar-credits">
-          <div className="map3d-sidebar-credits-title">Platform Credits</div>
-          <div className="map3d-sidebar-credits-text">김진술 교수님</div>
-          <div className="map3d-sidebar-credits-text">플랫폼 개발 오상원 · 이예원</div>
-          <div className="map3d-sidebar-credits-text">3D 모델링 정광무</div>
+          <img src={labLogo}className="map3d-sidebar-credits-logo" />
+          <div className="map3d-sidebar-credits-text">김진술 · 오상원 · 이예원 · 정광무</div>
+          <div className="map3d-sidebar-credits-text">전남대학교 초지능네트워크미디어플랫폼 연구실</div>
+          
         </div>
 
       </aside>

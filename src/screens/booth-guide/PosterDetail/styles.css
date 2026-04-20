@@ -185,9 +185,10 @@
 .pd-info {
   display: flex;
   flex-direction: column;
-  padding: 36px var(--side-pad);
+  padding: 40px 70px;
   gap: 0;
   background: #ffffff;
+  text-align: justify;
 }
 
 .pd-source {
@@ -226,16 +227,6 @@
   line-height: 1.35;
   letter-spacing: -0.02em;
   margin-bottom: 12px;
-}
-
-.pd-univ {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-bottom: 4px;
 }
 
 .pd-divider {

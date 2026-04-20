@@ -1,5 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { eventInfo } from '../../../data/eventInfo';
+import luckyDrawImage from '../../../assets/174124_71433250.png';
+import stickerPhotoImage from '../../../assets/1767_71433250.png';
+import sponsorsImage from '../../../assets/program-partners/program-sponsors.png';
+import academiesImage from '../../../assets/program-partners/program-academies.png';
 import ExhibitionZoneMap from '../ExhibitionZoneMap';
 import './styles.css';
 
@@ -7,22 +11,51 @@ const TABS = [
   { id: 'overview', label: '행사 개요' },
   { id: 'programs', label: '프로그램' },
   { id: 'zones', label: '전시 구역'},
-  { id: 'videos', label: '지난 행사 영상' },
 ];
 
-const LAST_EVENT_VIDEO = {
-  title: 'ITRC 인재양성대전 2025',
-  description: '현장 영상을 확인해보세요.',
-  embedUrl: 'https://www.youtube.com/embed/AdeJtnhrj80?si=41AEyVaNxtILsaQ_',
-  watchUrl: 'https://youtu.be/AdeJtnhrj80?si=41AEyVaNxtILsaQ_',
-};
-
 export default function InfoScreen({ goBack, goHome, navigate, embedded = false, data = null }) {
-  const [activeTab, setActiveTab] = useState(data?.tab ?? 'overview');
+  const initialTab = TABS.some((tab) => tab.id === data?.tab) ? data.tab : 'overview';
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [supportSlideIndex, setSupportSlideIndex] = useState(0);
 
   useEffect(() => {
-    setActiveTab(data?.tab ?? 'overview');
+    setActiveTab(TABS.some((tab) => tab.id === data?.tab) ? data.tab : 'overview');
   }, [data?.tab]);
+
+  useEffect(() => {
+    if (activeTab !== 'programs') {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setSupportSlideIndex((current) => (current + 1) % 2);
+    }, 3200);
+
+    return () => window.clearInterval(timer);
+  }, [activeTab]);
+
+  const mainExhibitionProgram = useMemo(
+    () => eventInfo.programs.find((program) => program.id === 'main-exhibition') ?? null,
+    [],
+  );
+  const networkingProgram = useMemo(
+    () => eventInfo.programs.find((program) => program.id === 'networking') ?? null,
+    [],
+  );
+  const cultureProgram = useMemo(
+    () => eventInfo.programs.find((program) => program.id === 'culture-event') ?? null,
+    [],
+  );
+
+  const cultureSectionVisuals = {
+    '럭키드로우': luckyDrawImage,
+    '스티커 사진': stickerPhotoImage,
+  };
+
+  const supportSlides = useMemo(() => ([
+    { id: 'sponsors', title: '후원 업체', image: sponsorsImage, alt: '후원 업체 목록' },
+    { id: 'academies', title: '후원 학회', image: academiesImage, alt: '후원 학회 목록' },
+  ]), []);
 
   return (
     <div className={`info-screen ${embedded ? 'info-screen-embedded' : 'screen-enter'}`}>
@@ -52,7 +85,6 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
               setActiveTab(tab.id);
             }}
           >
-            <span>{tab.icon}</span>
             <span>{tab.label}</span>
           </button>
         ))}
@@ -60,7 +92,7 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
 
       {/* 콘텐츠 */}
       <div
-        className={`is-content ${activeTab === 'videos' ? 'is-content-video' : ''} ${activeTab === 'zones' ? 'is-content-zones' : ''}`}
+        className={`is-content ${activeTab === 'zones' ? 'is-content-zones' : ''} ${activeTab === 'programs' ? 'is-content-programs' : ''}`}
         key={activeTab}
       >
         {activeTab === 'overview' && (
@@ -147,43 +179,189 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
         )}
 
         {activeTab === 'programs' && (
-          <div className="is-tab-content fade-in">
-            <div className="is-programs">
-              {eventInfo.programs.map((prog, i) => (
-                <div key={i} className="is-program-card">
-                  <div className="is-prog-icon">{prog.icon}</div>
-                  <div className="is-prog-info">
-                    <h3 className="is-prog-title">{prog.title}</h3>
-                    <p className="is-prog-desc">{prog.desc}</p>
-                    <div className="is-prog-time">
-                      <span>🕐</span>
-                      <span>{prog.time}</span>
-                    </div>
-                    <div className="is-prog-venue">
-                      <span>📍</span>
-                      <span>{prog.venue}</span>
-                    </div>
-                    <div className="is-prog-highlights">
-                      {prog.highlights.map((item) => (
-                        <div key={item} className="is-prog-highlight">
-                          <span className="is-prog-bullet" aria-hidden="true" />
-                          <span>{item}</span>
+          <div className="is-tab-content is-tab-content-programs fade-in">
+            <div className="is-program-showcase">
+              <section className="is-program-board is-program-board-main">
+                <div className="is-program-board-hero">
+                  <div className="is-program-board-title">ITRC 인재양성대전 2026</div>
+                  <div className="is-program-board-decoration" aria-hidden="true">🧠</div>
+                </div>
+
+                <div className="is-program-board-frame">
+                  <div className="is-program-board-bar">주요행사</div>
+                  <div className="is-program-board-scroll">
+                    {mainExhibitionProgram ? (
+                      <section className="is-program-topic">
+                        <h3 className="is-program-topic-heading">행사일정</h3>
+                        <div className="is-program-topic-list">
+                          <div className="is-program-topic-row">
+                            <span className="is-program-topic-key">행 사 명</span>
+                            <span className="is-program-topic-value">
+                              "{eventInfo.subtitle}! {eventInfo.title}"
+                            </span>
+                          </div>
+                          <div className="is-program-topic-row">
+                            <span className="is-program-topic-key">일시/장소</span>
+                            <span className="is-program-topic-value">
+                              {mainExhibitionProgram.time} / {mainExhibitionProgram.venue}
+                            </span>
+                          </div>
+                          <div className="is-program-topic-row">
+                            <span className="is-program-topic-key">주요내용</span>
+                            <span className="is-program-topic-value">{mainExhibitionProgram.desc}</span>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                    {prog.participants?.length ? (
-                      <div className="is-prog-participants">
-                        <div className="is-prog-participants-title">참석 대상</div>
-                        <div className="is-prog-participant-list">
-                          {prog.participants.map((item) => (
-                            <span key={item} className="is-prog-participant-badge">{item}</span>
+                      </section>
+                    ) : null}
+
+                    <section className="is-program-topic">
+                      {networkingProgram ? (
+                        <div className="is-program-event-block">
+                          <div className="is-program-event-title">간담회</div>
+                          <div className="is-program-topic-list">
+                            <div className="is-program-topic-row">
+                              <span className="is-program-topic-key">일시/장소</span>
+                              <span className="is-program-topic-value">
+                                {networkingProgram.time} / {networkingProgram.venue}
+                              </span>
+                            </div>
+                            <div className="is-program-topic-row">
+                              <span className="is-program-topic-key">주요내용</span>
+                              <span className="is-program-topic-value">{networkingProgram.desc}</span>
+                            </div>
+                            {networkingProgram.participants?.length ? (
+                              <div className="is-program-topic-row">
+                                <span className="is-program-topic-key">참석대상</span>
+                                <span className="is-program-topic-value">
+                                  {networkingProgram.participants.join(', ')}
+                                </span>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {cultureProgram ? (
+                        <div className="is-program-event-block">
+                          <div className="is-program-event-title">문화행사</div>
+                          <div className="is-program-topic-list">
+                            <div className="is-program-topic-row">
+                              <span className="is-program-topic-key">일시/장소</span>
+                              <span className="is-program-topic-value">
+                                {cultureProgram.time} / {cultureProgram.venue}
+                              </span>
+                            </div>
+                            <div className="is-program-topic-row">
+                              <span className="is-program-topic-key">주요내용</span>
+                              <span className="is-program-topic-value">
+                                <span className="is-program-chip-row">
+                                  {cultureProgram.highlights.map((item) => (
+                                    <span key={item} className="is-program-event-chip">{item}</span>
+                                  ))}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+                    </section>
+
+                    <section className="is-program-topic is-program-support-topic">
+                      <div className="is-program-support-head">
+                        <h3 className="is-program-topic-heading">{supportSlides[supportSlideIndex].title}</h3>
+                        <div className="is-program-support-indicators" aria-hidden="true">
+                          {supportSlides.map((slide, index) => (
+                            <span
+                              key={slide.id}
+                              className={`is-program-support-indicator ${supportSlideIndex === index ? 'is-program-support-indicator-active' : ''}`}
+                            />
                           ))}
                         </div>
                       </div>
-                    ) : null}
+                      <div className="is-program-support-slider">
+                        <div
+                          className="is-program-support-track"
+                          style={{ transform: `translateX(-${supportSlideIndex * 100}%)` }}
+                        >
+                          {supportSlides.map((slide) => (
+                            <div key={slide.id} className="is-program-support-slide">
+                              <div className="is-program-support-card">
+                                <img
+                                  src={slide.image}
+                                  alt={slide.alt}
+                                  className="is-program-support-image"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </section>
                   </div>
                 </div>
-              ))}
+              </section>
+
+              {cultureProgram ? (
+                <section className="is-program-board is-program-board-culture">
+                  <div className="is-program-board-hero">
+                    <div className="is-program-board-title">문화행사</div>
+                    <div className="is-program-board-decoration" aria-hidden="true">🎁</div>
+                  </div>
+
+                  <div className="is-program-board-frame">
+                    <div className="is-program-board-pill">{cultureProgram.time}</div>
+                    <div className="is-program-board-scroll">
+                      <div className="is-culture-list">
+                        {cultureProgram.sections.map((section) => {
+                          const sectionVisual = cultureSectionVisuals[section.title];
+
+                          return (
+                            <section key={section.title} className="is-culture-item">
+                              <div className="is-culture-copy">
+                                <h3 className="is-culture-title">{section.title}</h3>
+                                <p className="is-culture-desc">{section.description}</p>
+                                {section.items?.length ? (
+                                  <div className="is-culture-points">
+                                    {section.items.map((item) => {
+                                      const [label, ...rest] = item.split(':');
+                                      const hasLabel = rest.length > 0;
+
+                                      return (
+                                        <div key={item} className="is-culture-point">
+                                          <span className="is-culture-point-dot" aria-hidden="true" />
+                                          <span className="is-culture-point-copy">
+                                            {hasLabel ? (
+                                              <>
+                                                <strong>{label}:</strong> {rest.join(':').trim()}
+                                              </>
+                                            ) : (
+                                              item
+                                            )}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                ) : null}
+                              </div>
+
+                              {sectionVisual ? (
+                                <div className="is-culture-visual" aria-hidden="true">
+                                  <img src={sectionVisual} alt="" className="is-culture-image" />
+                                </div>
+                              ) : null}
+                            </section>
+                          );
+                        })}
+                      </div>
+
+                      {cultureProgram.note ? (
+                        <div className="is-culture-note">{cultureProgram.note}</div>
+                      ) : null}
+                    </div>
+                  </div>
+                </section>
+              ) : null}
             </div>
           </div>
         )}
@@ -191,30 +369,6 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
         {activeTab === 'zones' && (
           <div className="is-tab-content is-tab-content-zones fade-in">
             <ExhibitionZoneMap />
-          </div>
-        )}
-
-        {activeTab === 'videos' && (
-          <div className="is-tab-content is-tab-content-video fade-in">
-            <div className="is-video-card">
-              <div className="is-video-copy">
-                <div className="is-video-copy-text">
-                  <h2 className="is-video-title">{LAST_EVENT_VIDEO.title}</h2>
-                  <p className="is-video-desc">{LAST_EVENT_VIDEO.description}</p>
-                </div>
-              </div>
-
-              <div className="is-video-frame-wrap">
-                <iframe
-                  className="is-video-frame"
-                  src={LAST_EVENT_VIDEO.embedUrl}
-                  title={LAST_EVENT_VIDEO.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                />
-              </div>
-            </div>
           </div>
         )}
 

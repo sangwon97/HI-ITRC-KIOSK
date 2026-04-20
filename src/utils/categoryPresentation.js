@@ -6,6 +6,10 @@ function normalizeHexColor(color) {
   return color;
 }
 
+function isSpecialExhibitionColor(color) {
+  return normalizeHexColor(color).toLowerCase() === '#8d96a0';
+}
+
 export function isWhiteCategoryColor(color) {
   return normalizeHexColor(color).toLowerCase() === '#ffffff';
 }
@@ -13,7 +17,8 @@ export function isWhiteCategoryColor(color) {
 export function getCategoryPresentation(color) {
   const normalizedColor = normalizeHexColor(color);
   const whiteCategory = isWhiteCategoryColor(normalizedColor);
-  const accentColor = whiteCategory ? '#0c1a2e' : normalizedColor;
+  const specialExhibitionCategory = isSpecialExhibitionColor(normalizedColor);
+  const accentColor = whiteCategory || specialExhibitionCategory ? '#0c1a2e' : normalizedColor;
 
   return {
     color: normalizedColor,

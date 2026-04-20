@@ -1,13 +1,11 @@
 import { categories } from '../../../data/booths';
 import backIcon from '../../../assets/icons/back.svg';
-import knowledgeSciencePosterImage from '../../../assets/temp_S1B1P1.webp';
 import './styles.css';
 
 export default function PosterDetail({ data, goBack, goHome, embedded = false }) {
   if (!data) return null;
   const { poster, booth, categoryId } = data;
   const category = categories.find((item) => item.id === (categoryId ?? booth?.category));
-  const posterImageSrc = poster?.id === 'S1B1P1' ? knowledgeSciencePosterImage : poster.image;
 
   return (
     <div className={`poster-detail ${embedded ? 'poster-detail-embedded' : 'screen-enter'}`}>
@@ -46,7 +44,7 @@ export default function PosterDetail({ data, goBack, goHome, embedded = false })
         <div className="pd-image-area">
           <div className="pd-image-wrap">
             <img
-              src={posterImageSrc}
+              src={poster.image}
               alt={poster.title}
               className="pd-image"
               onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
@@ -67,15 +65,6 @@ export default function PosterDetail({ data, goBack, goHome, embedded = false })
 
           {/* 제목 */}
           <h1 className="pd-title">{poster.title}</h1>
-
-          {/* 대학명 */}
-          {booth?.univ && (
-            <div className="pd-univ">
-              <span>🎓</span>
-              <span>{booth.univ}</span>
-            </div>
-          )}
-
           <div className="pd-divider" />
 
           {/* 설명 */}

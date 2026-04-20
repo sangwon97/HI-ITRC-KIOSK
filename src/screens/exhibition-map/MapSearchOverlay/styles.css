@@ -60,14 +60,6 @@
   border-color: #79a8ca;
 }
 
-.mso-input-icon {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-  opacity: 0.5;
-  flex-shrink: 0;
-}
-
 .mso-input-text {
   flex: 1;
   font-size: 1rem;
@@ -149,14 +141,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
   padding: 40px 32px;
   color: #7a98b8;
   text-align: center;
-}
-
-.mso-empty span {
-  font-size: 2.8rem;
 }
 
 .mso-empty p {
