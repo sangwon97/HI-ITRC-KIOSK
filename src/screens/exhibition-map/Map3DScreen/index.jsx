@@ -11,6 +11,7 @@ import {
   getCurrentKioskRouteStart,
   loadKioskInfoPositions,
 } from '../../../data/kioskInfoPositionCsv';
+import labLogo from '../../../assets/Hi.png';
 import { loadNavmeshGrid } from '../../../data/navmeshGrid';
 import MapScene from '../../../three/MapScene';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
@@ -657,10 +658,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
         </nav>
 
         <div className="map3d-sidebar-credits">
-          <div className="map3d-sidebar-credits-title">Platform Credits</div>
-          <div className="map3d-sidebar-credits-text">김진술 교수님</div>
-          <div className="map3d-sidebar-credits-text">플랫폼 개발 오상원 · 이예원</div>
-          <div className="map3d-sidebar-credits-text">3D 모델링 정광무</div>
+          <img src={labLogo}className="map3d-sidebar-credits-logo" />
+          <div className="map3d-sidebar-credits-text">김진술 · 오상원 · 이예원 · 정광무</div>
+          <div className="map3d-sidebar-credits-text">전남대학교 초지능네트워크미디어플랫폼 연구실</div>
+          
         </div>
 
       </aside>

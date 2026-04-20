@@ -92,6 +92,13 @@
   text-align: justify;
 }
 
+.map3d-sidebar-credits-logo{
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.12;
+}
+
 /* 구분선 */
 .map3d-sidebar-divider {
   height: 1px;
