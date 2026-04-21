@@ -136,7 +136,7 @@ export default function MapSearchOverlay({ onClose, onSelect }) {
 
             {!isShowingResults ? (
               <div className="mso-empty">
-                <p>센터명 또는 대학명으로<br />부스를 검색하면 3D 지도에서<br />길찾기로 안내합니다.</p>
+                <p>초성 검색으로 원하는 연구센터·대학교<br /> 부스를 빠르게 찾아볼 수 있습니다.</p>
               </div>
             ) : results.length === 0 ? (
               <div className="mso-empty">

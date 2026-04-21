@@ -7,13 +7,12 @@ import searchIcon from '../../../assets/icons/keyboard_keys.svg';
 import { categories, CATEGORY_MAP } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
 import {
-  CURRENT_KIOSK_INFO_ID,
   getCurrentKioskRouteStart,
   loadKioskInfoPositions,
+  resolveCurrentKioskInfoId,
 } from '../../../data/kioskInfoPositionCsv';
 import labLogo from '../../../assets/Hi.png';
 import { loadNavmeshGrid } from '../../../data/navmeshGrid';
-import MapScene from '../../../three/MapScene';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
 import { computeBoothPath } from '../../../utils/mapPath';
@@ -26,6 +25,7 @@ const CenterInfo = lazy(() => import('../../booth-guide/CenterInfo'));
 const PosterDetail = lazy(() => import('../../booth-guide/PosterDetail'));
 const SearchScreen = lazy(() => import('../../booth-search/SearchScreen'));
 const InfoScreen = lazy(() => import('../../event-info/InfoScreen'));
+const MapScene = lazy(() => import('../../../three/MapScene'));
 
 const CAT_HEX = Object.fromEntries(categories.map((category) => [category.id, category.color]));
 const NOOP = () => {};
@@ -214,7 +214,23 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const [infoMenuOpen, setInfoMenuOpen] = useState(false);
   const [pendingMapIntro, setPendingMapIntro] = useState(false);
   const [isMapSceneReady, setIsMapSceneReady] = useState(false);
-  const showBoothLabels = true;
+  const [showBoothLabels, setShowBoothLabels] = useState(true);
+  const [currentKioskInfoId, setCurrentKioskInfoId] = useState(() => resolveCurrentKioskInfoId());
+
+  useEffect(() => {
+    const syncCurrentKiosk = () => {
+      setCurrentKioskInfoId(resolveCurrentKioskInfoId());
+    };
+
+    syncCurrentKiosk();
+    window.addEventListener('popstate', syncCurrentKiosk);
+    window.addEventListener('hashchange', syncCurrentKiosk);
+
+    return () => {
+      window.removeEventListener('popstate', syncCurrentKiosk);
+      window.removeEventListener('hashchange', syncCurrentKiosk);
+    };
+  }, []);
 
   useEffect(() => {
     let disposed = false;
@@ -280,8 +296,8 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const activeNavScreen = getActiveNavScreen(activePanel);
   const activeInfoTab = activePanel === 'info' ? (data?.tab ?? 'overview') : null;
   const currentRouteStart = useMemo(
-    () => getCurrentKioskRouteStart(kioskInfoPositions, CURRENT_KIOSK_INFO_ID),
-    [kioskInfoPositions],
+    () => getCurrentKioskRouteStart(kioskInfoPositions, currentKioskInfoId),
+    [currentKioskInfoId, kioskInfoPositions],
   );
   const pathPoints = useMemo(() => {
     if (!selected) {
@@ -407,8 +423,9 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
           <Canvas
             style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
             camera={{ position: DEFAULT_MAP_CAMERA.position, fov: 38, near: 0.5, far: 400 }}
-            gl={{ antialias: false, powerPreference: 'high-performance' }}
-            dpr={[1, 1.5]}
+            gl={{ alpha: false, antialias: false, powerPreference: 'high-performance', stencil: false }}
+            dpr={[1, 1.25]}
+            performance={{ min: 0.85 }}
             frameloop="always"
             onCreated={({ gl }) => {
               gl.setClearColor(new THREE.Color(0xdadada));
@@ -428,7 +445,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 resetSignal={resetSignal}
                 showBoothLabels={showBoothLabels}
                 kioskInfoPositions={kioskInfoPositions}
-                currentKioskId={CURRENT_KIOSK_INFO_ID}
+                currentKioskId={currentKioskInfoId}
                 routeStartPoint={currentRouteStart}
                 onSceneReady={handleSceneReady}
               />
@@ -440,9 +457,21 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
           </div>
 
           <div className="map3d-map-controls">
-            <button className="map3d-map-search-btn" onClick={() => setShowMapSearch(true)}>
+            <button
+              type="button"
+              className={`map3d-map-control-btn map3d-label-toggle-btn ${showBoothLabels ? 'map3d-label-toggle-btn-active' : ''}`}
+              onClick={() => setShowBoothLabels((current) => !current)}
+              aria-label={`센터명 표시 ${showBoothLabels ? '끄기' : '켜기'}`}
+              aria-pressed={showBoothLabels}
+            >
+              <span className="map3d-label-toggle-text">센터명</span>
+              <span className="map3d-label-toggle-switch" aria-hidden="true">
+                <span className="map3d-label-toggle-thumb" />
+              </span>
+            </button>
+            <button type="button" className="map3d-map-control-btn map3d-map-search-btn" onClick={() => setShowMapSearch(true)}>
               <img src={searchIcon} alt="" className="map3d-map-search-btn-icon" color='#2e6f9f'/>
-              검색
+              <span>검색</span>
             </button>
           </div>
 
@@ -480,7 +509,6 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
               </div>
               <h3 className="map3d-panel-name">{selected.name}</h3>
               <div className="map3d-panel-univ">
-                <span>🎓</span>
                 <span>{selected.univ}</span>
               </div>
               <button className="map3d-panel-btn" onClick={handleNavigate}>
@@ -659,7 +687,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
         <div className="map3d-sidebar-credits">
           <img src={labLogo}className="map3d-sidebar-credits-logo" />
-          <div className="map3d-sidebar-credits-text">김진술 · 오상원 · 이예원 · 정광무</div>
+          <div className="map3d-sidebar-credits-text">김진술·오상원·이예원·정광무</div>
           <div className="map3d-sidebar-credits-text">전남대학교 초지능네트워크미디어플랫폼 연구실</div>
           
         </div>

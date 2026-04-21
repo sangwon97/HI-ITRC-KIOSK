@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { eventInfo } from '../../../data/eventInfo';
-import luckyDrawImage from '../../../assets/174124_71433250.png';
+import luckyDrawImage from '../../../assets/174124_71433250.webp';
 import stickerPhotoImage from '../../../assets/1767_71433250.png';
 import sponsorsImage from '../../../assets/program-partners/program-sponsors.png';
 import academiesImage from '../../../assets/program-partners/program-academies.png';
-import ExhibitionZoneMap from '../ExhibitionZoneMap';
+import ZoneLoadingOverlay from '../ZoneLoadingOverlay';
 import './styles.css';
+
+const ExhibitionZoneMap = lazy(() => import('../ExhibitionZoneMap'));
 
 const TABS = [
   { id: 'overview', label: '행사 개요' },
@@ -290,6 +292,7 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
                                   src={slide.image}
                                   alt={slide.alt}
                                   className="is-program-support-image"
+                                  draggable={false}
                                 />
                               </div>
                             </div>
@@ -347,7 +350,7 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
 
                               {sectionVisual ? (
                                 <div className="is-culture-visual" aria-hidden="true">
-                                  <img src={sectionVisual} alt="" className="is-culture-image" />
+                                  <img src={sectionVisual} alt="" className="is-culture-image" draggable={false} />
                                 </div>
                               ) : null}
                             </section>
@@ -367,9 +370,17 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
         )}
 
         {activeTab === 'zones' && (
-          <div className="is-tab-content is-tab-content-zones fade-in">
-            <ExhibitionZoneMap />
-          </div>
+          <Suspense
+            fallback={(
+              <div className="is-tab-content is-tab-content-zones fade-in">
+                <ZoneLoadingOverlay />
+              </div>
+            )}
+          >
+            <div className="is-tab-content is-tab-content-zones fade-in">
+              <ExhibitionZoneMap />
+            </div>
+          </Suspense>
         )}
 
       </div>

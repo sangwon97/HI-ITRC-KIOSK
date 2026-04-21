@@ -102,6 +102,7 @@
 }
 
 .is-tab-content-zones {
+  position: relative;
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -597,7 +598,8 @@
   height: auto;
   object-fit: contain;
   border-radius: 16px;
-    user-select: none;
+  pointer-events: none;
+  user-select: none;
   -webkit-user-drag: none;
 }
 
@@ -730,6 +732,7 @@
   max-width: 100%;
   max-height: 172px;
   object-fit: contain;
+  pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -1064,8 +1067,8 @@
 .is-zone-category-panel {
   display: flex;
   flex-direction: column;
-  width: 248px;
-  min-width: 248px;
+  width: var(--zone-sidebar-width);
+  min-width: var(--zone-sidebar-width);
   padding: 10px 0 0;
   flex-shrink: 0;
   align-self: stretch;

@@ -5,6 +5,7 @@ export const KIOSK_DISPLAY_MODEL_PATHS = [
   '/models/Kiosk_Booths.glb',
   '/models/Kiosk_Building.glb',
   '/models/Kiosk_Building_Imgs.glb',
+  '/models/Kiosk_Proceeding_PhotoZone.glb',
   '/models/Kiosk_People.glb',
   '/models/Kiosk_SpecialBooths_Imgs.glb',
   '/models/Kiosk_SpecialBooths.glb',

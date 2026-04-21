@@ -35,6 +35,9 @@ export default function App() {
   useEffect(() => {
     let startX = 0;
     let startY = 0;
+    let lastTouchEndAt = 0;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
     const onTouchStart = (e) => {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
@@ -46,11 +49,32 @@ export default function App() {
         e.preventDefault();
       }
     };
+    const onTouchEnd = (e) => {
+      if (e.changedTouches.length !== 1) {
+        return;
+      }
+
+      const touch = e.changedTouches[0];
+      const now = Date.now();
+      const isRapidDoubleTap = now - lastTouchEndAt < 320;
+      const isNearbyTap = Math.abs(touch.clientX - lastTouchX) < 24
+        && Math.abs(touch.clientY - lastTouchY) < 24;
+
+      if (isRapidDoubleTap && isNearbyTap) {
+        e.preventDefault();
+      }
+
+      lastTouchEndAt = now;
+      lastTouchX = touch.clientX;
+      lastTouchY = touch.clientY;
+    };
     document.addEventListener('touchstart', onTouchStart, { passive: true });
     document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd, { passive: false });
     return () => {
       document.removeEventListener('touchstart', onTouchStart);
       document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
     };
   }, []);
 
@@ -96,7 +120,7 @@ export default function App() {
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: 'var(--bg-deep)' }}>
       {screen === 'idle'         && <IdleScreen onStart={startKiosk} />}
       {MAP_PANEL_SCREENS.has(screen) && (
-        <Suspense fallback={<div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-muted)',fontSize:'1rem'}}>전시장 로딩 중...</div>}>
+        <Suspense fallback={null}>
           <Map3DScreen
             {...screenProps}
             activePanel={screen === 'home' ? null : screen}

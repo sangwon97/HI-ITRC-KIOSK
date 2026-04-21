@@ -182,18 +182,6 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
             </section>
           )}
 
-          {posters === null && (
-            <section className="bd-section">
-              <h2 className="bd-section-title">
-                <span>📌</span>
-                <span>연구 포스터</span>
-              </h2>
-              <div className="bd-center-intro">
-                <p className="bd-center-text">연구 포스터 정보를 불러오고 있습니다.</p>
-              </div>
-            </section>
-          )}
-
           {/* 연구센터 소개 섹션 */}
           {center && (
             <section className="bd-section">
@@ -215,18 +203,6 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
                   <span>자세히 보기</span>
                   <span>→</span>
                 </button>
-              </div>
-            </section>
-          )}
-
-          {center === undefined && (
-            <section className="bd-section">
-              <h2 className="bd-section-title">
-                <span>🏫</span>
-                <span>연구센터 소개</span>
-              </h2>
-              <div className="bd-center-intro">
-                <p className="bd-center-text">연구센터 소개 정보를 불러오고 있습니다.</p>
               </div>
             </section>
           )}

@@ -19,6 +19,7 @@ import {
   KIOSK_DISPLAY_MODEL_PATHS,
 } from './kioskDisplayModels';
 
+const EVENT_BOOTHS_CARPET_MODEL_PATH = '/models/Kiosk_EventBooths_Carpet.glb';
 const BOOTH_LOOKUP = new Map(booths.map((booth) => [booth.id, booth]));
 const CATEGORY_LOOKUP = new Map(categories.map((category) => [category.id, category]));
 const EXR_ENV_URL = `${import.meta.env.BASE_URL}textures_background.exr`;
@@ -152,7 +153,14 @@ function buildIntroCameraPosition() {
 
 function KioskMapModel() {
   const gltfResult = useGLTF(KIOSK_DISPLAY_MODEL_PATHS);
-  const scenes = useMemo(() => getScenesFromGltfResult(gltfResult), [gltfResult]);
+  const carpetGltfResult = useGLTF(EVENT_BOOTHS_CARPET_MODEL_PATH);
+  const scenes = useMemo(
+    () => [
+      ...getScenesFromGltfResult(gltfResult),
+      ...getScenesFromGltfResult(carpetGltfResult),
+    ],
+    [carpetGltfResult, gltfResult],
+  );
   const models = useMemo(() => scenes.map((scene) => {
     const cachedModel = MAP_MODEL_CACHE.get(scene);
     if (cachedModel) {
@@ -531,16 +539,16 @@ function OccludedBoothNameLabels({ boothPositions, visible = true }) {
       {labels.map((label) => (
         <Html
           key={label.id}
-          position={[label.x, 2.4, label.z]}
+          position={[label.x, 3.45, label.z]}
           center
-          distanceFactor={10}
+          distanceFactor={9.2}
           sprite
           transform
           occlude
           zIndexRange={[4, 0]}
           style={{ pointerEvents: 'none' }}
         >
-          <div className="map3d-booth-name-label">{label.title}</div>
+          <div className="map3d-booth-name-label" style={{ maxWidth: '250px', fontSize: '26px' }}>{label.title}</div>
         </Html>
       ))}
     </group>
@@ -1004,6 +1012,7 @@ function SceneReadyNotifier({ onReady }) {
     }
 
     let cancelled = false;
+    let warmupHandle = 0;
     let firstFrameId = 0;
     let secondFrameId = 0;
     let thirdFrameId = 0;
@@ -1018,22 +1027,35 @@ function SceneReadyNotifier({ onReady }) {
       } catch {
         // Rendering warmup is best-effort only.
       }
-
-      firstFrameId = window.requestAnimationFrame(() => {
-        secondFrameId = window.requestAnimationFrame(() => {
-          thirdFrameId = window.requestAnimationFrame(() => {
-            if (!cancelled) {
-              onReady();
-            }
-          });
-        });
-      });
     };
 
-    prepareScene();
+    firstFrameId = window.requestAnimationFrame(() => {
+      secondFrameId = window.requestAnimationFrame(() => {
+        thirdFrameId = window.requestAnimationFrame(() => {
+          if (!cancelled) {
+            onReady();
+          }
+        });
+      });
+    });
+
+    if (typeof window.requestIdleCallback === 'function') {
+      warmupHandle = window.requestIdleCallback(() => {
+        prepareScene();
+      }, { timeout: 1200 });
+    } else {
+      warmupHandle = window.setTimeout(() => {
+        prepareScene();
+      }, 0);
+    }
 
     return () => {
       cancelled = true;
+      if (typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(warmupHandle);
+      } else {
+        window.clearTimeout(warmupHandle);
+      }
       window.cancelAnimationFrame(firstFrameId);
       window.cancelAnimationFrame(secondFrameId);
       window.cancelAnimationFrame(thirdFrameId);
@@ -1148,4 +1170,5 @@ export default function MapScene({
 KIOSK_DISPLAY_MODEL_PATHS.forEach((path) => {
   useGLTF.preload(path);
 });
+useGLTF.preload(EVENT_BOOTHS_CARPET_MODEL_PATH);
 useGLTF.preload('/models/KioskBoothArea.glb');

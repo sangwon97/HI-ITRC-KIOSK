@@ -76,7 +76,7 @@ export default function SearchScreen({ navigate, goBack, goHome, embedded = fals
           <div className="ss-results-area">
             {!hasSearched ? (
               <div className="ss-empty">
-                <p>연구센터명 또는 대학명으로<br />부스를 검색할 수 있습니다.</p>
+                <p>초성 검색으로 원하는 연구센터·대학교 부스를 빠르게 찾아볼 수 있습니다.</p>
               </div>
             ) : results.length === 0 ? (
               <div className="ss-empty">
