@@ -15,6 +15,7 @@ import {
 const BOOTH_NAME_RE = /^Floor_((?:S\d+B\d+)|(?:Special\d+))$/i;
 const CATEGORY_ALL_ID = 'all';
 const MAP_ROTATION_Y = Math.PI * 0.5;
+const EVENT_BOOTHS_CARPET_MODEL_PATH = '/models/Kiosk_EventBooths_Carpet.glb';
 const CATEGORY_COLOR_BY_ID = new Map(categories.map((category) => [category.id, category.color]));
 const SPECIAL_EXHIBITION_COLOR = '#8d96a0';
 
@@ -179,13 +180,20 @@ function TopDownMapCamera({ bounds }) {
 
 function FlatMapModel({ cameraBounds }) {
   const gltfResult = useGLTF(KIOSK_DISPLAY_MODEL_PATHS);
+  const carpetGltfResult = useGLTF(EVENT_BOOTHS_CARPET_MODEL_PATH);
 
-  const models = useMemo(() => getScenesFromGltfResult(gltfResult).map((scene) => (
-    cloneSceneForDisplay(scene, {
-      cloneMaterials: true,
-      raycast: () => null,
-    })
-  )), [gltfResult]);
+  const models = useMemo(
+    () => [
+      ...getScenesFromGltfResult(gltfResult),
+      ...getScenesFromGltfResult(carpetGltfResult),
+    ].map((scene) => (
+      cloneSceneForDisplay(scene, {
+        cloneMaterials: true,
+        raycast: () => null,
+      })
+    )),
+    [carpetGltfResult, gltfResult],
+  );
 
   return (
     <>
@@ -572,4 +580,5 @@ export default function ExhibitionZoneMap() {
 KIOSK_DISPLAY_MODEL_PATHS.forEach((path) => {
   useGLTF.preload(path);
 });
+useGLTF.preload(EVENT_BOOTHS_CARPET_MODEL_PATH);
 useGLTF.preload('/models/KioskBoothArea.glb');

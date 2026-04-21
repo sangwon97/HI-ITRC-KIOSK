@@ -19,6 +19,7 @@ import {
   KIOSK_DISPLAY_MODEL_PATHS,
 } from './kioskDisplayModels';
 
+const EVENT_BOOTHS_CARPET_MODEL_PATH = '/models/Kiosk_EventBooths_Carpet.glb';
 const BOOTH_LOOKUP = new Map(booths.map((booth) => [booth.id, booth]));
 const CATEGORY_LOOKUP = new Map(categories.map((category) => [category.id, category]));
 const EXR_ENV_URL = `${import.meta.env.BASE_URL}textures_background.exr`;
@@ -152,7 +153,14 @@ function buildIntroCameraPosition() {
 
 function KioskMapModel() {
   const gltfResult = useGLTF(KIOSK_DISPLAY_MODEL_PATHS);
-  const scenes = useMemo(() => getScenesFromGltfResult(gltfResult), [gltfResult]);
+  const carpetGltfResult = useGLTF(EVENT_BOOTHS_CARPET_MODEL_PATH);
+  const scenes = useMemo(
+    () => [
+      ...getScenesFromGltfResult(gltfResult),
+      ...getScenesFromGltfResult(carpetGltfResult),
+    ],
+    [carpetGltfResult, gltfResult],
+  );
   const models = useMemo(() => scenes.map((scene) => {
     const cachedModel = MAP_MODEL_CACHE.get(scene);
     if (cachedModel) {
@@ -1148,4 +1156,5 @@ export default function MapScene({
 KIOSK_DISPLAY_MODEL_PATHS.forEach((path) => {
   useGLTF.preload(path);
 });
+useGLTF.preload(EVENT_BOOTHS_CARPET_MODEL_PATH);
 useGLTF.preload('/models/KioskBoothArea.glb');
