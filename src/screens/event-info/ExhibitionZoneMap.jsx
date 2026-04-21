@@ -11,6 +11,7 @@ import {
   getScenesFromGltfResult,
   KIOSK_DISPLAY_MODEL_PATHS,
 } from '../../three/kioskDisplayModels';
+import ZoneLoadingOverlay from './ZoneLoadingOverlay';
 
 const BOOTH_NAME_RE = /^Floor_((?:S\d+B\d+)|(?:Special\d+))$/i;
 const CATEGORY_ALL_ID = 'all';
@@ -18,20 +19,6 @@ const MAP_ROTATION_Y = Math.PI * 0.5;
 const EVENT_BOOTHS_CARPET_MODEL_PATH = '/models/Kiosk_EventBooths_Carpet.glb';
 const CATEGORY_COLOR_BY_ID = new Map(categories.map((category) => [category.id, category.color]));
 const SPECIAL_EXHIBITION_COLOR = '#8d96a0';
-
-export function ZoneLoadingOverlay() {
-  return (
-    <div className="is-zone-loading-overlay" aria-live="polite" aria-busy="true">
-      <div className="is-zone-loading-card" aria-hidden="true">
-        <div className="is-zone-loading-dots" aria-hidden="true">
-          <span className="is-zone-loading-dot" />
-          <span className="is-zone-loading-dot" />
-          <span className="is-zone-loading-dot" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function preloadImageSource(src) {
   if (!src) {
@@ -687,7 +674,7 @@ export default function ExhibitionZoneMap() {
           {isZoneLoading ? <ZoneLoadingOverlay /> : null}
           <div className="is-zone-map-hint">로고를 클릭하면 센터명을 볼 수 있어요</div>
           <ActiveMarkerCard marker={activeMarker} onClose={() => handleSelectMarker(null)} />
-          <Canvas orthographic dpr={[1, 1.5]} className="is-zone-map-canvas" gl={{ alpha: true }}>
+          <Canvas orthographic dpr={[1, 1.2]} className="is-zone-map-canvas" gl={{ alpha: true, antialias: false, stencil: false }}>
             <Suspense fallback={<Html fullscreen><ZoneLoadingOverlay /></Html>}>
               <ambientLight intensity={1.25} />
               <directionalLight position={[30, 80, 20]} intensity={1.35} />
@@ -706,9 +693,3 @@ export default function ExhibitionZoneMap() {
     </div>
   );
 }
-
-KIOSK_DISPLAY_MODEL_PATHS.forEach((path) => {
-  useGLTF.preload(path);
-});
-useGLTF.preload(EVENT_BOOTHS_CARPET_MODEL_PATH);
-useGLTF.preload('/models/KioskBoothArea.glb');

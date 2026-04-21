@@ -68,15 +68,17 @@
   --transition-slow: 400ms ease;
 
   /* 레이아웃 */
-  --header-height: clamp(64px, 7.5vh, 88px);
-  --nav-bar-height: 100px;
+  --header-height: clamp(72px, 7.4vh, 104px);
+  --nav-bar-height: clamp(84px, 9vh, 112px);
   --touch-target: clamp(56px, 6.5vh, 80px);
-  --section-bar-height: 60px;
+  --section-bar-height: clamp(56px, 6vh, 72px);
+  --sidebar-width: clamp(260px, 18vw, 340px);
+  --zone-sidebar-width: clamp(220px, 15vw, 280px);
 
   /* 16:9 와이드스크린 콘텐츠 폭 제한 */
-  --content-max: 1360px;
-  --content-max-narrow: 880px;
-  --side-pad: 50px;
+  --content-max: min(1360px, calc(100vw - clamp(32px, 4vw, 88px)));
+  --content-max-narrow: min(880px, calc(100vw - clamp(32px, 4vw, 88px)));
+  --side-pad: clamp(20px, 3vw, 50px);
 }
 
 /* 리셋 & 기본 */
@@ -89,6 +91,7 @@
 html, body {
   width: 100%;
   height: 100%;
+  font-size: clamp(15px, 0.18vw + 14.2px, 17px);
   overflow: hidden;
   touch-action: manipulation;
   user-select: none;

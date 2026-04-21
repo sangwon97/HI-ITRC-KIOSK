@@ -1067,8 +1067,8 @@
 .is-zone-category-panel {
   display: flex;
   flex-direction: column;
-  width: 248px;
-  min-width: 248px;
+  width: var(--zone-sidebar-width);
+  min-width: var(--zone-sidebar-width);
   padding: 10px 0 0;
   flex-shrink: 0;
   align-self: stretch;

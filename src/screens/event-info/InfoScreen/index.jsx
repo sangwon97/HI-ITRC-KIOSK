@@ -1,11 +1,13 @@
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { eventInfo } from '../../../data/eventInfo';
-import luckyDrawImage from '../../../assets/174124_71433250.png';
+import luckyDrawImage from '../../../assets/174124_71433250.webp';
 import stickerPhotoImage from '../../../assets/1767_71433250.png';
 import sponsorsImage from '../../../assets/program-partners/program-sponsors.png';
 import academiesImage from '../../../assets/program-partners/program-academies.png';
-import ExhibitionZoneMap, { ZoneLoadingOverlay } from '../ExhibitionZoneMap';
+import ZoneLoadingOverlay from '../ZoneLoadingOverlay';
 import './styles.css';
+
+const ExhibitionZoneMap = lazy(() => import('../ExhibitionZoneMap'));
 
 const TABS = [
   { id: 'overview', label: '행사 개요' },

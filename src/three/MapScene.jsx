@@ -539,16 +539,16 @@ function OccludedBoothNameLabels({ boothPositions, visible = true }) {
       {labels.map((label) => (
         <Html
           key={label.id}
-          position={[label.x, 2.4, label.z]}
+          position={[label.x, 3.45, label.z]}
           center
-          distanceFactor={10}
+          distanceFactor={9.2}
           sprite
           transform
           occlude
           zIndexRange={[4, 0]}
           style={{ pointerEvents: 'none' }}
         >
-          <div className="map3d-booth-name-label">{label.title}</div>
+          <div className="map3d-booth-name-label" style={{ maxWidth: '250px', fontSize: '26px' }}>{label.title}</div>
         </Html>
       ))}
     </group>
@@ -1012,6 +1012,7 @@ function SceneReadyNotifier({ onReady }) {
     }
 
     let cancelled = false;
+    let warmupHandle = 0;
     let firstFrameId = 0;
     let secondFrameId = 0;
     let thirdFrameId = 0;
@@ -1026,22 +1027,35 @@ function SceneReadyNotifier({ onReady }) {
       } catch {
         // Rendering warmup is best-effort only.
       }
-
-      firstFrameId = window.requestAnimationFrame(() => {
-        secondFrameId = window.requestAnimationFrame(() => {
-          thirdFrameId = window.requestAnimationFrame(() => {
-            if (!cancelled) {
-              onReady();
-            }
-          });
-        });
-      });
     };
 
-    prepareScene();
+    firstFrameId = window.requestAnimationFrame(() => {
+      secondFrameId = window.requestAnimationFrame(() => {
+        thirdFrameId = window.requestAnimationFrame(() => {
+          if (!cancelled) {
+            onReady();
+          }
+        });
+      });
+    });
+
+    if (typeof window.requestIdleCallback === 'function') {
+      warmupHandle = window.requestIdleCallback(() => {
+        prepareScene();
+      }, { timeout: 1200 });
+    } else {
+      warmupHandle = window.setTimeout(() => {
+        prepareScene();
+      }, 0);
+    }
 
     return () => {
       cancelled = true;
+      if (typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(warmupHandle);
+      } else {
+        window.clearTimeout(warmupHandle);
+      }
       window.cancelAnimationFrame(firstFrameId);
       window.cancelAnimationFrame(secondFrameId);
       window.cancelAnimationFrame(thirdFrameId);
