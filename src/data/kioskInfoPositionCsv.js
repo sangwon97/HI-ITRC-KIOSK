@@ -1,7 +1,25 @@
 let kioskInfoPositionsPromise = null;
 
 export const CURRENT_KIOSK_INFO_ID = 'Kiosk1';
+export const KIOSK_INFO_IDS = ['Kiosk1', 'Kiosk2'];
 const KIOSK_INFO_POSITIONS_URL = '/data/booths/Kiosk_Info_Pos.csv';
+
+function normalizeKioskId(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (normalized === 'kiosk1' || normalized === '1') {
+    return 'Kiosk1';
+  }
+
+  if (normalized === 'kiosk2' || normalized === '2') {
+    return 'Kiosk2';
+  }
+
+  return null;
+}
 
 function parseKioskInfoPositionsCsv(text) {
   const lines = text
@@ -52,6 +70,47 @@ export async function loadKioskInfoPositions() {
   }
 
   return kioskInfoPositionsPromise;
+}
+
+export function resolveCurrentKioskInfoId(locationLike = null) {
+  const fallback = CURRENT_KIOSK_INFO_ID;
+
+  const targetLocation = locationLike
+    ?? (typeof window !== 'undefined' ? window.location : null);
+
+  if (!targetLocation) {
+    return fallback;
+  }
+
+  const searchParams = new URLSearchParams(targetLocation.search ?? '');
+  const searchCandidates = [
+    searchParams.get('kiosk'),
+    searchParams.get('kioskId'),
+    searchParams.get('kiosk_id'),
+    searchParams.get('currentKiosk'),
+    searchParams.get('current_kiosk'),
+  ];
+
+  for (const candidate of searchCandidates) {
+    const resolved = normalizeKioskId(candidate);
+    if (resolved) {
+      return resolved;
+    }
+  }
+
+  const pathCandidates = [
+    ...(targetLocation.pathname ?? '').split('/'),
+    ...(targetLocation.hash ?? '').split(/[/?#&=]/),
+  ];
+
+  for (const candidate of pathCandidates) {
+    const resolved = normalizeKioskId(candidate);
+    if (resolved) {
+      return resolved;
+    }
+  }
+
+  return fallback;
 }
 
 export function getCurrentKioskRouteStart(kioskInfoPositions, kioskId = CURRENT_KIOSK_INFO_ID) {

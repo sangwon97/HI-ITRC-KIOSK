@@ -7,9 +7,9 @@ import searchIcon from '../../../assets/icons/keyboard_keys.svg';
 import { categories, CATEGORY_MAP } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
 import {
-  CURRENT_KIOSK_INFO_ID,
   getCurrentKioskRouteStart,
   loadKioskInfoPositions,
+  resolveCurrentKioskInfoId,
 } from '../../../data/kioskInfoPositionCsv';
 import labLogo from '../../../assets/Hi.png';
 import { loadNavmeshGrid } from '../../../data/navmeshGrid';
@@ -215,6 +215,22 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const [pendingMapIntro, setPendingMapIntro] = useState(false);
   const [isMapSceneReady, setIsMapSceneReady] = useState(false);
   const showBoothLabels = true;
+  const [currentKioskInfoId, setCurrentKioskInfoId] = useState(() => resolveCurrentKioskInfoId());
+
+  useEffect(() => {
+    const syncCurrentKiosk = () => {
+      setCurrentKioskInfoId(resolveCurrentKioskInfoId());
+    };
+
+    syncCurrentKiosk();
+    window.addEventListener('popstate', syncCurrentKiosk);
+    window.addEventListener('hashchange', syncCurrentKiosk);
+
+    return () => {
+      window.removeEventListener('popstate', syncCurrentKiosk);
+      window.removeEventListener('hashchange', syncCurrentKiosk);
+    };
+  }, []);
 
   useEffect(() => {
     let disposed = false;
@@ -280,8 +296,8 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const activeNavScreen = getActiveNavScreen(activePanel);
   const activeInfoTab = activePanel === 'info' ? (data?.tab ?? 'overview') : null;
   const currentRouteStart = useMemo(
-    () => getCurrentKioskRouteStart(kioskInfoPositions, CURRENT_KIOSK_INFO_ID),
-    [kioskInfoPositions],
+    () => getCurrentKioskRouteStart(kioskInfoPositions, currentKioskInfoId),
+    [currentKioskInfoId, kioskInfoPositions],
   );
   const pathPoints = useMemo(() => {
     if (!selected) {
@@ -428,7 +444,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 resetSignal={resetSignal}
                 showBoothLabels={showBoothLabels}
                 kioskInfoPositions={kioskInfoPositions}
-                currentKioskId={CURRENT_KIOSK_INFO_ID}
+                currentKioskId={currentKioskInfoId}
                 routeStartPoint={currentRouteStart}
                 onSceneReady={handleSceneReady}
               />
