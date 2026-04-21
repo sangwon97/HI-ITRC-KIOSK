@@ -35,6 +35,9 @@ export default function App() {
   useEffect(() => {
     let startX = 0;
     let startY = 0;
+    let lastTouchEndAt = 0;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
     const onTouchStart = (e) => {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
@@ -46,11 +49,32 @@ export default function App() {
         e.preventDefault();
       }
     };
+    const onTouchEnd = (e) => {
+      if (e.changedTouches.length !== 1) {
+        return;
+      }
+
+      const touch = e.changedTouches[0];
+      const now = Date.now();
+      const isRapidDoubleTap = now - lastTouchEndAt < 320;
+      const isNearbyTap = Math.abs(touch.clientX - lastTouchX) < 24
+        && Math.abs(touch.clientY - lastTouchY) < 24;
+
+      if (isRapidDoubleTap && isNearbyTap) {
+        e.preventDefault();
+      }
+
+      lastTouchEndAt = now;
+      lastTouchX = touch.clientX;
+      lastTouchY = touch.clientY;
+    };
     document.addEventListener('touchstart', onTouchStart, { passive: true });
     document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd, { passive: false });
     return () => {
       document.removeEventListener('touchstart', onTouchStart);
       document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
     };
   }, []);
 
