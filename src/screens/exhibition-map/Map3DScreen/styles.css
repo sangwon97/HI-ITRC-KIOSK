@@ -319,7 +319,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 50px;
-  min-height: 92px;
+  min-height: 120px;
   background: rgba(255, 255, 255, 0.95);
   border-bottom: 1px solid rgba(0, 100, 160, 0.10);
   flex-shrink: 0;
@@ -329,19 +329,19 @@
 .map3d-header-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 26px;
 }
 
 .map3d-header-status-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 46px;
+  min-height: 50px;
   padding: 0 22px;
   border-radius: 999px;
   background: rgba(46, 111, 159, 0.12);
   color: #2e6f9f;
-  font-size: 0.96rem;
+  font-size: 1rem;
   font-weight: 1000;
   letter-spacing: 0.02em;
   white-space: nowrap;
@@ -354,15 +354,15 @@
 }
 
 .map3d-header-main {
-  font-size: 0.94rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 770;
   color: #17324f;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 .map3d-header-sub {
-  font-size: 0.74rem;
+  font-size: 0.94rem;
   color: #6e89a6;
   font-weight: 500;
 }
@@ -370,7 +370,7 @@
 .map3d-header-right {
   display: flex;
   align-items: flex-end;
-  gap: 14px;
+  gap: 16px;
 }
 
 .map3d-header-divider {
@@ -393,7 +393,7 @@
 }
 
 .map3d-header-weather-meta {
-  font-size: 0.82rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: #4d6786;
   line-height: 1.1;
@@ -414,7 +414,7 @@
 }
 
 .map3d-header-date {
-  font-size: 0.98rem;
+  font-size: 1.0rem;
   font-weight: 700;
   color: #4d6786;
   letter-spacing: -0.02em;
@@ -423,7 +423,7 @@
 }
 
 .map3d-header-meridiem {
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 800;
   color: #7a98b8;
   letter-spacing: 0.08em;
@@ -432,7 +432,7 @@
 }
 
 .map3d-header-time {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 900;
   letter-spacing: 0.04em;
   line-height: 0.92;
