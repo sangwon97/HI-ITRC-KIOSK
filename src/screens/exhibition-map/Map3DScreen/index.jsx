@@ -471,7 +471,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             </button>
             <button type="button" className="map3d-map-control-btn map3d-map-search-btn" onClick={() => setShowMapSearch(true)}>
               <img src={searchIcon} alt="" className="map3d-map-search-btn-icon" color='#2e6f9f'/>
-              검색
+              <span>검색</span>
             </button>
           </div>
 

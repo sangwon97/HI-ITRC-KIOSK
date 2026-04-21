@@ -507,6 +507,10 @@
   font-weight: 600;
 }
 
+.map3d-map-search-btn span {
+  font-size: 1.0rem;
+}
+
 .map3d-label-toggle-btn {
   justify-content: center;
   min-width: auto;
