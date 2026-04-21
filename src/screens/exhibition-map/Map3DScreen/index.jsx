@@ -659,7 +659,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
         <div className="map3d-sidebar-credits">
           <img src={labLogo}className="map3d-sidebar-credits-logo" />
-          <div className="map3d-sidebar-credits-text">김진술 · 오상원 · 이예원 · 정광무</div>
+          <div className="map3d-sidebar-credits-text">김진술·오상원·이예원·정광무</div>
           <div className="map3d-sidebar-credits-text">전남대학교 초지능네트워크미디어플랫폼 연구실</div>
           
         </div>

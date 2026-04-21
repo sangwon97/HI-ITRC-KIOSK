@@ -199,39 +199,6 @@ function FlatMapModel({ cameraBounds }) {
   );
 }
 
-function FloorCategoryOverlay({ categoryZones, selectedCategoryId }) {
-  return (
-    <group>
-      {categoryZones.map((zone) => {
-        const isSelected = selectedCategoryId !== CATEGORY_ALL_ID && selectedCategoryId === zone.categoryId;
-        const isDimmed = selectedCategoryId !== CATEGORY_ALL_ID && !isSelected;
-        const opacity = isSelected ? 0.34 : isDimmed ? 0.1 : 0.18;
-
-        return (
-          <mesh
-            key={zone.categoryId}
-            position={[zone.centerX, 0.05, zone.centerZ]}
-            rotation={[-Math.PI * 0.5, 0, 0]}
-            renderOrder={2}
-          >
-            <planeGeometry args={[zone.width, zone.depth]} />
-            <meshBasicMaterial
-              color={zone.color}
-              transparent
-              opacity={opacity}
-              depthWrite={false}
-              polygonOffset
-              polygonOffsetFactor={-2}
-              polygonOffsetUnits={-2}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        );
-      })}
-    </group>
-  );
-}
-
 function BoothLogoMarkers({ markers, activeMarkerId, onSelectMarker }) {
   return (
     <group>

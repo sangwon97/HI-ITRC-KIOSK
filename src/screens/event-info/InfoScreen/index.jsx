@@ -290,6 +290,7 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
                                   src={slide.image}
                                   alt={slide.alt}
                                   className="is-program-support-image"
+                                  draggable={false}
                                 />
                               </div>
                             </div>
@@ -347,7 +348,7 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
 
                               {sectionVisual ? (
                                 <div className="is-culture-visual" aria-hidden="true">
-                                  <img src={sectionVisual} alt="" className="is-culture-image" />
+                                  <img src={sectionVisual} alt="" className="is-culture-image" draggable={false} />
                                 </div>
                               ) : null}
                             </section>

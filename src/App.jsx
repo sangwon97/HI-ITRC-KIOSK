@@ -96,7 +96,7 @@ export default function App() {
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: 'var(--bg-deep)' }}>
       {screen === 'idle'         && <IdleScreen onStart={startKiosk} />}
       {MAP_PANEL_SCREENS.has(screen) && (
-        <Suspense fallback={<div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-muted)',fontSize:'1rem'}}>전시장 로딩 중...</div>}>
+        <Suspense fallback={null}>
           <Map3DScreen
             {...screenProps}
             activePanel={screen === 'home' ? null : screen}
