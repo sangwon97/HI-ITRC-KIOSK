@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { eventInfo } from '../../../data/eventInfo';
 import luckyDrawImage from '../../../assets/174124_71433250.png';
 import stickerPhotoImage from '../../../assets/1767_71433250.png';
 import sponsorsImage from '../../../assets/program-partners/program-sponsors.png';
 import academiesImage from '../../../assets/program-partners/program-academies.png';
-import ExhibitionZoneMap from '../ExhibitionZoneMap';
+import ExhibitionZoneMap, { ZoneLoadingOverlay } from '../ExhibitionZoneMap';
 import './styles.css';
 
 const TABS = [
@@ -368,9 +368,17 @@ export default function InfoScreen({ goBack, goHome, navigate, embedded = false,
         )}
 
         {activeTab === 'zones' && (
-          <div className="is-tab-content is-tab-content-zones fade-in">
-            <ExhibitionZoneMap />
-          </div>
+          <Suspense
+            fallback={(
+              <div className="is-tab-content is-tab-content-zones fade-in">
+                <ZoneLoadingOverlay />
+              </div>
+            )}
+          >
+            <div className="is-tab-content is-tab-content-zones fade-in">
+              <ExhibitionZoneMap />
+            </div>
+          </Suspense>
         )}
 
       </div>

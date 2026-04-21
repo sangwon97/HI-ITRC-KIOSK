@@ -19,7 +19,7 @@ const EVENT_BOOTHS_CARPET_MODEL_PATH = '/models/Kiosk_EventBooths_Carpet.glb';
 const CATEGORY_COLOR_BY_ID = new Map(categories.map((category) => [category.id, category.color]));
 const SPECIAL_EXHIBITION_COLOR = '#8d96a0';
 
-function ZoneLoadingOverlay() {
+export function ZoneLoadingOverlay() {
   return (
     <div className="is-zone-loading-overlay" aria-live="polite" aria-busy="true">
       <div className="is-zone-loading-card" aria-hidden="true">
@@ -31,6 +31,56 @@ function ZoneLoadingOverlay() {
       </div>
     </div>
   );
+}
+
+function preloadImageSource(src) {
+  if (!src) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    const image = new window.Image();
+    let resolved = false;
+
+    const finish = () => {
+      if (resolved) {
+        return;
+      }
+
+      resolved = true;
+      resolve();
+    };
+
+    image.onload = () => {
+      if (typeof image.decode === 'function') {
+        image.decode().catch(() => undefined).finally(finish);
+        return;
+      }
+
+      finish();
+    };
+    image.onerror = finish;
+    image.src = src;
+
+    if (image.complete) {
+      finish();
+    }
+  });
+}
+
+function ZoneSceneReadyNotifier({ onReady }) {
+  const notifiedRef = useRef(false);
+
+  useFrame(() => {
+    if (notifiedRef.current) {
+      return;
+    }
+
+    notifiedRef.current = true;
+    onReady?.();
+  });
+
+  return null;
 }
 
 function extractBoothId(name = '') {
@@ -234,7 +284,7 @@ function BoothLogoMarkers({ markers, activeMarkerId, onSelectMarker }) {
               <img
                 src={marker.logoSrc}
                 alt={`${marker.title} 로고`}
-                loading="lazy"
+                decoding="async"
               />
             </div>
           </button>
@@ -260,7 +310,7 @@ function ActiveMarkerCard({ marker, onClose }) {
         ×
       </button>
       <div className="is-zone-detail-logo">
-        <img src={marker.logoSrc} alt={`${marker.title} 로고`} loading="lazy" />
+        <img src={marker.logoSrc} alt={`${marker.title} 로고`} decoding="async" />
       </div>
       <div className="is-zone-detail-copy">
         <div className="is-zone-detail-university">{marker.university}</div>
@@ -278,7 +328,21 @@ export default function ExhibitionZoneMap() {
   const [selectedCategoryId, setSelectedCategoryId] = useState(CATEGORY_ALL_ID);
   const [activeMarker, setActiveMarker] = useState(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [areLogoImagesReady, setAreLogoImagesReady] = useState(false);
+  const [isSceneReady, setIsSceneReady] = useState(false);
+  const [hasMinimumLoadingTime, setHasMinimumLoadingTime] = useState(false);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(true);
   const displayScenes = useMemo(() => getScenesFromGltfResult(displayModelResult), [displayModelResult]);
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      setHasMinimumLoadingTime(true);
+    }, 450);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, []);
 
   const boothDots = useMemo(() => {
     const clone = boothAreaScene.clone(true);
@@ -333,6 +397,34 @@ export default function ExhibitionZoneMap() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!entries.length) {
+      setAreLogoImagesReady(true);
+      return undefined;
+    }
+
+    setAreLogoImagesReady(false);
+
+    const logoSources = [...new Set(
+      entries
+        .map((entry) => entry.logoSrc)
+        .filter(Boolean),
+    )];
+
+    Promise.all(logoSources.map((src) => preloadImageSource(src)))
+      .then(() => {
+        if (!cancelled) {
+          setAreLogoImagesReady(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [entries]);
 
   const markers = useMemo(() => {
     const entryMap = new Map(entries.map((entry) => [entry.boothId, entry]));
@@ -493,6 +585,36 @@ export default function ExhibitionZoneMap() {
     );
   }, [activeMarker, categoryZones, mapBounds, selectedCategoryId, visibleMarkers]);
 
+  useEffect(() => {
+    if (
+      isDataLoading
+      || !areLogoImagesReady
+      || !cameraBounds
+      || !isSceneReady
+      || !hasMinimumLoadingTime
+    ) {
+      return undefined;
+    }
+
+    let firstFrameId = 0;
+    let secondFrameId = 0;
+
+    firstFrameId = window.requestAnimationFrame(() => {
+      secondFrameId = window.requestAnimationFrame(() => {
+        setShowLoadingOverlay(false);
+      });
+    });
+
+    return () => {
+      if (firstFrameId) {
+        window.cancelAnimationFrame(firstFrameId);
+      }
+      if (secondFrameId) {
+        window.cancelAnimationFrame(secondFrameId);
+      }
+    };
+  }, [areLogoImagesReady, cameraBounds, hasMinimumLoadingTime, isDataLoading, isSceneReady]);
+
   const handleSelectCategory = (nextCategoryId) => {
     if (nextCategoryId === selectedCategoryId && nextCategoryId !== CATEGORY_ALL_ID) {
       setSelectedCategoryId(CATEGORY_ALL_ID);
@@ -525,7 +647,14 @@ export default function ExhibitionZoneMap() {
     };
   }, [cameraBounds]);
 
-  const isZoneLoading = isDataLoading || !cameraBounds;
+  const isZoneLoading = (
+    showLoadingOverlay
+    || isDataLoading
+    || !areLogoImagesReady
+    || !cameraBounds
+    || !isSceneReady
+    || !hasMinimumLoadingTime
+  );
 
   return (
     <div className="is-zone-layout">
@@ -559,10 +688,11 @@ export default function ExhibitionZoneMap() {
           <div className="is-zone-map-hint">로고를 클릭하면 센터명을 볼 수 있어요</div>
           <ActiveMarkerCard marker={activeMarker} onClose={() => handleSelectMarker(null)} />
           <Canvas orthographic dpr={[1, 1.5]} className="is-zone-map-canvas" gl={{ alpha: true }}>
-            <Suspense fallback={null}>
+            <Suspense fallback={<Html fullscreen><ZoneLoadingOverlay /></Html>}>
               <ambientLight intensity={1.25} />
               <directionalLight position={[30, 80, 20]} intensity={1.35} />
               <directionalLight position={[-28, 64, -20]} intensity={0.45} />
+              <ZoneSceneReadyNotifier onReady={() => setIsSceneReady(true)} />
               <FlatMapModel cameraBounds={cameraBounds} />
               <BoothLogoMarkers
                 markers={visibleMarkers}
