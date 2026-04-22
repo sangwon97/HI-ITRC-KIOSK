@@ -27,10 +27,16 @@ const BOOTH_NAME_RE = /^Floor_((?:S\d+B\d+)|(?:Special\d+))$/i;
 const DEFAULT_TARGET = new THREE.Vector3(...(DEFAULT_MAP_CAMERA.target ?? [0, 0, 0]));
 const NO_RAYCAST = () => null;
 const INTRO_DURATION = 1.45;
-const INTRO_ROTATION_Y = -Math.PI / 8;
-const INTRO_DISTANCE_MULTIPLIER = 1.18;
-const INTRO_HEIGHT_OFFSET = 10;
+const ROUTE_TOP_VIEW_DURATION = 1.35;
+const INTRO_ROTATION_Y = -Math.PI / 12;
+const INTRO_DISTANCE_MULTIPLIER = 1.12;
+const INTRO_HEIGHT_OFFSET = 6;
+const ROUTE_PINK = 0xe83d97;
+const ROUTE_PINK_SOFT = 0xff6ab9;
+const ROUTE_TOP_VIEW_CAMERA = new THREE.Vector3(5.89, 116.97, -19.34);
+const ROUTE_TOP_VIEW_TARGET = new THREE.Vector3(5.53, 1.04, -19.34);
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
+const DEFAULT_CAMERA_UP = new THREE.Vector3(0, 1, 0);
 const MAP_MODEL_CACHE = new WeakMap();
 const HIT_MESH_CACHE = new WeakMap();
 const INSTANCE_DUMMY = new THREE.Object3D();
@@ -786,9 +792,9 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
         <mesh key={segment.key} raycast={NO_RAYCAST} position={segment.position} renderOrder={6}>
           <boxGeometry args={segment.size} />
           <meshBasicMaterial
-            color={0xffd84d}
+            color={ROUTE_PINK}
             transparent
-            opacity={0.34}
+            opacity={0.4}
             depthWrite={false}
             side={THREE.DoubleSide}
           />
@@ -805,7 +811,7 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
           >
             <circleGeometry args={[0.23, 24]} />
             <meshBasicMaterial
-              color={0xf4b400}
+              color={ROUTE_PINK_SOFT}
               transparent
               opacity={0.95}
               depthWrite={false}
@@ -819,7 +825,7 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
           >
             <ringGeometry args={[0.5, 0.8, 32]} />
             <meshBasicMaterial
-              color={0xffffff}
+              color={ROUTE_PINK}
               transparent
               opacity={0.9}
               depthWrite={false}
@@ -838,7 +844,7 @@ function PathGuide({ pathPoints, targetBooth, boothPositions }) {
           args={[null, null, arrowMarkers.length]}
         >
           <meshBasicMaterial
-            color={0xffffff}
+            color={ROUTE_PINK_SOFT}
             transparent
             opacity={0.95}
             depthWrite={false}
@@ -860,6 +866,10 @@ export function CameraController({ targetBoothPos, boothPositions, introSignal, 
   const introToCamera = useRef(new THREE.Vector3(...DEFAULT_MAP_CAMERA.position));
   const isIntroAnimating = useRef(false);
   const lastIntroSignal = useRef(0);
+  const routeElapsed = useRef(0);
+  const routeFromCamera = useRef(null);
+  const routeFromTarget = useRef(null);
+  const isRouteAnimating = useRef(false);
 
   useEffect(() => {
     const controls = controlsRef.current;
@@ -882,27 +892,54 @@ export function CameraController({ targetBoothPos, boothPositions, introSignal, 
   }, [controlsRef]);
 
   useEffect(() => {
-    if (!targetBoothPos) {
+    const controls = controlsRef.current;
+    if (!controls) {
       return;
     }
 
-    const position = boothPositions[targetBoothPos.id];
-    if (position) {
-      lerpTarget.current.set(position[0], 0, position[1]);
-      isTargetAnimating.current = true;
-      lerpCamera.current = null;
-      isCameraAnimating.current = false;
+    const isRouteMode = Boolean(targetBoothPos);
+    controls.enabled = !isRouteMode;
+    controls.enableRotate = !isRouteMode;
+    controls.enablePan = !isRouteMode;
+    controls.enableZoom = !isRouteMode;
+    controls.enableDamping = !isRouteMode;
+    controls.update();
+  }, [controlsRef, targetBoothPos]);
+
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!targetBoothPos || !controls) {
+      return;
     }
-  }, [boothPositions, targetBoothPos]);
+
+    isTargetAnimating.current = false;
+    isCameraAnimating.current = false;
+    isIntroAnimating.current = false;
+    introElapsed.current = 0;
+    introFromCamera.current = null;
+    routeElapsed.current = 0;
+    routeFromCamera.current = controls.object.position.clone();
+    routeFromTarget.current = controls.target.clone();
+    isRouteAnimating.current = true;
+  }, [controlsRef, targetBoothPos]);
 
   useEffect(() => {
     if (resetSignal > 0) {
+      const controls = controlsRef.current;
+      isRouteAnimating.current = false;
+      routeElapsed.current = 0;
+      routeFromCamera.current = null;
+      routeFromTarget.current = null;
       lerpTarget.current.copy(DEFAULT_TARGET);
       isTargetAnimating.current = true;
       lerpCamera.current = new THREE.Vector3(...DEFAULT_MAP_CAMERA.position);
       isCameraAnimating.current = true;
+      if (controls?.object) {
+        controls.enabled = true;
+        controls.object.up.copy(DEFAULT_CAMERA_UP);
+      }
     }
-  }, [resetSignal]);
+  }, [controlsRef, resetSignal]);
 
   useFrame(({ camera }, delta) => {
     const controls = controlsRef.current;
@@ -910,10 +947,48 @@ export function CameraController({ targetBoothPos, boothPositions, introSignal, 
       return;
     }
 
+    if (targetBoothPos) {
+      camera.up.copy(DEFAULT_CAMERA_UP);
+
+      if (
+        isRouteAnimating.current
+        && routeFromCamera.current
+        && routeFromTarget.current
+      ) {
+        routeElapsed.current += delta;
+        const topViewProgress = Math.min(routeElapsed.current / ROUTE_TOP_VIEW_DURATION, 1);
+        const easedTopViewProgress = easeOutCubic(topViewProgress);
+
+        camera.position.lerpVectors(
+          routeFromCamera.current,
+          ROUTE_TOP_VIEW_CAMERA,
+          easedTopViewProgress,
+        );
+        controls.target.lerpVectors(
+          routeFromTarget.current,
+          ROUTE_TOP_VIEW_TARGET,
+          easedTopViewProgress,
+        );
+
+        if (topViewProgress >= 1) {
+          camera.position.copy(ROUTE_TOP_VIEW_CAMERA);
+          controls.target.copy(ROUTE_TOP_VIEW_TARGET);
+          isRouteAnimating.current = false;
+        }
+      } else {
+        camera.position.copy(ROUTE_TOP_VIEW_CAMERA);
+        controls.target.copy(ROUTE_TOP_VIEW_TARGET);
+      }
+
+      camera.lookAt(controls.target);
+      return;
+    }
+
     if (!targetBoothPos && introSignal > lastIntroSignal.current) {
       lastIntroSignal.current = introSignal;
       const introCameraPosition = buildIntroCameraPosition();
 
+      camera.up.copy(DEFAULT_CAMERA_UP);
       controls.target.copy(DEFAULT_TARGET);
       camera.position.copy(introCameraPosition);
       introFromCamera.current = introCameraPosition;
@@ -971,11 +1046,14 @@ export function CameraController({ targetBoothPos, boothPositions, introSignal, 
       maxPolarAngle={(Math.PI * 75) / 180}
       minDistance={15}
       maxDistance={125}
-      enableDamping
+      enableDamping={!targetBoothPos}
       dampingFactor={0.08}
-      rotateSpeed={0.6}
-      zoomSpeed={0.8}
-      panSpeed={0.8}
+      rotateSpeed={targetBoothPos ? 0 : 0.6}
+      zoomSpeed={targetBoothPos ? 0 : 0.8}
+      panSpeed={targetBoothPos ? 0 : 0.8}
+      enableRotate={!targetBoothPos}
+      enableZoom={!targetBoothPos}
+      enablePan={!targetBoothPos}
     />
   );
 }
@@ -1065,6 +1143,48 @@ function SceneReadyNotifier({ onReady }) {
   return null;
 }
 
+function CameraDebugReporter({ controlsRef, onChange }) {
+  const camera = useThree((state) => state.camera);
+  const lastSnapshotRef = useRef('');
+  const accumulatorRef = useRef(0);
+
+  useFrame((_, delta) => {
+    if (typeof onChange !== 'function') {
+      return;
+    }
+
+    accumulatorRef.current += delta;
+    if (accumulatorRef.current < 0.08) {
+      return;
+    }
+    accumulatorRef.current = 0;
+
+    const target = controlsRef.current?.target ?? DEFAULT_TARGET;
+    const nextSnapshot = {
+      position: {
+        x: Number(camera.position.x.toFixed(2)),
+        y: Number(camera.position.y.toFixed(2)),
+        z: Number(camera.position.z.toFixed(2)),
+      },
+      target: {
+        x: Number(target.x.toFixed(2)),
+        y: Number(target.y.toFixed(2)),
+        z: Number(target.z.toFixed(2)),
+      },
+    };
+
+    const serialized = JSON.stringify(nextSnapshot);
+    if (serialized === lastSnapshotRef.current) {
+      return;
+    }
+
+    lastSnapshotRef.current = serialized;
+    onChange(nextSnapshot);
+  });
+
+  return null;
+}
+
 export default function MapScene({
   onSelect,
   onHover,
@@ -1081,6 +1201,7 @@ export default function MapScene({
   currentKioskId = null,
   routeStartPoint = null,
   onSceneReady = null,
+  onCameraDebugChange = null,
 }) {
   const handleHover = useCallback((booth) => onHover(booth), [onHover]);
   const handleSelect = useCallback((booth) => onSelect(booth), [onSelect]);
@@ -1135,6 +1256,7 @@ export default function MapScene({
   return (
     <>
       <SceneReadyNotifier onReady={onSceneReady} />
+      <CameraDebugReporter controlsRef={controlsRef} onChange={onCameraDebugChange} />
       <MapEnvironment />
       <hemisphereLight args={[0xffffff, 0xaaaaaa, 0.8]} />
       <directionalLight color={0xffffff} intensity={1.5} position={[20, 40, 20]} />

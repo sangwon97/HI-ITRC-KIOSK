@@ -1276,6 +1276,8 @@
   width: 88%;
   height: 88%;
   object-fit: contain;
+    pointer-events: none;
+  -webkit-user-drag: none;
 }
 
 .is-zone-marker-logo-active {

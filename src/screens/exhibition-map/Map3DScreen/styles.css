@@ -91,14 +91,35 @@
   flex-shrink: 0;
   text-align: justify;
 }
-
-.map3d-sidebar-credits-logo{
-  width: 120px;
-  height: auto;
-  object-fit: contain;
-  opacity: 0.12;
+.map3d-sidebar-credits-logo-group {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
 }
 
+.map3d-sidebar-credits-logo-jnu {
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  height: 80px;
+  object-fit: contain;
+  opacity: 0.52;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.map3d-sidebar-credits-logo-g5{
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  height: 100px;
+  object-fit: contain;
+  opacity: 0.52;
+  padding-bottom: 15px;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
 /* 구분선 */
 .map3d-sidebar-divider {
   height: 1px;
@@ -122,7 +143,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
-  color: rgba(61, 90, 128, 0.24);
+  color: rgba(61, 90, 128, 0.44);
   font-size: 0.7rem;
   line-height: 1.45;
   text-align: right;
@@ -133,12 +154,16 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(46, 111, 159, 0.22);
+  color: rgba(46, 111, 159, 0.42);
   margin-bottom: 4px;
 }
 
 .map3d-sidebar-credits-text {
   font-weight: 500;
+}
+
+.map3d-sidebar-credits-text > :first-child {
+  padding-top: 40px;
 }
 
 .map3d-nav-group {
@@ -414,7 +439,7 @@
 }
 
 .map3d-header-date {
-  font-size: 1.0rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #4d6786;
   letter-spacing: -0.02em;
@@ -423,7 +448,7 @@
 }
 
 .map3d-header-meridiem {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: #7a98b8;
   letter-spacing: 0.08em;
@@ -432,7 +457,7 @@
 }
 
 .map3d-header-time {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 900;
   letter-spacing: 0.04em;
   line-height: 0.92;
@@ -463,11 +488,12 @@
 .map3d-map-controls {
   position: absolute;
   right: 18px;
-  bottom: 18px;
+  top: 18px;
+  bottom: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 14px;
   z-index: 14;
 }
 
@@ -501,17 +527,20 @@
 }
 
 .map3d-map-search-btn {
+  order: 1;
   justify-content: center;
-  gap: 15px;
-  padding: 0 30px;
+  gap: 16px;
+  padding: 0 34px;
+  min-height: 64px;
   font-weight: 600;
 }
 
 .map3d-map-search-btn span {
-  font-size: 1.0rem;
+  font-size: 1.12rem;
 }
 
 .map3d-label-toggle-btn {
+  order: 2;
   justify-content: center;
   min-width: auto;
   padding: 0;
@@ -520,16 +549,53 @@
   border: none;
   box-shadow: none;
   backdrop-filter: none;
-  gap: 10px;
+  gap: 12px;
 }
 
 .map3d-map-search-btn-icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   opacity: 0.75;
   justify-content: center;
   align-items: center;
+}
+
+.map3d-reset-view-btn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 16;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 12px 30px rgba(8, 26, 52, 0.18);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.map3d-reset-view-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 34px rgba(8, 26, 52, 0.22);
+}
+
+.map3d-reset-view-btn:active {
+  transform: translateY(1px);
+}
+
+.map3d-reset-view-btn-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(34%) sepia(34%) saturate(939%) hue-rotate(165deg) brightness(94%) contrast(90%);
+  pointer-events: none;
 }
 
 /* ── 캔버스 래퍼 ─────────────────────────────── */
@@ -601,6 +667,54 @@
   animation-delay: 0.36s;
 }
 
+.map3d-camera-debug {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 280px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(12, 26, 46, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  color: #f7fbff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+}
+
+.map3d-camera-debug-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(233, 244, 255, 0.92);
+}
+
+.map3d-camera-debug-row {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.map3d-camera-debug-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(180, 210, 236, 0.92);
+}
+
+.map3d-camera-debug-value {
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #ffffff;
+  word-break: break-word;
+}
+
 .map3d-label-toggle-btn-active {
   color: #2e6f9f;
 }
@@ -612,7 +726,7 @@
 }
 
 .map3d-label-toggle-text {
-  font-size: clamp(0.92rem, 0.28vw + 0.84rem, 1.04rem);
+  font-size: clamp(1.02rem, 0.34vw + 0.92rem, 1.18rem);
   font-weight: 600;
   color: #2e6f9f;
   letter-spacing: -0.02em;
@@ -621,8 +735,8 @@
 .map3d-label-toggle-switch {
   display: inline-flex;
   align-items: center;
-  min-width: 62px;
-  height: 34px;
+  min-width: 70px;
+  height: 40px;
   padding: 4px;
   border-radius: 999px;
   background: rgba(12, 26, 46, 0.14);
@@ -637,8 +751,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   background: #ffffff;
   box-shadow: 0 4px 10px rgba(12, 26, 46, 0.16);
@@ -647,7 +761,7 @@
 }
 
 .map3d-label-toggle-btn-active .map3d-label-toggle-thumb {
-  transform: translateX(28px);
+  transform: translateX(30px);
 }
 
 /* ── 경로 안내 배지 ────────────────────────────── */
