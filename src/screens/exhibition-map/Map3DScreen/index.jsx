@@ -4,6 +4,7 @@ import * as THREE from 'three';
 
 import itrcLogo from '../../../assets/icons/ITRC_logo.jpg';
 import searchIcon from '../../../assets/icons/keyboard_keys.svg';
+import refreshIcon from '../../../assets/icons/refresh.svg';
 import { categories, CATEGORY_MAP } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
 import {
@@ -11,7 +12,8 @@ import {
   loadKioskInfoPositions,
   resolveCurrentKioskInfoId,
 } from '../../../data/kioskInfoPositionCsv';
-import labLogo from '../../../assets/Hi.png';
+import labLogo from '../../../assets/15746_722177284.png';;
+import colLogo from '../../../assets/JNUlogo.svg';
 import { loadNavmeshGrid } from '../../../data/navmeshGrid';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
@@ -216,6 +218,22 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const [isMapSceneReady, setIsMapSceneReady] = useState(false);
   const [showBoothLabels, setShowBoothLabels] = useState(true);
   const [currentKioskInfoId, setCurrentKioskInfoId] = useState(() => resolveCurrentKioskInfoId());
+  const [cameraDebugInfo, setCameraDebugInfo] = useState(null);
+  const canvasCamera = useMemo(() => ({
+    position: [...DEFAULT_MAP_CAMERA.position],
+    fov: 38,
+    near: 0.5,
+    far: 400,
+  }), []);
+  const canvasGl = useMemo(() => ({
+    alpha: false,
+    antialias: false,
+    powerPreference: 'high-performance',
+    stencil: false,
+  }), []);
+  const handleCanvasCreated = useCallback(({ gl }) => {
+    gl.setClearColor(new THREE.Color(0xdadada));
+  }, []);
 
   useEffect(() => {
     const syncCurrentKiosk = () => {
@@ -263,6 +281,12 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const handleClose = useCallback(() => {
     setSelected(null);
     setResetSignal(s => s + 1);
+  }, []);
+
+  const handleResetView = useCallback(() => {
+    setSelected(null);
+    setShowMapSearch(false);
+    setResetSignal((signal) => signal + 1);
   }, []);
 
   const handleNavigate = useCallback(() => {
@@ -422,14 +446,12 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
           )}
           <Canvas
             style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
-            camera={{ position: DEFAULT_MAP_CAMERA.position, fov: 38, near: 0.5, far: 400 }}
-            gl={{ alpha: false, antialias: false, powerPreference: 'high-performance', stencil: false }}
+            camera={canvasCamera}
+            gl={canvasGl}
             dpr={[1, 1.25]}
             performance={{ min: 0.85 }}
             frameloop="always"
-            onCreated={({ gl }) => {
-              gl.setClearColor(new THREE.Color(0xdadada));
-            }}
+            onCreated={handleCanvasCreated}
           >
             <Suspense fallback={null}>
               <MapScene
@@ -448,9 +470,36 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 currentKioskId={currentKioskInfoId}
                 routeStartPoint={currentRouteStart}
                 onSceneReady={handleSceneReady}
+                onCameraDebugChange={setCameraDebugInfo}
               />
             </Suspense>
           </Canvas>
+          <button
+            type="button"
+            className="map3d-reset-view-btn"
+            onClick={handleResetView}
+            aria-label="기본 시점으로 돌아가기"
+          >
+            <img src={refreshIcon} alt="" className="map3d-reset-view-btn-icon" />
+          </button>
+          {/* 카메라 좌표계 */}
+          {/* {cameraDebugInfo ? (
+            <div className="map3d-camera-debug" aria-live="off">
+              <div className="map3d-camera-debug-title">Camera Debug</div>
+              <div className="map3d-camera-debug-row">
+                <span className="map3d-camera-debug-label">position</span>
+                <span className="map3d-camera-debug-value">
+                  [{cameraDebugInfo.position.x}, {cameraDebugInfo.position.y}, {cameraDebugInfo.position.z}]
+                </span>
+              </div>
+              <div className="map3d-camera-debug-row">
+                <span className="map3d-camera-debug-label">target</span>
+                <span className="map3d-camera-debug-value">
+                  [{cameraDebugInfo.target.x}, {cameraDebugInfo.target.y}, {cameraDebugInfo.target.z}]
+                </span>
+              </div>
+            </div>
+          ) : null} */}
 
           <div className="map3d-hint">
             드래그: 회전 &middot; 우클릭/두 손가락: 이동 &middot; 스크롤/핀치: 줌 &middot; 부스 클릭: 상세
@@ -686,7 +735,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
         </nav>
 
         <div className="map3d-sidebar-credits">
-          <img src={labLogo}className="map3d-sidebar-credits-logo" />
+          <div className="map3d-sidebar-credits-logo-group">
+          <img src={colLogo} className="map3d-sidebar-credits-logo-jnu" />
+          <img src={labLogo} className="map3d-sidebar-credits-logo-g5" />
+          </div>
           <div className="map3d-sidebar-credits-text">김진술·오상원·이예원·정광무</div>
           <div className="map3d-sidebar-credits-text">전남대학교 초지능네트워크미디어플랫폼 연구실</div>
           
