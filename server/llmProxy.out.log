@@ -1,0 +1,2 @@
+LLM proxy listening on http://127.0.0.1:8787
+Using ollama API at https://ollama.com with model gpt-oss:120b

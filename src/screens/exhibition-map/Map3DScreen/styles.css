@@ -799,7 +799,222 @@
   color: #fff;
 }
 
+.map3d-ai-highlight-card {
+  position: absolute;
+  left: 28px;
+  bottom: 96px;
+  width: min(640px, calc(100% - 56px));
+  padding: 14px;
+  border: 1px solid rgba(46, 230, 166, 0.38);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 28px rgba(8, 28, 43, 0.18);
+  backdrop-filter: blur(10px);
+  z-index: 16;
+}
+
+.map3d-ai-highlight-main {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.map3d-ai-highlight-kicker {
+  color: #16805f;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.map3d-ai-highlight-title {
+  color: #102638;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.map3d-ai-highlight-desc {
+  margin-top: 6px;
+  color: #4f6474;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.map3d-ai-highlight-list {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+  cursor: grab;
+}
+
+.map3d-ai-highlight-list::-webkit-scrollbar {
+  display: none;
+}
+
+.map3d-ai-highlight-list:active {
+  cursor: grabbing;
+}
+
+.map3d-ai-highlight-item {
+  flex: 0 0 210px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid rgba(22, 128, 95, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #102638;
+  text-align: left;
+  cursor: pointer;
+}
+
+.map3d-ai-highlight-rank {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(46, 230, 166, 0.16);
+  color: #16805f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.map3d-ai-highlight-item-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.map3d-ai-highlight-item-text strong,
+.map3d-ai-highlight-item-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map3d-ai-highlight-item-text strong {
+  font-size: 13px;
+}
+
+.map3d-ai-highlight-item-text small {
+  color: #5b7180;
+  font-size: 12px;
+}
+
 .map3d-feature-legend {
+}
+
+.map3d-panel-secondary-btn {
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #17415f;
+  border: 1px solid rgba(46, 111, 159, 0.28);
+}
+
+.map3d-panel-secondary-btn:disabled {
+  opacity: 0.7;
+}
+
+.map3d-similar-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.map3d-similar-strip {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: min(760px, calc(100% - 56px));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  border-radius: 8px;
+  background: rgba(248, 252, 255, 0.72);
+  box-shadow: 0 10px 26px rgba(7, 30, 48, 0.16);
+  backdrop-filter: blur(10px);
+  z-index: 18;
+}
+
+.map3d-similar-strip-title {
+  color: #153852;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.map3d-similar-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 1px;
+}
+
+.map3d-similar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.map3d-similar-item {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 8px;
+  align-items: center;
+  flex: 0 0 218px;
+  min-width: 218px;
+  padding: 8px 10px;
+  border: 1px solid rgba(46, 111, 159, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.64);
+  color: #14324a;
+  text-align: left;
+}
+
+.map3d-similar-rank {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(46, 111, 159, 0.12);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.map3d-similar-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.map3d-similar-text strong,
+.map3d-similar-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map3d-similar-text strong {
+  font-size: 13px;
+}
+
+.map3d-similar-text small {
+  color: #5e7484;
+  font-size: 12px;
 }
 
 @keyframes badgeFadeIn {

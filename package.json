@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "backend": "node server/llmProxy.js",
+    "rag": "python -m uvicorn python_rag.rag_service:app --host 127.0.0.1 --port 8791",
+    "start": "node server/llmProxy.js",
     "build": "vite build",
     "preview": "vite preview",
     "generate:navmesh": "node scripts/generate-navmesh-grid.mjs"

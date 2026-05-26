@@ -4,6 +4,7 @@ import { loadBoothCenter } from '../../../data/centerInfo';
 import { categories } from '../../../data/booths';
 import backIcon from '../../../assets/icons/back.svg';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
+import { logRagInteraction } from '../../../utils/ragApi';
 import './styles.css';
 
 export default function BoothDetail({ data, navigate, goBack, goHome, embedded = false }) {
@@ -16,6 +17,19 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
   const [posters, setPosters] = useState(null);
   const [center, setCenter] = useState(undefined);
   const resolvedPosters = posters ?? [];
+
+  useEffect(() => {
+    if (!booth?.id) {
+      return;
+    }
+
+    logRagInteraction({
+      boothId: booth.id,
+      eventType: 'detail_view',
+      query: boothPayload?.aiSearchState?.query || '',
+      source: boothPayload?.source ?? 'booth-browser',
+    });
+  }, [booth?.id]);
 
   useEffect(() => {
     if (!booth?.id) {
@@ -146,6 +160,15 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
                       booth,
                       categoryId: boothPayload?.categoryId ?? booth.category,
                       source: boothPayload?.source ?? 'booth-browser',
+                      aiSearchState: boothPayload?.aiSearchState ?? null,
+                      backTarget: boothPayload?.source === 'ai-search' ? 'ai-search' : undefined,
+                    })}
+                    onMouseDown={() => logRagInteraction({
+                      boothId: booth.id,
+                      eventType: 'poster_view',
+                      query: boothPayload?.aiSearchState?.query || '',
+                      source: boothPayload?.source ?? 'booth-browser',
+                      metadata: { posterId: poster.id },
                     })}
                   >
                     <div className="bd-poster-num">{String(i + 1).padStart(2, '0')}</div>
@@ -197,6 +220,13 @@ export default function BoothDetail({ data, navigate, goBack, goHome, embedded =
                     center,
                     booth,
                     categoryId: boothPayload?.categoryId ?? booth.category,
+                    source: boothPayload?.source ?? 'booth-browser',
+                    aiSearchState: boothPayload?.aiSearchState ?? null,
+                  })}
+                  onMouseDown={() => logRagInteraction({
+                    boothId: booth.id,
+                    eventType: 'center_view',
+                    query: boothPayload?.aiSearchState?.query || '',
                     source: boothPayload?.source ?? 'booth-browser',
                   })}
                 >

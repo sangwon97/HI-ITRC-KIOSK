@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import itrcLogo from '../../../assets/icons/ITRC_logo.jpg';
 import searchIcon from '../../../assets/icons/keyboard_keys.svg';
 import refreshIcon from '../../../assets/icons/refresh.svg';
-import { categories, CATEGORY_MAP } from '../../../data/booths';
+import { categories, CATEGORY_MAP, getBoothById } from '../../../data/booths';
 import { loadBoothPositionMaps } from '../../../data/boothPositionCsv';
 import {
   getCurrentKioskRouteStart,
@@ -18,6 +18,7 @@ import { loadNavmeshGrid } from '../../../data/navmeshGrid';
 import { DEFAULT_MAP_CAMERA } from '../../../three/mapCameraConfig';
 import { getCategoryPresentation } from '../../../utils/categoryPresentation';
 import { computeBoothPath } from '../../../utils/mapPath';
+import { logRagInteraction } from '../../../utils/ragApi';
 import './styles.css';
 
 const MapSearchOverlay = lazy(() => import('../MapSearchOverlay'));
@@ -25,7 +26,7 @@ const BoothBrowser = lazy(() => import('../../booth-guide/BoothBrowser'));
 const BoothDetail = lazy(() => import('../../booth-guide/BoothDetail'));
 const CenterInfo = lazy(() => import('../../booth-guide/CenterInfo'));
 const PosterDetail = lazy(() => import('../../booth-guide/PosterDetail'));
-const SearchScreen = lazy(() => import('../../booth-search/SearchScreen'));
+const AISearchScreen = lazy(() => import('../../booth-search/AISearchScreen'));
 const InfoScreen = lazy(() => import('../../event-info/InfoScreen'));
 const MapScene = lazy(() => import('../../../three/MapScene'));
 
@@ -57,7 +58,7 @@ function hexStr(v) {
 const NAV_ITEMS = [
   { id: 'map',           label: '전시장 지도', sub: 'Exhibition Map',  screen: null },
   { id: 'booth-browser', label: '부스 안내',   sub: 'Booth Guide',     screen: 'booth-browser' },
-  { id: 'search',        label: '부스 검색',   sub: 'Search',          screen: 'search' },
+  { id: 'search',        label: 'AI 검색',     sub: 'AI Search',       screen: 'search' },
   {
     id: 'info',
     label: '행사 안내',
@@ -76,7 +77,7 @@ const PANEL_TITLES = {
   'booth-detail': '센터 소개',
   poster: '포스터 뷰',
   center: '센터 소개',
-  search: '부스 검색',
+  search: 'AI 검색',
   info: '행사 안내',
 };
 
@@ -180,6 +181,7 @@ function normalizeBoothPayload(data) {
       booth: data.booth,
       categoryId: data.categoryId ?? data.booth?.category ?? null,
       source: data.source ?? null,
+      aiSearchState: data.aiSearchState ?? null,
     };
   }
 
@@ -187,6 +189,7 @@ function normalizeBoothPayload(data) {
     booth: data,
     categoryId: data.category ?? null,
     source: null,
+    aiSearchState: null,
   };
 }
 
@@ -200,6 +203,8 @@ function getActiveNavScreen(activePanel) {
 
 export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const controlsRef  = useRef();
+  const highlightListRef = useRef(null);
+  const highlightDragRef = useRef({ pointerId: null, startX: 0, scrollLeft: 0 });
   const [selected, setSelected]   = useState(null);
   const [boothPositionMaps, setBoothPositionMaps] = useState({
     boothPositions: {},
@@ -283,11 +288,44 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     setResetSignal(s => s + 1);
   }, []);
 
+  const handleHighlightListPointerDown = useCallback((event) => {
+    const target = highlightListRef.current;
+    if (!target) {
+      return;
+    }
+
+    highlightDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      scrollLeft: target.scrollLeft,
+    };
+    target.setPointerCapture?.(event.pointerId);
+  }, []);
+
+  const handleHighlightListPointerMove = useCallback((event) => {
+    const target = highlightListRef.current;
+    const drag = highlightDragRef.current;
+    if (!target || drag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    target.scrollLeft = drag.scrollLeft - (event.clientX - drag.startX);
+  }, []);
+
+  const handleHighlightListPointerEnd = useCallback((event) => {
+    const target = highlightListRef.current;
+    if (target && highlightDragRef.current.pointerId === event.pointerId) {
+      target.releasePointerCapture?.(event.pointerId);
+    }
+    highlightDragRef.current = { pointerId: null, startX: 0, scrollLeft: 0 };
+  }, []);
+
   const handleResetView = useCallback(() => {
     setSelected(null);
     setShowMapSearch(false);
     setResetSignal((signal) => signal + 1);
-  }, []);
+    goHome();
+  }, [goHome]);
 
   const handleNavigate = useCallback(() => {
     if (selected) {
@@ -317,6 +355,20 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
   const categoryPresentation = getCategoryPresentation(catColor);
   const eventTimeline = getEventTimeline(new Date());
   const boothPayload = normalizeBoothPayload(data);
+  const mapHighlightBooths = useMemo(() => {
+    if (activePanel || !Array.isArray(data?.highlightBoothIds)) {
+      return [];
+    }
+
+    return data.highlightBoothIds
+      .map((id) => getBoothById(id))
+      .filter(Boolean);
+  }, [activePanel, data]);
+  const mapHighlightBoothIds = useMemo(
+    () => mapHighlightBooths.map((booth) => booth.id),
+    [mapHighlightBooths],
+  );
+  const activeHighlightBoothIds = mapHighlightBoothIds;
   const activeNavScreen = getActiveNavScreen(activePanel);
   const activeInfoTab = activePanel === 'info' ? (data?.tab ?? 'overview') : null;
   const currentRouteStart = useMemo(
@@ -469,6 +521,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
                 kioskInfoPositions={kioskInfoPositions}
                 currentKioskId={currentKioskInfoId}
                 routeStartPoint={currentRouteStart}
+                highlightBoothIds={activeHighlightBoothIds}
                 onSceneReady={handleSceneReady}
                 onCameraDebugChange={setCameraDebugInfo}
               />
@@ -542,6 +595,57 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
             </span>
           </div>
 
+          {mapHighlightBooths.length > 0 && !selected && (
+            <div className="map3d-ai-highlight-card">
+              <div className="map3d-ai-highlight-main">
+                <div>
+                  <div className="map3d-ai-highlight-kicker">AI 검색 하이라이트</div>
+                  <div className="map3d-ai-highlight-title">
+                    {data?.highlightTitle || '관련 부스'}
+                  </div>
+                  <div className="map3d-ai-highlight-desc">
+                    {mapHighlightBooths.length}개 부스를 지도에 표시했습니다.
+                  </div>
+                </div>
+              </div>
+                <div
+                  ref={highlightListRef}
+                  className="map3d-ai-highlight-list"
+                  aria-label="AI 검색 하이라이트 부스 목록"
+                  onPointerDown={handleHighlightListPointerDown}
+                  onPointerMove={handleHighlightListPointerMove}
+                  onPointerUp={handleHighlightListPointerEnd}
+                  onPointerCancel={handleHighlightListPointerEnd}
+                >
+                  {mapHighlightBooths.map((booth, index) => (
+                    <button
+                      key={booth.id}
+                      type="button"
+                      className="map3d-ai-highlight-item"
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={() => navigate('booth-detail', {
+                        booth,
+                        categoryId: booth.category,
+                        source: 'map',
+                      })}
+                      onMouseDown={() => logRagInteraction({
+                        boothId: booth.id,
+                        eventType: 'map_focus',
+                        query: data?.highlightTitle || '',
+                        source: 'map-highlight',
+                      })}
+                    >
+                      <span className="map3d-ai-highlight-rank">{index + 1}</span>
+                      <span className="map3d-ai-highlight-item-text">
+                        <strong>{booth.name}</strong>
+                        <small>{booth.univ}</small>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+            </div>
+          )}
+
           {selected && (
             <div
               className="map3d-panel"
@@ -566,6 +670,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
               </button>
             </div>
           )}
+
         </div>
       );
     }
@@ -581,7 +686,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     if (activePanel === 'search') {
       return (
         <Suspense fallback={<MapLoadingOverlay />}>
-          <SearchScreen embedded navigate={navigate} goHome={goHome} />
+          <AISearchScreen embedded navigate={navigate} data={data} />
         </Suspense>
       );
     }
@@ -596,8 +701,10 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
 
     if (activePanel === 'booth-detail') {
       const handleBoothBack = () => {
-        if (boothPayload?.source === 'search') {
-          navigate('search');
+        if (boothPayload?.source === 'search' || boothPayload?.source === 'ai-search') {
+          navigate('search', {
+            aiSearchState: boothPayload?.aiSearchState ?? data?.aiSearchState ?? null,
+          });
           return;
         }
 
@@ -635,6 +742,7 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
               booth: data?.booth,
               categoryId: data?.categoryId ?? data?.booth?.category,
               source: data?.source ?? null,
+              aiSearchState: data?.aiSearchState ?? null,
             })}
             goHome={goHome}
           />
@@ -643,16 +751,28 @@ export default function Map3DScreen({ navigate, goHome, activePanel, data }) {
     }
 
     if (activePanel === 'poster') {
+      const handlePosterBack = () => {
+        if (data?.backTarget === 'ai-search') {
+          navigate('search', {
+            aiSearchState: data?.aiSearchState ?? null,
+          });
+          return;
+        }
+
+        navigate('booth-detail', {
+          booth: data?.booth,
+          categoryId: data?.categoryId ?? data?.booth?.category,
+          source: data?.source ?? null,
+          aiSearchState: data?.aiSearchState ?? null,
+        });
+      };
+
       return (
         <Suspense fallback={<MapLoadingOverlay />}>
           <PosterDetail
             embedded
             data={data}
-            goBack={() => navigate('booth-detail', {
-              booth: data?.booth,
-              categoryId: data?.categoryId ?? data?.booth?.category,
-              source: data?.source ?? null,
-            })}
+            goBack={handlePosterBack}
             goHome={goHome}
           />
         </Suspense>

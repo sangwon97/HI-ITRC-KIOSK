@@ -174,6 +174,29 @@ export function getBoothById(id) {
   return booths.find(b => b.id === id);
 }
 
+function normalizeUniversitySearchText(value) {
+  return normalizeSearchText(String(value ?? ''))
+    .replace(/\s+/g, '')
+    .replace(/대학교/g, '대')
+    .replace(/대학/g, '대');
+}
+
+export function getBoothsByUniversityQuery(query) {
+  const normalizedQuery = normalizeUniversitySearchText(query);
+
+  if (!normalizedQuery) {
+    return [];
+  }
+
+  return booths.filter((booth) => {
+    const normalizedUniversity = normalizeUniversitySearchText(booth.univ);
+    return (
+      normalizedQuery.includes(normalizedUniversity) ||
+      normalizedUniversity.includes(normalizedQuery)
+    );
+  });
+}
+
 const HANGUL_BASE = 0xac00;
 const HANGUL_END = 0xd7a3;
 const CHOSEONG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];

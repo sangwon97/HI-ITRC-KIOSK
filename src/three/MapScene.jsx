@@ -623,6 +623,70 @@ function SelectionRing({ booth, boothPositions }) {
   );
 }
 
+function BoothHighlightGroup({ boothIds = [], boothPositions }) {
+  const pulse = useRef(0);
+  const groupRef = useRef();
+  const highlightedBooths = useMemo(
+    () => boothIds.map((id) => BOOTH_LOOKUP.get(id)).filter(Boolean),
+    [boothIds],
+  );
+
+  useFrame((_, delta) => {
+    pulse.current += delta * 2.5;
+    const opacity = 0.65 + 0.15 * (0.5 + 0.5 * Math.sin(pulse.current));
+    const baseScale = 1.0 + 0.02 * Math.sin(pulse.current);
+
+    groupRef.current?.children.forEach((child, index) => {
+      child.traverse((node) => {
+        if (node.isMesh && node.material) {
+          node.material.opacity = opacity;
+        }
+      });
+
+      const pulseScale = baseScale + 0.02 * Math.sin(pulse.current + index * 0.25);
+      child.scale.set(pulseScale, pulseScale, 1);
+    });
+  });
+
+  if (highlightedBooths.length === 0) {
+    return null;
+  }
+
+  return (
+    <group ref={groupRef}>
+      {highlightedBooths.map((booth) => {
+        const position = getBoothPosition(booth, boothPositions);
+
+        if (!position) {
+          return null;
+        }
+
+        return (
+          <group
+            key={booth.id}
+            position={[position[0], 0.052, position[1]]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <mesh
+              raycast={NO_RAYCAST}
+              renderOrder={17}
+            >
+              <planeGeometry args={[3.5, 6.25]} />
+              <meshBasicMaterial
+                color={0x2ee6a6}
+                transparent
+                opacity={0.75}
+                side={THREE.DoubleSide}
+                depthWrite={false}
+              />
+            </mesh>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function CurrentLocationMarker({ routeStartPoint }) {
   const outerRef = useRef();
   const innerRef = useRef();
@@ -1200,6 +1264,7 @@ export default function MapScene({
   kioskInfoPositions = {},
   currentKioskId = null,
   routeStartPoint = null,
+  highlightBoothIds = [],
   onSceneReady = null,
   onCameraDebugChange = null,
 }) {
@@ -1274,9 +1339,9 @@ export default function MapScene({
         kioskInfoPositions={kioskInfoPositions}
         currentKioskId={currentKioskId}
       />
+      <BoothHighlightGroup boothIds={highlightBoothIds} boothPositions={boothPositions} />
       <SelectionRing booth={selectedBooth} boothPositions={boothPositions} />
       <CurrentLocationMarker routeStartPoint={routeStartPoint} />
-      <PathGuide pathPoints={resolvedPathPoints} targetBooth={selectedBooth} boothPositions={boothPositions} />
 
       <CameraController
         targetBoothPos={targetBoothPos}

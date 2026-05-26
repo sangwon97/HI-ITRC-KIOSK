@@ -19,6 +19,16 @@ const COMPOUND_FINALS = new Map([
   ['ㅂㅅ', 'ㅄ'],
 ]);
 
+const COMPOUND_VOWELS = new Map([
+  ['ㅗㅏ', 'ㅘ'],
+  ['ㅗㅐ', 'ㅙ'],
+  ['ㅗㅣ', 'ㅚ'],
+  ['ㅜㅓ', 'ㅝ'],
+  ['ㅜㅔ', 'ㅞ'],
+  ['ㅜㅣ', 'ㅟ'],
+  ['ㅡㅣ', 'ㅢ'],
+]);
+
 const SPLIT_FINALS = new Map([
   ['ㄳ', ['ㄱ', 'ㅅ']],
   ['ㄵ', ['ㄴ', 'ㅈ']],
@@ -31,6 +41,16 @@ const SPLIT_FINALS = new Map([
   ['ㄿ', ['ㄹ', 'ㅍ']],
   ['ㅀ', ['ㄹ', 'ㅎ']],
   ['ㅄ', ['ㅂ', 'ㅅ']],
+]);
+
+const SPLIT_VOWELS = new Map([
+  ['ㅘ', ['ㅗ', 'ㅏ']],
+  ['ㅙ', ['ㅗ', 'ㅐ']],
+  ['ㅚ', ['ㅗ', 'ㅣ']],
+  ['ㅝ', ['ㅜ', 'ㅓ']],
+  ['ㅞ', ['ㅜ', 'ㅔ']],
+  ['ㅟ', ['ㅜ', 'ㅣ']],
+  ['ㅢ', ['ㅡ', 'ㅣ']],
 ]);
 
 const HANGUL_BASE = 0xac00;
@@ -89,6 +109,14 @@ function splitFinal(finalConsonant) {
   return SPLIT_FINALS.get(finalConsonant) ?? null;
 }
 
+function combineVowel(first, second) {
+  return COMPOUND_VOWELS.get(`${first}${second}`) ?? null;
+}
+
+function splitVowel(vowel) {
+  return SPLIT_VOWELS.get(vowel) ?? null;
+}
+
 export function appendHangulInput(text, input) {
   if (!input) {
     return text;
@@ -112,6 +140,14 @@ export function appendHangulInput(text, input) {
     }
 
     if (lastSyllable) {
+      if (!lastSyllable.jongseong) {
+        const combinedVowel = combineVowel(lastSyllable.jungseong, input);
+        if (combinedVowel) {
+          const composed = composeSyllable(lastSyllable.choseong, combinedVowel);
+          return composed ? `${text.slice(0, -1)}${composed}` : `${text}${input}`;
+        }
+      }
+
       if (lastSyllable.jongseong) {
         const split = splitFinal(lastSyllable.jongseong);
 
@@ -166,6 +202,12 @@ export function removeLastHangulInput(text) {
     const split = splitFinal(lastSyllable.jongseong);
     const nextFinal = split ? split[0] : '';
     const recomposed = composeSyllable(lastSyllable.choseong, lastSyllable.jungseong, nextFinal);
+    return recomposed ? `${text.slice(0, -1)}${recomposed}` : text.slice(0, -1);
+  }
+
+  const split = splitVowel(lastSyllable.jungseong);
+  if (split) {
+    const recomposed = composeSyllable(lastSyllable.choseong, split[0]);
     return recomposed ? `${text.slice(0, -1)}${recomposed}` : text.slice(0, -1);
   }
 

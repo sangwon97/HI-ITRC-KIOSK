@@ -3,6 +3,18 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api/llm': {
+        target: 'http://127.0.0.1:8787',
+        changeOrigin: true,
+      },
+      '/api/rag': {
+        target: 'http://127.0.0.1:8787',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     emptyOutDir: true,   // 빌드 전 dist/ 자동 정리 — 구 파일 잔존 방지
     rollupOptions: {

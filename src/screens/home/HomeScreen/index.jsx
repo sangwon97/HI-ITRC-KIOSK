@@ -13,8 +13,8 @@ const MENU_ITEMS = [
   {
     id: 'search',
     icon: '🔍',
-    title: '부스 검색',
-    desc: '연구센터 · 대학명으로 검색',
+    title: 'AI 검색',
+    desc: '질문으로 관련 부스 추천',
     accent: '#79a8ca',
     gradient: 'linear-gradient(135deg, #5c8fb8, #2e6f9f)',
   },
